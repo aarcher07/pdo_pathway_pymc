@@ -8,6 +8,7 @@ from prior_constants import NORM_PRIOR_STD_RT_SINGLE_EXP,NORM_PRIOR_MEAN_SINGLE_
 import time
 PARAMETER_SAMP_PATH = '/Volumes/Wario/PycharmProjects/pdo_pathway_model/MCMC/output'
 FILE_NAME = '/MCMC_results_data/mass_action/adaptive/preset_std/lambda_0,05_beta_0,01_burn_in_n_cov_2000/nsamples_100000/date_2022_03_04_02_11_52_142790_rank_0.pkl'
+NN = np.sum([val.shape[1]*val.shape[0] for val in DATA_SAMPLES.values()])
 
 def RHS(t, x, params):
     """
@@ -94,9 +95,10 @@ problem = sunode.symode.SympyProblem(
     derivative_params=[ (param,)  for param in PARAMETER_LIST]
 )
 
+
 #
 # The solver generates uses numba and sympy to generate optimized C functions
-solver = sunode.solver.AdjointSolver(problem, solver='BDF')
+solver = sunode.solver.Solver(problem, solver='BDF', sens_mode='simultaneous')
 
 #
 #
@@ -104,7 +106,6 @@ solver = sunode.solver.AdjointSolver(problem, solver='BDF')
 # # to think about how the different variables are stored in the array.
 # # This does not introduce any runtime overhead during solving.
 
-gly_cond = 50
 exp_ind = 1
 N_MODEL_PARAMETERS = 15
 N_DCW_PARAMETERS = 3
@@ -125,66 +126,58 @@ lik_dev_params = np.zeros((N_MODEL_PARAMETERS + 4 + 4*N_DCW_PARAMETERS,))
 for exp_ind, gly_cond in enumerate([50,60,70,80]):
     param_sample = NORM_PRIOR_MEAN_SINGLE_EXP[gly_cond]
     param_sample[:(N_MODEL_PARAMETERS+1)] = [*param_mean_trans[:N_MODEL_PARAMETERS], param_mean_trans[N_MODEL_PARAMETERS + exp_ind]]
+    param_sample[PARAMETER_LIST.index('G_EXT_INIT')] = np.log10(param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
     param_sample[PARAMETER_LIST.index('L')] = np.log10(param_sample[PARAMETER_LIST.index('L')])
     param_sample[PARAMETER_LIST.index('k')] = np.log10(param_sample[PARAMETER_LIST.index('k')]/HRS_TO_SECS)
-    param_sample[PARAMETER_LIST.index('t0')] = np.log10(param_sample[PARAMETER_LIST.index('t0')]*HRS_TO_SECS)
-    param_sample[PARAMETER_LIST.index('t0')] = np.log10((10**param_sample[PARAMETER_LIST.index('L')])/(1+np.exp(10**(param_sample[PARAMETER_LIST.index('k')]+ param_sample[PARAMETER_LIST.index('t0')]))))
+    param_sample[PARAMETER_LIST.index('A')] = np.log10(param_sample[PARAMETER_LIST.index('A')])
     tvals = TIME_SAMPLES[gly_cond]*HRS_TO_SECS
     y0 = np.zeros((), dtype=problem.state_dtype)
-    y0['G_CYTO'] = param_sample[PARAMETER_LIST.index('G_EXT_INIT')]
+    y0['G_CYTO'] = 10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')]
     y0['H_CYTO'] = 0
     y0['P_CYTO'] = INIT_CONDS_GLY_PDO_DCW[gly_cond][1]
     y0['DHAB'] = 10**param_sample[PARAMETER_LIST.index('DHAB_INIT')]
     y0['DHAB_C'] = 0
     y0['DHAT'] = 10**param_sample[PARAMETER_LIST.index('DHAT_INIT')]
     y0['DHAT_C'] = 0
-    y0['G_EXT'] = param_sample[PARAMETER_LIST.index('G_EXT_INIT')]
+    y0['G_EXT'] = 10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')]
     y0['H_EXT'] = 0
     y0['P_EXT'] = INIT_CONDS_GLY_PDO_DCW[gly_cond][1]
-    y0['dcw'] =  10**param_sample[PARAMETER_LIST.index('t0')]
+    y0['dcw'] =  10**param_sample[PARAMETER_LIST.index('A')]
 
     params_dict = { param_name:param_val for param_val,param_name in zip(param_sample, PARAMETER_LIST)}
     # # We can also specify the parameters by name:
     solver.set_params_dict(params_dict)
-    yout, grad_out, lambda_out  = solver.make_output_buffers(tvals)
-
-    # initial sensitivities
-    sens0 = np.zeros((19,11))
-    sens0[PARAMETER_LIST.index('G_EXT_INIT'),VARIABLE_NAMES.index('G_CYTO')] = 1
-    sens0[PARAMETER_LIST.index('G_EXT_INIT'),VARIABLE_NAMES.index('G_EXT')] = 1
-    sens0[PARAMETER_LIST.index('DHAB_INIT'),VARIABLE_NAMES.index('DHAB')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('DHAB_INIT')])
-    sens0[PARAMETER_LIST.index('DHAT_INIT'),VARIABLE_NAMES.index('DHAT')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('DHAT_INIT')])
-    sens0[PARAMETER_LIST.index('t0'),VARIABLE_NAMES.index('dcw')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('t0')])
-
+    yout, sens_out = solver.make_output_buffers(tvals)
     time_start = time.time()
-    solver.solve_forward(t0=0, tvals=tvals, y0=y0, y_out=yout)
+    sens0 = np.zeros((19,11))
+
+    sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_CYTO')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
+    sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_EXT')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
+    sens0[PARAMETER_LIST.index('DHAB_INIT'), VARIABLE_NAMES.index('DHAB')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('DHAB_INIT')])
+    sens0[PARAMETER_LIST.index('DHAT_INIT'), VARIABLE_NAMES.index('DHAT')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('DHAT_INIT')])
+    sens0[PARAMETER_LIST.index('A'), VARIABLE_NAMES.index('dcw')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('A')])
+
+    solver.solve(t0=0, tvals=tvals, y0=y0, y_out=yout, sens0 = sens0, sens_out=sens_out)
     time_end = time.time()
     time_tot += (time_end-time_start)/60
-
-    # Or we can convert it to a numpy record array
-    # for i,var in enumerate(VARIABLE_NAMES):
-    #     plt.plot(tvals/HRS_TO_SECS,yout.view(problem.state_dtype)[var])
-    #     plt.show()
 
     # We can convert the solution to an xarray Dataset
-    grads = np.zeros_like(yout)
-    lik_dev = (DATA_SAMPLES[gly_cond]-yout[:,[7,9,10]])/np.array([15,15,0.1])
-    grads[:,[7,9,10]] = lik_dev
-    print((((DATA_SAMPLES[gly_cond]-yout[:,[7,9,10]])/np.array([15,15,0.1]))**2).sum())
+    lik_dev = (DATA_SAMPLES[gly_cond]-yout[:,[7,9,10]])/(NN*np.array([15,15,0.1])**2)
 
-    # backsolve
+    lik_dev_zeros = np.zeros_like(sens_out[:,0,:])
+    lik_dev_zeros[:,[7,9,10]] = lik_dev
 
-    time_start = time.time()
-    solver.solve_backward(t0=tvals[-1], tend= tvals[0],tvals=tvals[1:-1][::-1], grads=grads, grad_out=grad_out, lamda_out=lambda_out)
-    time_end = time.time()
-    time_tot += (time_end-time_start)/60
-    grad_out = -np.matmul(sens0,lambda_out) + grad_out
     for j,param in enumerate(PARAMETER_LIST):
+        lik_dev_param = (lik_dev_zeros*sens_out[:,j,:]).sum()
         if param == 'G_EXT_INIT':
-            lik_dev_params[N_MODEL_PARAMETERS + exp_ind] = grad_out[j]
-        elif param in ['L','k','t0']:
-            jj = ['L','k','t0'].index(param)
-            lik_dev_params[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + jj ] = grad_out[j]
+            lik_dev_params[N_MODEL_PARAMETERS + exp_ind]+= lik_dev_param
+        elif param in ['L','k','A']:
+            jj = ['L','k','A'].index(param)
+            lik_dev_params[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + jj ]+= lik_dev_param
         else:
-            lik_dev_params[j] = grad_out[j]
+            lik_dev_params[j] += lik_dev_param
+
+print(lik_dev_params[N_MODEL_PARAMETERS:(N_MODEL_PARAMETERS+4)])
+print(lik_dev_params[(N_MODEL_PARAMETERS+4):])
+print(time_tot)
 

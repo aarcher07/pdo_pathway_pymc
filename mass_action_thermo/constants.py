@@ -14,14 +14,19 @@ DCW_TO_CELL_CONCENTRATION = OD_TO_CELL_CONCENTRATION/OD_TO_DCW #number of cell/m
 EXTERNAL_VOLUME = 0.002 # external volume from experiment
 DCW_TO_CELL_COUNT = DCW_TO_CELL_CONCENTRATION*EXTERNAL_VOLUME
 
-PARAMETER_LIST = ['PermCellGlycerol','PermCellPDO','PermCell3HPA',
-                  'k1DhaB', 'k2DhaB', 'k3DhaB', 'k4DhaB',
-                  'k1DhaT', 'k2DhaT', 'k3DhaT', 'k4DhaT',
+MODEL_CONSTANTS = ['PermCellGlycerol','PermCellPDO','PermCell3HPA',
+                  'k1DhaB', 'k2DhaB', 'k3DhaB', 'DeltaGDhaB',
+                  'k1DhaT', 'k2DhaT', 'k3DhaT', 'DeltaGDhaT',
                   'VmaxfMetab', 'KmMetabG',
-                  'DHAB_INIT', 'DHAT_INIT',
-                  'G_EXT_INIT',
-                  'L','k','t0'
                   ]
+
+INIT_CONSTANTS = ['DHAB_INIT',
+                  'DHAT_INIT',
+                  'G_EXT_INIT']
+
+DCW_CONSTANTS = ['L','k','A']
+
+PARAMETER_LIST = [*MODEL_CONSTANTS, *INIT_CONSTANTS, *DCW_CONSTANTS]
 
 VARIABLE_NAMES = ['G_CYTO', 'H_CYTO','P_CYTO',
                    'DHAB', 'DHAB_C',

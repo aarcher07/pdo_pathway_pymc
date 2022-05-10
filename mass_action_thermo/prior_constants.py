@@ -23,12 +23,12 @@ DATA_LOG_UNIF_PARAMETER_RANGES = {'PermCellGlycerol': np.log10([1e-6, 1e-2]),
                                   'k1DhaB': np.log10([1e2, 1e4]),
                                   'k2DhaB': np.log10([1e-1, 1e2]),
                                   'k3DhaB': np.log10([1e2, 1e4]),
-                                  'k4DhaB': np.log10([1e-1, 1e2]),
+                                  'DeltaGDhaB': np.log10([1e7, 1e8]),
 
                                   'k1DhaT': np.log10([1e2, 1e4]),
                                   'k2DhaT': np.log10([1e-1, 1e2]),
                                   'k3DhaT': np.log10([1e2, 1e4]),
-                                  'k4DhaT': np.log10([1e-1, 1e2]),
+                                  'DeltaGDhaT': np.log10([1e7, 1e8]),
 
                                   'VmaxfMetab': np.log10([1e3*0.1, 1e4*10]),
                                   'KmMetabG': np.log10([1e-3,1e-1]),
@@ -36,14 +36,14 @@ DATA_LOG_UNIF_PARAMETER_RANGES = {'PermCellGlycerol': np.log10([1e-6, 1e-2]),
                                   'DHAB_INIT': np.log10([0.1,1e1]),
                                   'DHAT_INIT': np.log10([0.1, 1e1])}
 
-LOG_UNIF_G_EXT_INIT_PRIOR_PARAMETERS = {'G_EXT_INIT_50': [INIT_CONDS_GLY_PDO_DCW[50][0] - 2*15.,
-                                                      INIT_CONDS_GLY_PDO_DCW[50][0] + 2*15.],
-                                    'G_EXT_INIT_60': [INIT_CONDS_GLY_PDO_DCW[60][0] - 2*15,
-                                                      INIT_CONDS_GLY_PDO_DCW[60][0] + 2*15.],
-                                    'G_EXT_INIT_70': [INIT_CONDS_GLY_PDO_DCW[70][0] - 2*15.,
-                                                      INIT_CONDS_GLY_PDO_DCW[70][0] + 2*15.],
-                                    'G_EXT_INIT_80': [INIT_CONDS_GLY_PDO_DCW[80][0] - 2*15.,
-                                                      INIT_CONDS_GLY_PDO_DCW[80][0] + 2*15.]
+LOG_UNIF_G_EXT_INIT_PRIOR_PARAMETERS = {'G_EXT_INIT_50': [np.log10(INIT_CONDS_GLY_PDO_DCW[50][0] - 2*15.),
+                                                          np.log10(INIT_CONDS_GLY_PDO_DCW[50][0] + 2*15.)],
+                                    'G_EXT_INIT_60': [np.log10(INIT_CONDS_GLY_PDO_DCW[60][0] - 2*15),
+                                                      np.log10(INIT_CONDS_GLY_PDO_DCW[60][0] + 2*15.)],
+                                    'G_EXT_INIT_70': [np.log10(INIT_CONDS_GLY_PDO_DCW[70][0] - 2*15.),
+                                                      np.log10(INIT_CONDS_GLY_PDO_DCW[70][0] + 2*15.)],
+                                    'G_EXT_INIT_80': [np.log10(INIT_CONDS_GLY_PDO_DCW[80][0] - 2*15.),
+                                                      np.log10(INIT_CONDS_GLY_PDO_DCW[80][0] + 2*15.)]
                                     }
 
 LOG_UNIF_DCW_PRIOR_PARAMETERS_50 = {param_name + '_50': [np.log10(mean-2*std), np.log10(mean+2*std)] for param_name, mean, std in zip(NORM_DCW_MEAN_PRIOR_TRANS_PARAMETERS.columns,
@@ -84,7 +84,6 @@ LOG_UNIF_PRIOR_ALL_EXP = np.array([*list(DATA_LOG_UNIF_PARAMETER_RANGES.values()
                                    *list(LOG_UNIF_DCW_PRIOR_PARAMETERS_70.values()),
                                    *list(LOG_UNIF_DCW_PRIOR_PARAMETERS_80.values())])
 
-print(LOG_UNIF_PRIOR_ALL_EXP)
 
 
 # Normal model distribution parameters
