@@ -166,15 +166,17 @@ def likelihood(param_vals):
         #         jj+=1
         #     plt.show()
         # We can convert the solution to an xarray Dataset
-        lik_dev += (((DATA_SAMPLES[gly_cond]-yout[:,[7,9,10]])/np.array([15,15,0.1]))**2).sum()/NN
+        lik_dev += 0.5*(((DATA_SAMPLES[gly_cond]-yout[:,[7,9,10]])/(NN*np.array([15,15,0.1])))**2).sum()
     return lik_dev
 
 lik = likelihood(param_vals)
 lik_dev_params = np.zeros_like(param_vals)
-eps = 1e-5
+eps = 1e-1
 for i in range(lik_dev_params.shape[0]):
      shift = np.zeros_like(param_vals)
      shift[i] = eps
      lik_dev_params[i] = (likelihood(param_vals+shift) - lik)/eps
+
+print(lik_dev_params[:N_MODEL_PARAMETERS])
 print(lik_dev_params[N_MODEL_PARAMETERS:(N_MODEL_PARAMETERS+4)])
 print(lik_dev_params[(N_MODEL_PARAMETERS+4):])

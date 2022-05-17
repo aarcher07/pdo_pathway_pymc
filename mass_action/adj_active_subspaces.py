@@ -18,7 +18,6 @@ NN = np.sum([val.shape[1]*val.shape[0] for val in DATA_SAMPLES.values()])
 PARAMETER_SAMP_PATH = '/Volumes/Wario/PycharmProjects/pdo_pathway_model/MCMC/output'
 FILE_NAME = '/MCMC_results_data/mass_action/adaptive/preset_std/lambda_0,05_beta_0,01_burn_in_n_cov_2000/nsamples_100000/date_2022_03_04_02_11_52_142790_rank_0.pkl'
 
-exp_ind = 1
 N_MODEL_PARAMETERS = 15
 N_DCW_PARAMETERS = 3
 N_UNKNOWN_PARAMETERS = 19
@@ -123,7 +122,7 @@ def likelihood_derivative(param_vals):
         param_sample[:N_MODEL_PARAMETERS] = param_vals[:N_MODEL_PARAMETERS]
         param_sample[N_MODEL_PARAMETERS+0] = param_vals[N_MODEL_PARAMETERS + exp_ind]
         param_sample[N_MODEL_PARAMETERS+1] = param_vals[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 0]
-        param_sample[N_MODEL_PARAMETERS+2] = param_vals[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 1]
+        param_sample[N_MODEL_PARAMETERS+2] = param_vals[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 1] - np.log10(HRS_TO_SECS)
         param_sample[N_MODEL_PARAMETERS+3] = param_vals[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 2]
 
         tvals = TIME_SAMPLES[gly_cond]*HRS_TO_SECS
@@ -172,7 +171,7 @@ def likelihood_derivative(param_vals):
 
         # We can convert the solution to an xarray Dataset
         grads = np.zeros_like(yout)
-        lik_dev = (DATA_SAMPLES[gly_cond]-yout[:,[7,9,10]])/(NN*np.array([15,15,0.1]))
+        lik_dev = (DATA_SAMPLES[gly_cond]-yout[:,[7,9,10]])/(NN*np.array([15,15,0.1])**2)
         grads[:,[7,9,10]] = lik_dev
 
         # backsolve

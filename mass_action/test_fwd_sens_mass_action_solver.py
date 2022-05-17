@@ -177,6 +177,7 @@ for exp_ind, gly_cond in enumerate([50,60,70,80]):
         else:
             lik_dev_params[j] += lik_dev_param
 
+print(lik_dev_params[:N_MODEL_PARAMETERS])
 print(lik_dev_params[N_MODEL_PARAMETERS:(N_MODEL_PARAMETERS+4)])
 print(lik_dev_params[(N_MODEL_PARAMETERS+4):])
 print(time_tot)

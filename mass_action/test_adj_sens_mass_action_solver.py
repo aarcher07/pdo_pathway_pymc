@@ -132,6 +132,7 @@ for exp_ind, gly_cond in enumerate([50,60,70,80]):
     param_sample[PARAMETER_LIST.index('L')] = np.log10(param_sample[PARAMETER_LIST.index('L')])
     param_sample[PARAMETER_LIST.index('k')] = np.log10(param_sample[PARAMETER_LIST.index('k')]/HRS_TO_SECS)
     param_sample[PARAMETER_LIST.index('A')] = np.log10(param_sample[PARAMETER_LIST.index('A')])
+    print(param_sample)
     tvals = TIME_SAMPLES[gly_cond]*HRS_TO_SECS
     y0 = np.zeros((), dtype=problem.state_dtype)
     y0['G_CYTO'] = 10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')]
@@ -163,9 +164,9 @@ for exp_ind, gly_cond in enumerate([50,60,70,80]):
     solver.solve_forward(t0=0, tvals=tvals, y0=y0, y_out=yout)
     time_end = time.time()
     time_tot += (time_end-time_start)/60
-
-    # # Or we can convert it to a numpy record array
-    jj=0
+    #
+    # # # Or we can convert it to a numpy record array
+    # jj=0
     # for i,var in enumerate(VARIABLE_NAMES):
     #     plt.plot(tvals/HRS_TO_SECS,yout.view(problem.state_dtype)[var])
     #     if i in [7,9,10]:
@@ -174,7 +175,7 @@ for exp_ind, gly_cond in enumerate([50,60,70,80]):
     #     plt.show()
 
 
-# We can convert the solution to an xarray Dataset
+#We can convert the solution to an xarray Dataset
     grads = np.zeros_like(yout)
     lik_dev = (DATA_SAMPLES[gly_cond]-yout[:,[7,9,10]])/(NN*(np.array([15,15,0.1]))**2)
     grads[:,[7,9,10]] = lik_dev
@@ -195,5 +196,6 @@ for exp_ind, gly_cond in enumerate([50,60,70,80]):
             lik_dev_params[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + jj ] += grad_out[j]
         else:
             lik_dev_params[j] += grad_out[j]
+print(lik_dev_params[:N_MODEL_PARAMETERS])
 print(lik_dev_params[N_MODEL_PARAMETERS:(N_MODEL_PARAMETERS+4)])
 print(lik_dev_params[(N_MODEL_PARAMETERS+4):])

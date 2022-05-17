@@ -32,3 +32,13 @@ VARIABLE_NAMES = ['G_CYTO', 'H_CYTO','P_CYTO',
                    'DHAB', 'DHAB_C',
                    'DHAT', 'DHAT_C',
                    'G_EXT', 'H_EXT','P_EXT', 'dcw']
+
+PERMEABILITY_PARAMETERS = ['PermCellGlycerol','PermCellPDO','PermCell3HPA']
+
+KINETIC_PARAMETERS = ['k1DhaB', 'k2DhaB', 'k3DhaB', 'k4DhaB',
+                      'k1DhaT', 'k2DhaT', 'k3DhaT', 'k4DhaT',
+                      'VmaxfMetab', 'KmMetabG']
+
+ENZYME_CONCENTRATIONS = ['DHAB_INIT', 'DHAT_INIT']
+
+GLYCEROL_EXTERNAL = ['G_EXT_INIT_50', 'G_EXT_INIT_60', 'G_EXT_INIT_70', 'G_EXT_INIT_80']

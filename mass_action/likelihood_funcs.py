@@ -59,7 +59,6 @@ def RHS(t, x, params):
     k2DhaT = 10**params.k2DhaT
     k3DhaT = 10**params.k3DhaT
     k4DhaT = 10**params.k4DhaT
-
     VmaxfMetab = 10**params.VmaxfMetab
     KmMetabG = 10**params.KmMetabG
 
@@ -111,19 +110,16 @@ problem = sunode.symode.SympyProblem(
 
 #
 # The solver generates uses numba and sympy to generate optimized C functions
-solver = sunode.solver.Solver(problem, solver='BDF', sens_mode='simultaneous')
+solver = sunode.solver.AdjointSolver(problem, solver='BDF')
 
-
-
-def likelihood_derivative(param_vals):
-    lik_dev_params = np.zeros((N_MODEL_PARAMETERS + 4 + 4*N_DCW_PARAMETERS,))
+def likelihood(param_vals):
+    loglik = 0
     param_sample = np.zeros(N_UNKNOWN_PARAMETERS)
-    time_tot = 0
     for exp_ind, gly_cond in enumerate([50,60,70,80]):
         param_sample[:N_MODEL_PARAMETERS] = param_vals[:N_MODEL_PARAMETERS]
         param_sample[N_MODEL_PARAMETERS+0] = param_vals[N_MODEL_PARAMETERS + exp_ind]
         param_sample[N_MODEL_PARAMETERS+1] = param_vals[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 0]
-        param_sample[N_MODEL_PARAMETERS+2] = param_vals[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 1]
+        param_sample[N_MODEL_PARAMETERS+2] = param_vals[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 1] - np.log10(HRS_TO_SECS)
         param_sample[N_MODEL_PARAMETERS+3] = param_vals[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 2]
 
         tvals = TIME_SAMPLES[gly_cond]*HRS_TO_SECS
@@ -143,9 +139,9 @@ def likelihood_derivative(param_vals):
         params_dict = { param_name:param_val for param_val,param_name in zip(param_sample, PARAMETER_LIST)}
         # # We can also specify the parameters by name:
         solver.set_params_dict(params_dict)
-        lib.CVodeSStolerances(solver._ode, 1e-6, 1e-6)
+        lib.CVodeSStolerances(solver._ode, 1e-8, 1e-8)
         lib.CVodeSetMaxNumSteps(solver._ode, 5000)
-        yout, sens_out = solver.make_output_buffers(tvals)
+        yout, grad_out, lambda_out = solver.make_output_buffers(tvals)
         sens0 = np.zeros((19,11))
         sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_CYTO')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
         sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_EXT')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
@@ -153,25 +149,7 @@ def likelihood_derivative(param_vals):
         sens0[PARAMETER_LIST.index('DHAT_INIT'), VARIABLE_NAMES.index('DHAT')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('DHAT_INIT')])
         sens0[PARAMETER_LIST.index('A'), VARIABLE_NAMES.index('dcw')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('A')])
 
-        solver.solve(t0=0, tvals=tvals, y0=y0, y_out=yout, sens0 = sens0, sens_out=sens_out)
-        time_end = time.time()
-        time_tot += (time_end-time_start)/60
-
-        # We can convert the solution to an xarray Dataset
-        lik_dev = (DATA_SAMPLES[gly_cond]-yout[:,[7,9,10]])/(NN*np.array([15,15,0.1])**2)
-
-        lik_dev_zeros = np.zeros_like(sens_out[:,0,:])
-        lik_dev_zeros[:,[7,9,10]] = lik_dev
-
-        for j,param in enumerate(PARAMETER_LIST):
-            lik_dev_param = (lik_dev_zeros*sens_out[:,j,:]).sum()
-            if param == 'G_EXT_INIT':
-                lik_dev_params[N_MODEL_PARAMETERS + exp_ind]+= lik_dev_param
-            elif param in ['L','k','A']:
-                jj = ['L','k','A'].index(param)
-                lik_dev_params[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + jj ]+= lik_dev_param
-            else:
-                lik_dev_params[j] += lik_dev_param
+        solver.solve_forward(t0=0, tvals=tvals, y0=y0, y_out=yout)
 
         # jj=0
         # for i,var in enumerate(VARIABLE_NAMES):
@@ -181,56 +159,90 @@ def likelihood_derivative(param_vals):
         #         jj+=1
         #     plt.show()
 
+        loglik += -0.5*(((DATA_SAMPLES[gly_cond]-yout[:,[7,9,10]])/np.array([15,15,0.1]))**2).sum()/NN
+    return loglik
 
 
+def likelihood_derivative(param_vals):
+    lik_dev_params = np.zeros((N_MODEL_PARAMETERS + 4 + 4*N_DCW_PARAMETERS,))
+    param_sample = np.zeros(N_UNKNOWN_PARAMETERS)
+    for exp_ind, gly_cond in enumerate([50,60,70,80]):
+        param_sample[:N_MODEL_PARAMETERS] = param_vals[:N_MODEL_PARAMETERS]
+        param_sample[N_MODEL_PARAMETERS+0] = param_vals[N_MODEL_PARAMETERS + exp_ind]
+        param_sample[N_MODEL_PARAMETERS+1] = param_vals[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 0]
+        param_sample[N_MODEL_PARAMETERS+2] = param_vals[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 1] - np.log10(HRS_TO_SECS)
+        param_sample[N_MODEL_PARAMETERS+3] = param_vals[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 2]
+
+        tvals = TIME_SAMPLES[gly_cond]*HRS_TO_SECS
+        y0 = np.zeros((), dtype=problem.state_dtype)
+        y0['G_CYTO'] = 10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')]
+        y0['H_CYTO'] = 0
+        y0['P_CYTO'] = INIT_CONDS_GLY_PDO_DCW[gly_cond][1]
+        y0['DHAB'] = 10**param_sample[PARAMETER_LIST.index('DHAB_INIT')]
+        y0['DHAB_C'] = 0
+        y0['DHAT'] = 10**param_sample[PARAMETER_LIST.index('DHAT_INIT')]
+        y0['DHAT_C'] = 0
+        y0['G_EXT'] = 10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')]
+        y0['H_EXT'] = 0
+        y0['P_EXT'] = INIT_CONDS_GLY_PDO_DCW[gly_cond][1]
+        y0['dcw'] =  10**param_sample[PARAMETER_LIST.index('A')]
+
+        params_dict = { param_name:param_val for param_val,param_name in zip(param_sample, PARAMETER_LIST)}
+        # # We can also specify the parameters by name:
+        solver.set_params_dict(params_dict)
+        lib.CVodeSStolerances(solver._ode, 1e-8, 1e-8)
+        lib.CVodeSStolerancesB(solver._ode, solver._odeB, 1e-8, 1e-8)
+        lib.CVodeQuadSStolerancesB(solver._ode, solver._odeB, 1e-8, 1e-8)
+        lib.CVodeSetMaxNumSteps(solver._ode, 5000)
+        lib.CVodeSetMaxNumStepsB(solver._ode, solver._odeB, 5000)
+        yout, grad_out, lambda_out = solver.make_output_buffers(tvals)
+        sens0 = np.zeros((19,11))
+        sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_CYTO')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
+        sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_EXT')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
+        sens0[PARAMETER_LIST.index('DHAB_INIT'), VARIABLE_NAMES.index('DHAB')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('DHAB_INIT')])
+        sens0[PARAMETER_LIST.index('DHAT_INIT'), VARIABLE_NAMES.index('DHAT')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('DHAT_INIT')])
+        sens0[PARAMETER_LIST.index('A'), VARIABLE_NAMES.index('dcw')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('A')])
+
+        solver.solve_forward(t0=0, tvals=tvals, y0=y0, y_out=yout)
+        #
+        # jj=0
+        # for i,var in enumerate(VARIABLE_NAMES):
+        #     plt.plot(tvals/HRS_TO_SECS,yout.view(problem.state_dtype)[var])
+        #     if i in [7,9,10]:
+        #         plt.scatter(tvals/HRS_TO_SECS, DATA_SAMPLES[gly_cond][:,jj])
+        #         jj+=1
+        #     plt.show()
+
+
+        # We can convert the solution to an xarray Dataset
+        grads = np.zeros_like(yout)
+        lik_dev = (DATA_SAMPLES[gly_cond]-yout[:,[7,9,10]])/(NN*np.array([15,15,0.1])**2)
+        grads[:,[7,9,10]] = lik_dev
+
+        # backsolve
+        solver.solve_backward(t0=tvals[-1], tend= tvals[0],tvals=tvals[1:-1][::-1],
+                              grads=grads, grad_out=grad_out, lamda_out=lambda_out)
+        grad_out = -np.matmul(sens0,lambda_out) + grad_out
+
+        for j,param in enumerate(PARAMETER_LIST):
+            if param == 'G_EXT_INIT':
+                lik_dev_params[N_MODEL_PARAMETERS + exp_ind] += grad_out[j]
+            elif param in ['L','k','A']:
+                jj = ['L','k','A'].index(param)
+                lik_dev_params[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + jj ] += grad_out[j]
+            else:
+                lik_dev_params[j] += grad_out[j]
     return lik_dev_params
-
-def sample_gradient(N):
-    rng = np.random.default_rng(1)
-    samples = rng.uniform(-1,1,size=(N,N_TOTAL_PARAMETERS))
-    param_samples = samples*(LOG_UNIF_PRIOR_ALL_EXP[:,1] - LOG_UNIF_PRIOR_ALL_EXP[:,0])/2 + \
-                    (LOG_UNIF_PRIOR_ALL_EXP[:,1] + LOG_UNIF_PRIOR_ALL_EXP[:,0])/2
-    lik_dev = []
-    for param_val in param_samples:
-        try:
-            lik_dev.append(likelihood_derivative(param_val))
-        except sunode.solver.SolverError:
-            continue
-
-    lik_dev_array = np.array(lik_dev)
-    lik_dev_array_trans = np.array(lik_dev_array * (2/(LOG_UNIF_PRIOR_ALL_EXP[:,1] - LOG_UNIF_PRIOR_ALL_EXP[:,0])))
-    return np.matmul(lik_dev_array_trans.T,lik_dev_array_trans)/N
-
-N = 10000
-time_start = time.time()
-outer_grad = np.array(sample_gradient(N))
-time_end = time.time()
-print((time_end-time_start)/N)
-w, v = np.linalg.eigh(outer_grad)
-w = np.flip(w)
-v = np.flip(v,axis=1)
-
-plt.bar(range(len(w)), np.log10(w))
-x_axis_labels = [r"$\lambda_{" + str(i + 1) + "}$" for i in range(len(w))]
-plt.yticks(fontsize=20)
-plt.ylabel(r'$\log_{10}(\lambda_i)$', fontsize=20)
-plt.xticks(list(range(len(w))), x_axis_labels, fontsize=7.5)
-plt.savefig('active_subspaces_plots/fwd_eigenvalues_mass_action_Nsamples_' +  str(N), bbox_inches='tight')
-plt.close()
-
-activity_scores = np.log10((v**2).dot(w))
-sort_indices = np.argsort(activity_scores)
-plt.bar(range(len(w)), activity_scores[sort_indices[::-1]])
-plt.yticks(fontsize=20)
-plt.ylabel(r'$\log_{10}(\mathrm{activity}\,\, \mathrm{scores})$', fontsize=10)
-plt.xticks(list(range(len(w))), np.array(list(VARS_ALL_EXP_TO_TEX.values()))[sort_indices[::-1]], fontsize=7.5,
-           rotation = 45)
-plt.savefig('active_subspaces_plots/fwd_activity_scores_mass_action_Nsamples_' +  str(N), bbox_inches='tight')
-plt.close()
-
-plt.imshow(v, cmap="Greys")
-cbar = plt.colorbar()
-plt.yticks(list(range(N_TOTAL_PARAMETERS)), list(VARS_ALL_EXP_TO_TEX.values()), fontsize=10)
-cbar.ax.tick_params(labelsize=10)
-plt.savefig('active_subspaces_plots/fwd_eigenvectors_mass_action_Nsamples_' +  str(N), bbox_inches='tight')
-plt.close()
+#
+# param_sample = NORM_PRIOR_MEAN_ALL_EXP.copy()
+# with open(PARAMETER_SAMP_PATH + FILE_NAME, 'rb') as f:
+#     postdraws = pickle.load(f)
+#     samples = postdraws['samples']
+#     burn_in_subset_samples = samples[int(2e4):]
+#     data_subset = burn_in_subset_samples[::600,:]
+#     param_mean = data_subset.mean(axis=0)
+#     param_mean_trans = np.matmul(NORM_PRIOR_STD_RT_ALL_EXP[:len(param_mean), :len(param_mean)].T, param_mean) + NORM_PRIOR_MEAN_ALL_EXP[
+#                                                                                                                 :len(param_mean)]
+# param_sample[:(N_MODEL_PARAMETERS+4)] = param_mean_trans
+# param_sample[N_MODEL_PARAMETERS:] = np.log10(param_sample[N_MODEL_PARAMETERS:])
+# print(likelihood(param_sample))
