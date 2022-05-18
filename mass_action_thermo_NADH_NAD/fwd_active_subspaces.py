@@ -54,11 +54,12 @@ def RHS(t, x, params):
     k1DhaB = 10**params.k1DhaB
     k2DhaB = 10**params.k2DhaB
     k3DhaB = 10**params.k3DhaB
-    k4DhaB = 10**(-params.DeltaGDhaB - params.k2DhaB + params.k3DhaB + params.k1DhaB)
+    k4DhaB = 10**params.k4DhaB
     k1DhaT = 10**params.k1DhaT
     k2DhaT = 10**params.k2DhaT
     k3DhaT = 10**params.k3DhaT
-    k4DhaT = 10**(-params.DeltaGDhaT - params.k2DhaT + params.k3DhaT + params.k1DhaT)
+    k4DhaT = 10**params.k4DhaT
+
     VmaxfMetab = 10**params.VmaxfMetab
     KmMetabG = 10**params.KmMetabG
 
@@ -110,7 +111,9 @@ problem = sunode.symode.SympyProblem(
 
 #
 # The solver generates uses numba and sympy to generate optimized C functions
-solver = sunode.solver.AdjointSolver(problem, solver='BDF')
+solver = sunode.solver.Solver(problem, solver='BDF', sens_mode='simultaneous')
+
+
 
 def likelihood_derivative(param_vals):
     lik_dev_params = np.zeros((N_MODEL_PARAMETERS + 4 + 4*N_DCW_PARAMETERS,))
@@ -120,7 +123,7 @@ def likelihood_derivative(param_vals):
         param_sample[:N_MODEL_PARAMETERS] = param_vals[:N_MODEL_PARAMETERS]
         param_sample[N_MODEL_PARAMETERS+0] = param_vals[N_MODEL_PARAMETERS + exp_ind]
         param_sample[N_MODEL_PARAMETERS+1] = param_vals[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 0]
-        param_sample[N_MODEL_PARAMETERS+2] = param_vals[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 1] - np.log10(HRS_TO_SECS)
+        param_sample[N_MODEL_PARAMETERS+2] = param_vals[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 1]
         param_sample[N_MODEL_PARAMETERS+3] = param_vals[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 2]
 
         tvals = TIME_SAMPLES[gly_cond]*HRS_TO_SECS
@@ -140,12 +143,9 @@ def likelihood_derivative(param_vals):
         params_dict = { param_name:param_val for param_val,param_name in zip(param_sample, PARAMETER_LIST)}
         # # We can also specify the parameters by name:
         solver.set_params_dict(params_dict)
-        lib.CVodeSStolerances(solver._ode, 1e-8, 1e-8)
-        lib.CVodeSStolerancesB(solver._ode, solver._odeB, 1e-8, 1e-8)
-        lib.CVodeQuadSStolerancesB(solver._ode, solver._odeB, 1e-8, 1e-8)
+        lib.CVodeSStolerances(solver._ode, 1e-6, 1e-6)
         lib.CVodeSetMaxNumSteps(solver._ode, 5000)
-        lib.CVodeSetMaxNumStepsB(solver._ode, solver._odeB, 5000)
-        yout, grad_out, lambda_out = solver.make_output_buffers(tvals)
+        yout, sens_out = solver.make_output_buffers(tvals)
         sens0 = np.zeros((19,11))
         sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_CYTO')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
         sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_EXT')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
@@ -153,10 +153,25 @@ def likelihood_derivative(param_vals):
         sens0[PARAMETER_LIST.index('DHAT_INIT'), VARIABLE_NAMES.index('DHAT')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('DHAT_INIT')])
         sens0[PARAMETER_LIST.index('A'), VARIABLE_NAMES.index('dcw')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('A')])
 
-        time_start = time.time()
-        solver.solve_forward(t0=0, tvals=tvals, y0=y0, y_out=yout)
+        solver.solve(t0=0, tvals=tvals, y0=y0, y_out=yout, sens0 = sens0, sens_out=sens_out)
         time_end = time.time()
         time_tot += (time_end-time_start)/60
+
+        # We can convert the solution to an xarray Dataset
+        lik_dev = (DATA_SAMPLES[gly_cond]-yout[:,[7,9,10]])/(NN*np.array([15,15,0.1])**2)
+
+        lik_dev_zeros = np.zeros_like(sens_out[:,0,:])
+        lik_dev_zeros[:,[7,9,10]] = lik_dev
+
+        for j,param in enumerate(PARAMETER_LIST):
+            lik_dev_param = (lik_dev_zeros*sens_out[:,j,:]).sum()
+            if param == 'G_EXT_INIT':
+                lik_dev_params[N_MODEL_PARAMETERS + exp_ind]+= lik_dev_param
+            elif param in ['L','k','A']:
+                jj = ['L','k','A'].index(param)
+                lik_dev_params[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + jj ]+= lik_dev_param
+            else:
+                lik_dev_params[j] += lik_dev_param
 
         # jj=0
         # for i,var in enumerate(VARIABLE_NAMES):
@@ -167,24 +182,7 @@ def likelihood_derivative(param_vals):
         #     plt.show()
 
 
-        # We can convert the solution to an xarray Dataset
-        grads = np.zeros_like(yout)
-        lik_dev = 0.5*(DATA_SAMPLES[gly_cond]-yout[:,[7,9,10]])/(NN*np.array([15,15,0.1])**2)
-        grads[:,[7,9,10]] = lik_dev
 
-        # backsolve
-        solver.solve_backward(t0=tvals[-1], tend= tvals[0],tvals=tvals[1:-1][::-1],
-                              grads=grads, grad_out=grad_out, lamda_out=lambda_out)
-        grad_out = -np.matmul(sens0,lambda_out) + grad_out
-
-        for j,param in enumerate(PARAMETER_LIST):
-            if param == 'G_EXT_INIT':
-                lik_dev_params[N_MODEL_PARAMETERS + exp_ind] += grad_out[j]
-            elif param in ['L','k','A']:
-                jj = ['L','k','A'].index(param)
-                lik_dev_params[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + jj ] += grad_out[j]
-            else:
-                lik_dev_params[j] += grad_out[j]
     return lik_dev_params
 
 def sample_gradient(N):
@@ -200,6 +198,7 @@ def sample_gradient(N):
             continue
 
     lik_dev_array = np.array(lik_dev)
+    print(len(lik_dev)/N)
     lik_dev_array_trans = np.array(lik_dev_array * (2/(LOG_UNIF_PRIOR_ALL_EXP[:,1] - LOG_UNIF_PRIOR_ALL_EXP[:,0])))
     return np.matmul(lik_dev_array_trans.T,lik_dev_array_trans)/N
 
@@ -217,7 +216,7 @@ x_axis_labels = [r"$\lambda_{" + str(i + 1) + "}$" for i in range(len(w))]
 plt.yticks(fontsize=20)
 plt.ylabel(r'$\log_{10}(\lambda_i)$', fontsize=20)
 plt.xticks(list(range(len(w))), x_axis_labels, fontsize=7.5)
-plt.savefig('active_subspaces_plots/adj_eigenvalues_mass_action_Nsamples_' +  str(N), bbox_inches='tight')
+plt.savefig('active_subspaces_plots/fwd_eigenvalues_mass_action_Nsamples_' +  str(N), bbox_inches='tight')
 plt.close()
 
 activity_scores = np.log10((v**2).dot(w))
@@ -227,12 +226,12 @@ plt.yticks(fontsize=20)
 plt.ylabel(r'$\log_{10}(\mathrm{activity}\,\, \mathrm{scores})$', fontsize=10)
 plt.xticks(list(range(len(w))), np.array(list(VARS_ALL_EXP_TO_TEX.values()))[sort_indices[::-1]], fontsize=7.5,
            rotation = 45)
-plt.savefig('active_subspaces_plots/adj_activity_scores_mass_action_Nsamples_' +  str(N), bbox_inches='tight')
+plt.savefig('active_subspaces_plots/fwd_activity_scores_mass_action_Nsamples_' +  str(N), bbox_inches='tight')
 plt.close()
 
 plt.imshow(v, cmap="Greys")
 cbar = plt.colorbar()
 plt.yticks(list(range(N_TOTAL_PARAMETERS)), list(VARS_ALL_EXP_TO_TEX.values()), fontsize=10)
 cbar.ax.tick_params(labelsize=10)
-plt.savefig('active_subspaces_plots/adj_eigenvectors_mass_action_Nsamples_' +  str(N), bbox_inches='tight')
+plt.savefig('active_subspaces_plots/fwd_eigenvectors_mass_action_Nsamples_' +  str(N), bbox_inches='tight')
 plt.close()

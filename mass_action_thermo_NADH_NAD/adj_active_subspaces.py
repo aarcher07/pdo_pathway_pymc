@@ -169,7 +169,7 @@ def likelihood_derivative(param_vals):
 
         # We can convert the solution to an xarray Dataset
         grads = np.zeros_like(yout)
-        lik_dev = 0.5*(DATA_SAMPLES[gly_cond]-yout[:,[7,9,10]])/(NN*np.array([15,15,0.1])**2)
+        lik_dev = (DATA_SAMPLES[gly_cond]-yout[:,[7,9,10]])/(NN*np.array([15,15,0.1]))
         grads[:,[7,9,10]] = lik_dev
 
         # backsolve
