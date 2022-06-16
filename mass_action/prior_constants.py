@@ -46,19 +46,19 @@ LOG_UNIF_G_EXT_INIT_PRIOR_PARAMETERS = {'G_EXT_INIT_50': [np.log10(INIT_CONDS_GL
                                                       np.log10(INIT_CONDS_GLY_PDO_DCW[80][0] + 2*15.)]
                                     }
 
-LOG_UNIF_DCW_PRIOR_PARAMETERS_50 = {param_name + '_50': [np.log10(mean-2*std), np.log10(mean+2*std)] for param_name, mean, std in zip(NORM_DCW_MEAN_PRIOR_TRANS_PARAMETERS.columns,
+LOG_UNIF_DCW_PRIOR_PARAMETERS_50 = {param_name + '_50': [mean-2*std, mean+2*std] for param_name, mean, std in zip(NORM_DCW_MEAN_PRIOR_TRANS_PARAMETERS.columns,
                                                                                                                                       NORM_DCW_MEAN_PRIOR_TRANS_PARAMETERS.loc[50, :],
                                                                                                                                       NORM_DCW_STD_PRIOR_TRANS_PARAMETERS.loc[50, :])}
 
-LOG_UNIF_DCW_PRIOR_PARAMETERS_60 = {param_name + '_60': [np.log10(mean-2*std), np.log10(mean+2*std)] for param_name, mean, std in zip(NORM_DCW_MEAN_PRIOR_TRANS_PARAMETERS.columns,
+LOG_UNIF_DCW_PRIOR_PARAMETERS_60 = {param_name + '_60': [mean-2*std, mean+2*std] for param_name, mean, std in zip(NORM_DCW_MEAN_PRIOR_TRANS_PARAMETERS.columns,
                                                                                                                                       NORM_DCW_MEAN_PRIOR_TRANS_PARAMETERS.loc[60, :],
                                                                                                                                       NORM_DCW_STD_PRIOR_TRANS_PARAMETERS.loc[60, :])}
 
-LOG_UNIF_DCW_PRIOR_PARAMETERS_70 = {param_name + '_70': [np.log10(mean-2*std), np.log10(mean+2*std)] for param_name, mean, std in zip(NORM_DCW_MEAN_PRIOR_TRANS_PARAMETERS.columns,
+LOG_UNIF_DCW_PRIOR_PARAMETERS_70 = {param_name + '_70': [mean-2*std, mean+2*std] for param_name, mean, std in zip(NORM_DCW_MEAN_PRIOR_TRANS_PARAMETERS.columns,
                                                                                                                                       NORM_DCW_MEAN_PRIOR_TRANS_PARAMETERS.loc[70, :],
                                                                                                                                       NORM_DCW_STD_PRIOR_TRANS_PARAMETERS.loc[70, :])}
 
-LOG_UNIF_DCW_PRIOR_PARAMETERS_80 = {param_name + '_80': [np.log10(mean-2*std), np.log10(mean+2*std)] for param_name, mean, std in zip(NORM_DCW_MEAN_PRIOR_TRANS_PARAMETERS.columns,
+LOG_UNIF_DCW_PRIOR_PARAMETERS_80 = {param_name + '_80': [mean-2*std, mean+2*std] for param_name, mean, std in zip(NORM_DCW_MEAN_PRIOR_TRANS_PARAMETERS.columns,
                                                                                                                                       NORM_DCW_MEAN_PRIOR_TRANS_PARAMETERS.loc[80, :],
                                                                                                                                       NORM_DCW_STD_PRIOR_TRANS_PARAMETERS.loc[80, :])}
 
@@ -100,10 +100,10 @@ LOG_NORM_MODEL_PRIOR_PARAMETERS = {param_name: [LOG_NORM_MODEL_PRIOR_MEAN[param_
                                    for param_name in DATA_LOG_UNIF_PARAMETER_RANGES.keys()}
 
 # Glycerol model distribution parameters
-NORM_G_EXT_INIT_PRIOR_PARAMETERS = {'G_EXT_INIT_50': [INIT_CONDS_GLY_PDO_DCW[50][0], 15.],
-                                    'G_EXT_INIT_60': [INIT_CONDS_GLY_PDO_DCW[60][0], 15.],
-                                    'G_EXT_INIT_70': [INIT_CONDS_GLY_PDO_DCW[70][0], 15.],
-                                    'G_EXT_INIT_80': [INIT_CONDS_GLY_PDO_DCW[80][0], 15.]
+NORM_G_EXT_INIT_PRIOR_PARAMETERS = {'G_EXT_INIT_50': [np.log10(INIT_CONDS_GLY_PDO_DCW[50][0]), np.log10(1 + 15./INIT_CONDS_GLY_PDO_DCW[50][0])],
+                                    'G_EXT_INIT_60': [np.log10(INIT_CONDS_GLY_PDO_DCW[60][0]), np.log10(1 + 15./INIT_CONDS_GLY_PDO_DCW[50][0])],
+                                    'G_EXT_INIT_70': [np.log10(INIT_CONDS_GLY_PDO_DCW[70][0]), np.log10(1 + 15./INIT_CONDS_GLY_PDO_DCW[50][0])],
+                                    'G_EXT_INIT_80': [np.log10(INIT_CONDS_GLY_PDO_DCW[80][0]), np.log10(1 + 15./INIT_CONDS_GLY_PDO_DCW[50][0])]
                                     }
 
 NORM_G_EXT_INIT_PRIOR_MEAN = {param_name: NORM_G_EXT_INIT_PRIOR_PARAMETERS[param_name][0]

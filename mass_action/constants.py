@@ -1,4 +1,5 @@
 import numpy as np
+from exp_data import *
 
 CELL_RADIUS = 0.375e-6
 CELL_LENGTH = 2.47e-6
@@ -42,3 +43,11 @@ KINETIC_PARAMETERS = ['k1DhaB', 'k2DhaB', 'k3DhaB', 'k4DhaB',
 ENZYME_CONCENTRATIONS = ['DHAB_INIT', 'DHAT_INIT']
 
 GLYCEROL_EXTERNAL = ['G_EXT_INIT_50', 'G_EXT_INIT_60', 'G_EXT_INIT_70', 'G_EXT_INIT_80']
+
+TIME_SAMPLES_EXPANDED = {}
+TIME_SPACING = 10
+for exp_cond, time_samps in TIME_SAMPLES.items():
+    time_samps_expanded = [np.linspace(time_samps[i],time_samps[i+1],num=TIME_SPACING, endpoint=False) for i in range(len(time_samps)-1)]
+    time_samps_expanded = list(np.concatenate(time_samps_expanded))
+    time_samps_expanded.append(time_samps[-1])
+    TIME_SAMPLES_EXPANDED[exp_cond] = time_samps
