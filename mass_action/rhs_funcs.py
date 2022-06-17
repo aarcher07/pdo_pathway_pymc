@@ -90,7 +90,7 @@ problem = sunode.symode.SympyProblem(
 
     rhs_sympy=RHS,
 
-    derivative_params=[ (param,)  for param in PARAMETER_LIST]
+    derivative_params=[ (param,)  for param in DEV_PARAMETERS_LIST]
 )
 
 #

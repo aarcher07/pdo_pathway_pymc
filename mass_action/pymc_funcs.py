@@ -17,7 +17,7 @@ import numpy as np
 from datetime import datetime
 from scipy.stats import multivariate_normal
 import pickle
-from likelihood_funcs import likelihood, likelihood_derivative
+from likelihood_funcs_adj import likelihood, likelihood_derivative_adj
 
 ROOT_PATH = dirname(abspath(__file__))
 
@@ -88,7 +88,7 @@ class LogLikeGrad(at.Op):
     def perform(self, node, inputs, outputs):
         (params,) = inputs
         # calculate gradients
-        grads = likelihood_derivative(params)
+        grads = likelihood_derivative_adj(params)
 
         outputs[0][0] = grads
 

@@ -36,29 +36,29 @@ DATA_LOG_UNIF_PARAMETER_RANGES = {'PermCellGlycerol': np.log10([1e-6, 1e-2]),
                                   'DHAB_INIT': np.log10([0.1,1e1]),
                                   'DHAT_INIT': np.log10([0.1, 1e1])}
 
-LOG_UNIF_G_EXT_INIT_PRIOR_PARAMETERS = {'G_EXT_INIT_50': [np.log10(INIT_CONDS_GLY_PDO_DCW[50][0] - 2*15.),
-                                                          np.log10(INIT_CONDS_GLY_PDO_DCW[50][0] + 2*15.)],
-                                    'G_EXT_INIT_60': [np.log10(INIT_CONDS_GLY_PDO_DCW[60][0] - 2*15),
-                                                      np.log10(INIT_CONDS_GLY_PDO_DCW[60][0] + 2*15.)],
-                                    'G_EXT_INIT_70': [np.log10(INIT_CONDS_GLY_PDO_DCW[70][0] - 2*15.),
-                                                      np.log10(INIT_CONDS_GLY_PDO_DCW[70][0] + 2*15.)],
-                                    'G_EXT_INIT_80': [np.log10(INIT_CONDS_GLY_PDO_DCW[80][0] - 2*15.),
-                                                      np.log10(INIT_CONDS_GLY_PDO_DCW[80][0] + 2*15.)]
+LOG_UNIF_G_EXT_INIT_PRIOR_PARAMETERS = {'G_EXT_INIT_50': [np.log10(INIT_CONDS_GLY_PDO_DCW[50][0] - 4*15.),
+                                                          np.log10(INIT_CONDS_GLY_PDO_DCW[50][0] + 4*15.)],
+                                    'G_EXT_INIT_60': [np.log10(INIT_CONDS_GLY_PDO_DCW[60][0] - 4*15),
+                                                      np.log10(INIT_CONDS_GLY_PDO_DCW[60][0] + 4*15.)],
+                                    'G_EXT_INIT_70': [np.log10(INIT_CONDS_GLY_PDO_DCW[70][0] - 4*15.),
+                                                      np.log10(INIT_CONDS_GLY_PDO_DCW[70][0] + 4*15.)],
+                                    'G_EXT_INIT_80': [np.log10(INIT_CONDS_GLY_PDO_DCW[80][0] - 4*15.),
+                                                      np.log10(INIT_CONDS_GLY_PDO_DCW[80][0] + 4*15.)]
                                     }
 
-LOG_UNIF_DCW_PRIOR_PARAMETERS_50 = {param_name + '_50': [mean-2*std, mean+2*std] for param_name, mean, std in zip(NORM_DCW_MEAN_PRIOR_TRANS_PARAMETERS.columns,
+LOG_UNIF_DCW_PRIOR_PARAMETERS_50 = {param_name + '_50': [mean-4*std, mean+4*std] for param_name, mean, std in zip(NORM_DCW_MEAN_PRIOR_TRANS_PARAMETERS.columns,
                                                                                                                                       NORM_DCW_MEAN_PRIOR_TRANS_PARAMETERS.loc[50, :],
                                                                                                                                       NORM_DCW_STD_PRIOR_TRANS_PARAMETERS.loc[50, :])}
 
-LOG_UNIF_DCW_PRIOR_PARAMETERS_60 = {param_name + '_60': [mean-2*std, mean+2*std] for param_name, mean, std in zip(NORM_DCW_MEAN_PRIOR_TRANS_PARAMETERS.columns,
+LOG_UNIF_DCW_PRIOR_PARAMETERS_60 = {param_name + '_60': [mean-4*std, mean+4*std] for param_name, mean, std in zip(NORM_DCW_MEAN_PRIOR_TRANS_PARAMETERS.columns,
                                                                                                                                       NORM_DCW_MEAN_PRIOR_TRANS_PARAMETERS.loc[60, :],
                                                                                                                                       NORM_DCW_STD_PRIOR_TRANS_PARAMETERS.loc[60, :])}
 
-LOG_UNIF_DCW_PRIOR_PARAMETERS_70 = {param_name + '_70': [mean-2*std, mean+2*std] for param_name, mean, std in zip(NORM_DCW_MEAN_PRIOR_TRANS_PARAMETERS.columns,
+LOG_UNIF_DCW_PRIOR_PARAMETERS_70 = {param_name + '_70': [mean-4*std, mean+4*std] for param_name, mean, std in zip(NORM_DCW_MEAN_PRIOR_TRANS_PARAMETERS.columns,
                                                                                                                                       NORM_DCW_MEAN_PRIOR_TRANS_PARAMETERS.loc[70, :],
                                                                                                                                       NORM_DCW_STD_PRIOR_TRANS_PARAMETERS.loc[70, :])}
 
-LOG_UNIF_DCW_PRIOR_PARAMETERS_80 = {param_name + '_80': [mean-2*std, mean+2*std] for param_name, mean, std in zip(NORM_DCW_MEAN_PRIOR_TRANS_PARAMETERS.columns,
+LOG_UNIF_DCW_PRIOR_PARAMETERS_80 = {param_name + '_80': [mean-4*std, mean+4*std] for param_name, mean, std in zip(NORM_DCW_MEAN_PRIOR_TRANS_PARAMETERS.columns,
                                                                                                                                       NORM_DCW_MEAN_PRIOR_TRANS_PARAMETERS.loc[80, :],
                                                                                                                                       NORM_DCW_STD_PRIOR_TRANS_PARAMETERS.loc[80, :])}
 
