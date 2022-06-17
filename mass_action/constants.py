@@ -15,6 +15,11 @@ DCW_TO_CELL_CONCENTRATION = OD_TO_CELL_CONCENTRATION/OD_TO_DCW #number of cell/m
 EXTERNAL_VOLUME = 0.002 # external volume from experiment
 DCW_TO_CELL_COUNT = DCW_TO_CELL_CONCENTRATION*EXTERNAL_VOLUME
 
+N_MODEL_PARAMETERS = 15
+N_DCW_PARAMETERS = 3
+N_UNKNOWN_PARAMETERS = 19
+N_TOTAL_PARAMETERS = 15 + 4 + 12
+
 MODEL_CONSTANTS = ['PermCellGlycerol','PermCellPDO','PermCell3HPA',
                   'k1DhaB', 'k2DhaB', 'k3DhaB', 'k4DhaB',
                   'k1DhaT', 'k2DhaT', 'k3DhaT', 'k4DhaT',
@@ -44,10 +49,11 @@ ENZYME_CONCENTRATIONS = ['DHAB_INIT', 'DHAT_INIT']
 
 GLYCEROL_EXTERNAL = ['G_EXT_INIT_50', 'G_EXT_INIT_60', 'G_EXT_INIT_70', 'G_EXT_INIT_80']
 
+DATA_INDEX = [VARIABLE_NAMES.index('G_EXT'), VARIABLE_NAMES.index('P_EXT'), VARIABLE_NAMES.index('dcw')]
 TIME_SAMPLES_EXPANDED = {}
 TIME_SPACING = 10
 for exp_cond, time_samps in TIME_SAMPLES.items():
     time_samps_expanded = [np.linspace(time_samps[i],time_samps[i+1],num=TIME_SPACING, endpoint=False) for i in range(len(time_samps)-1)]
     time_samps_expanded = list(np.concatenate(time_samps_expanded))
     time_samps_expanded.append(time_samps[-1])
-    TIME_SAMPLES_EXPANDED[exp_cond] = time_samps
+    TIME_SAMPLES_EXPANDED[exp_cond] = np.array(time_samps_expanded)

@@ -19,10 +19,7 @@ PARAMETER_SAMP_PATH = '/Volumes/Wario/PycharmProjects/pdo_pathway_model/MCMC/out
 FILE_NAME = '/MCMC_results_data/mass_action/adaptive/preset_std/lambda_0,05_beta_0,01_burn_in_n_cov_2000/nsamples_100000/date_2022_03_04_02_11_52_142790_rank_0.pkl'
 
 exp_ind = 1
-N_MODEL_PARAMETERS = 15
-N_DCW_PARAMETERS = 3
-N_UNKNOWN_PARAMETERS = 19
-N_TOTAL_PARAMETERS = 15 + 4 + 12
+
 
 def RHS(t, x, params):
     """

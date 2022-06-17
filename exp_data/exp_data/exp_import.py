@@ -23,5 +23,5 @@ with open(ROOT_PATH + '/data_files/std_experimental_data.pkl', 'rb') as f:
 NORM_DCW_MEAN_PRIOR_PARAMETERS = pd.read_csv(ROOT_PATH + '/data_files/dcw_fit_params', index_col = 0)
 NORM_DCW_STD_PRIOR_PARAMETERS = pd.read_csv(ROOT_PATH + '/data_files/dcw_std_params', index_col = 0)
 
-NORM_DCW_MEAN_PRIOR_TRANS_PARAMETERS = pd.read_csv(ROOT_PATH + '/data_files/dcw_fit_params_transformed', index_col = 0)
-NORM_DCW_STD_PRIOR_TRANS_PARAMETERS = pd.read_csv(ROOT_PATH + '/data_files/dcw_std_params_trans', index_col = 0)
+NORM_DCW_MEAN_PRIOR_TRANS_PARAMETERS = pd.read_csv(ROOT_PATH + '/data_files/dcw_mean_params_log_trans', index_col = 0)
+NORM_DCW_STD_PRIOR_TRANS_PARAMETERS = pd.read_csv(ROOT_PATH + '/data_files/dcw_std_params_log_trans', index_col = 0)
