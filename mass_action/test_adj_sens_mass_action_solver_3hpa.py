@@ -73,11 +73,12 @@ for exp_ind, gly_cond in enumerate([50,60,70,80]):
     lik_dev = (DATA_SAMPLES[gly_cond] - yout[::TIME_SPACING, DATA_INDEX])/np.array([15,15,0.1])**2
     grads[::TIME_SPACING, DATA_INDEX] = lik_dev
 
+    cyto_hpa_arg_max = np.argmax(yout[:, VARIABLE_NAMES.index('H_CYTO')])
+    grads[cyto_hpa_arg_max, VARIABLE_NAMES.index('H_CYTO')] =  np.max(yout[:, VARIABLE_NAMES.index('H_CYTO')])
     # backsolve
     time_start = time.time()
     solver.solve_backward(t0=tvals[-1], tend= tvals[0],tvals=tvals[1:-1],
                           grads=grads, grad_out=grad_out, lamda_out=lambda_out)
-    time_end = time.time()
     time_tot += (time_end-time_start)/60
 
     grad_out = -np.matmul(sens0,lambda_out-grads[0,:]) + grad_out
@@ -94,3 +95,4 @@ print(lik_dev_params[:N_MODEL_PARAMETERS])
 print(lik_dev_params[N_MODEL_PARAMETERS:(N_MODEL_PARAMETERS+4)])
 print(lik_dev_params[(N_MODEL_PARAMETERS+4):])
 print(time_tot)
+

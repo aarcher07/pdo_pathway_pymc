@@ -67,10 +67,10 @@ for exp_ind, gly_cond in enumerate([50,60,70,80]):
     time_tot += (time_end-time_start)/60
 
     # We can convert the solution to an xarray Dataset
-    lik_dev = (DATA_SAMPLES[gly_cond]-yout[:,[7,9,10]])/(np.array([15,15,0.1])**2)
+    lik_dev = (DATA_SAMPLES[gly_cond]-yout[:,DATA_INDEX])/(np.array([15,15,0.1])**2)
 
     lik_dev_zeros = np.zeros_like(sens_out[:,0,:])
-    lik_dev_zeros[:,[7,9,10]] = lik_dev
+    lik_dev_zeros[:,DATA_INDEX] = lik_dev
 
     for j,param in enumerate(PARAMETER_LIST):
         lik_dev_param = (lik_dev_zeros*sens_out[:,j,:]).sum()
