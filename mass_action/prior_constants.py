@@ -18,7 +18,7 @@ ROOT_PATH = dirname(dirname(dirname(dirname(abspath(__file__)))))
 
 DATA_LOG_UNIF_PARAMETER_RANGES = {'PermCellGlycerol': np.log10([1e-6, 1e-2]),
                                   'PermCellPDO': np.log10([1e-6, 1e-2]),
-                                  'PermCell3HPA':  np.array([1e-6,np.log10(1e-2)]),
+                                  'PermCell3HPA':  np.log10([1e-6,1e-2]),
 
                                   'k1DhaB': np.log10([1e0, 1e4]),
                                   'k2DhaB': np.log10([1e-2, 1e2]),
