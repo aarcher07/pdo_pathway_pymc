@@ -59,18 +59,18 @@ def likelihood_adj(param_vals, tol=1e-8, mxsteps=int(1e4)):
         sens0[PARAMETER_LIST.index('DHAB_INIT'), VARIABLE_NAMES.index('DHAB')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('DHAB_INIT')])
         sens0[PARAMETER_LIST.index('DHAT_INIT'), VARIABLE_NAMES.index('DHAT')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('DHAT_INIT')])
         # sens0[PARAMETER_LIST.index('A'), VARIABLE_NAMES.index('dcw')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('A')])
-        try:
-            solver.solve_forward(t0=0, tvals=tvals, y0=y0, y_out=yout)
-            # jj=0
-            # for i,var in enumerate(VARIABLE_NAMES):
-            #     if i in DATA_INDEX:
-            #         plt.plot(tvals / HRS_TO_SECS, yout.view(problem.state_dtype)[var])
-            #         plt.scatter(tvals/HRS_TO_SECS, DATA_SAMPLES[gly_cond][:,jj])
-            #         jj+=1
-            #     plt.show()
-            loglik += -0.5*(((DATA_SAMPLES[gly_cond]-yout[:,[7,9,10]])/np.array([15,15,0.1]))**2).sum()
-        except sunode.solver.SolverError:
-            loglik += -np.inf
+
+        solver.solve_forward(t0=0, tvals=tvals, y0=y0, y_out=yout)
+
+        jj=0
+        for i,var in enumerate(VARIABLE_NAMES):
+            if i in DATA_INDEX:
+                plt.plot(tvals / HRS_TO_SECS, yout.view(problem.state_dtype)[var])
+                plt.scatter(tvals/HRS_TO_SECS, DATA_SAMPLES[gly_cond][:,jj])
+                jj+=1
+            plt.show()
+
+        loglik += -0.5*(((DATA_SAMPLES[gly_cond]-yout[:,[7,9,10]])/np.array([15,15,0.1]))**2).sum()
     return loglik
 
 
@@ -93,9 +93,9 @@ def likelihood_derivative_adj(param_vals, tol=1e-8, mxsteps=int(1e4)):
         param_sample = NORM_PRIOR_MEAN_SINGLE_EXP[gly_cond].copy()
         param_sample[:N_MODEL_PARAMETERS] = param_vals_copy[:N_MODEL_PARAMETERS]
         param_sample[N_MODEL_PARAMETERS+0] = param_vals_copy[N_MODEL_PARAMETERS + exp_ind]
-        # param_sample[N_MODEL_PARAMETERS+1] = param_vals_copy[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 0]
-        # param_sample[N_MODEL_PARAMETERS+2] = param_vals_copy[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 1]
-        # param_sample[N_MODEL_PARAMETERS+3] = param_vals_copy[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 2]
+        param_sample[N_MODEL_PARAMETERS+1] = param_vals_copy[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 0]
+        param_sample[N_MODEL_PARAMETERS+2] = param_vals_copy[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 1]
+        param_sample[N_MODEL_PARAMETERS+3] = param_vals_copy[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 2]
 
         tvals = TIME_SAMPLES_EXPANDED[gly_cond] * HRS_TO_SECS
 
@@ -128,26 +128,32 @@ def likelihood_derivative_adj(param_vals, tol=1e-8, mxsteps=int(1e4)):
                     10 ** param_sample[PARAMETER_LIST.index('DHAB_INIT')])
         sens0[PARAMETER_LIST.index('DHAT_INIT'), VARIABLE_NAMES.index('DHAT')] = np.log(10) * (
                     10 ** param_sample[PARAMETER_LIST.index('DHAT_INIT')])
-
+        # sens0[PARAMETER_LIST.index('A'), VARIABLE_NAMES.index('dcw')] = np.log(10) * (
+        #             10 ** param_sample[PARAMETER_LIST.index('A')])
         try:
+
             solver.solve_forward(t0=0, tvals=tvals, y0=y0, y_out=yout)
 
-            # jj=0
-            # for i,var in enumerate(VARIABLE_NAMES):
-            #     if i in DATA_INDEX:
-            #         plt.plot(tvals / HRS_TO_SECS, yout.view(problem.state_dtype)[var])
-            #         plt.scatter(tvals[::TIME_SPACING]/HRS_TO_SECS, DATA_SAMPLES[gly_cond][:,jj])
-            #         jj+=1
-            #     plt.show()
+            jj = 0
+            for i, var in enumerate(VARIABLE_NAMES):
+                if i in DATA_INDEX:
+                    plt.plot(tvals / HRS_TO_SECS, yout.view(problem.state_dtype)[var])
+                    plt.scatter(tvals[::10] / HRS_TO_SECS, DATA_SAMPLES[gly_cond][:, jj])
+                    jj += 1
+                plt.show()
 
+            # initalize grads
             grads = np.zeros_like(yout)
-            lik_dev = (DATA_SAMPLES[gly_cond] - yout[::TIME_SPACING, DATA_INDEX]) / np.array([15, 15, 0.1]) ** 2
+            yout[np.abs(yout) < 1e-3] = 1e-3
+            lik_dev = (np.log(DATA_SAMPLES[gly_cond]/yout[::TIME_SPACING, DATA_INDEX]) / np.array([5e-2, 5e-2, 5e-2]) ** 2)/yout[::TIME_SPACING, DATA_INDEX]
             grads[::TIME_SPACING, DATA_INDEX] = lik_dev
 
             # backsolve
+            time_start = time.time()
             solver.solve_backward(t0=tvals[-1], tend=tvals[0], tvals=tvals[1:-1],
                                   grads=grads, grad_out=grad_out, lamda_out=lambda_out)
-
+            time_end = time.time()
+            time_tot += (time_end - time_start) / 60
 
             grad_out = -np.matmul(sens0, lambda_out - grads[0, :]) + grad_out
         except sunode.solver.SolverError:

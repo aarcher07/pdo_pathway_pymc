@@ -3,12 +3,13 @@ import aesara
 import aesara.tensor as at
 import arviz as az
 import matplotlib.pyplot as plt
+import os
 import pymc as pm
 mpl.rcParams['text.usetex'] = True
 mpl.rcParams['text.latex.preamble'] = r'\usepackage{amsmath}'
 from prior_constants import NORM_PRIOR_STD_RT_SINGLE_EXP,NORM_PRIOR_MEAN_SINGLE_EXP, NORM_PRIOR_STD_RT_ALL_EXP, \
     NORM_PRIOR_MEAN_ALL_EXP, LOG_UNIF_PRIOR_ALL_EXP, DATA_LOG_UNIF_PARAMETER_RANGES, NORM_PRIOR_PARAMETER_ALL_EXP_DICT
-from constants import PERMEABILITY_PARAMETERS, KINETIC_PARAMETERS, ENZYME_CONCENTRATIONS, GLYCEROL_EXTERNAL
+from constants import PERMEABILITY_PARAMETERS, KINETIC_PARAMETERS, ENZYME_CONCENTRATIONS, GLYCEROL_EXTERNAL_EXPERIMENTAL, ALL_PARAMETERS
 import time
 from os.path import dirname, abspath
 import sys
@@ -17,7 +18,8 @@ import numpy as np
 from datetime import datetime
 from scipy.stats import multivariate_normal
 import pickle
-from likelihood_funcs_adj import likelihood, likelihood_derivative_adj
+from likelihood_funcs_adj import likelihood_adj, likelihood_derivative_adj
+from os.path import dirname, abspath
 
 ROOT_PATH = dirname(abspath(__file__))
 
@@ -34,7 +36,7 @@ class LogLike(at.Op):
     itypes = [at.dvector]  # expects a vector of parameter values when called
     otypes = [at.dscalar]  # outputs a single scalar value (the log likelihood)
 
-    def __init__(self, likelihood):
+    def __init__(self, likelihood, tol = 1e-8, mxsteps = int(1e4)):
         """
         Initialise the Op with various things that our log-likelihood function
         requires. Below are the things that are needed in this particular
@@ -52,8 +54,10 @@ class LogLike(at.Op):
         """
 
         # add inputs as class attributes
-        self.likelihood = likelihood
-        self.logpgrad = LogLikeGrad()
+        self.tol = tol
+        self.mxsteps = mxsteps
+        self.likelihood = lambda params: likelihood(params, tol=tol, mxsteps=mxsteps)
+        self.logpgrad = LogLikeGrad(tol=tol, mxsteps=mxsteps)
 
     def perform(self, node, inputs, outputs):
         # the method that is used when calling the Op
@@ -78,24 +82,28 @@ class LogLikeGrad(at.Op):
     itypes = [at.dvector]
     otypes = [at.dvector]
 
-    def __init__(self):
+    def __init__(self, tol = 1e-8, mxsteps = int(1e4)):
         """
         Initialise with various things that the function requires. Below
         are the things that are needed in this particular example.
         """
-        pass
+        self.tol = tol
+        self.mxsteps = mxsteps
 
     def perform(self, node, inputs, outputs):
         (params,) = inputs
         # calculate gradients
         grads = likelihood_derivative_adj(params)
-
         outputs[0][0] = grads
 
 # use PyMC to sampler from log-likelihood
-nsamples = 2
-burn_in = 2
-logl = LogLike(likelihood)
+nsamples = int(1e2)
+burn_in = int(1e2)
+nchains = 2
+acc_rate = 0.8
+tol = 1e-8
+mxsteps = int(1e4)
+logl = LogLike(likelihood_adj, tol=tol, mxsteps=mxsteps)
 with pm.Model():
     permeability_params = [pm.TruncatedNormal(param_name, mu=NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][0],
                                               sigma= NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][1],
@@ -103,51 +111,42 @@ with pm.Model():
                                               upper=DATA_LOG_UNIF_PARAMETER_RANGES[param_name][1])
                            for param_name in PERMEABILITY_PARAMETERS]
 
-    kinetic_params = [pm.Normal(param_name, mu = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][0],
-                                sigma = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][1])
+    kinetic_params = [pm.TruncatedNormal(param_name, mu = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][0],
+                                sigma = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][1], lower = -7, upper = 7)
                       for param_name in KINETIC_PARAMETERS]
 
     enzyme_init = [pm.TruncatedNormal(param_name, mu = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][0],
-                             sigma = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][1], upper = 1)
+                             sigma = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][1], upper = -4, lower = 2)
                    for param_name in ENZYME_CONCENTRATIONS]
 
-    gly_init = [pm.Normal(param_name, mu = np.log10(NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][0])
-                                           - NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][1]**2/(2*NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][0]**2),
-                          sigma = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][1]**2/NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][0]**2)
-                for param_name in GLYCEROL_EXTERNAL]
+    gly_init = [pm.Normal(param_name, mu = 0,sigma = 4) for param_name in GLYCEROL_EXTERNAL_EXPERIMENTAL]
 
     variables = [*permeability_params, *kinetic_params, *enzyme_init, *gly_init]
-    print(variables)
 
-    # variables = pm.MvNormal("variables", mu=np.zeros(N_UNKNOWN_PARAMETERS), cov=np.diag(np.ones(N_UNKNOWN_PARAMETERS)))
     # convert m and c to a tensor vector
     theta = at.as_tensor_variable(variables)
     # use a Potential to "call" the Op and include it in the logp computation
     pm.Potential("likelihood", logl(theta))
-    idata_mh = pm.sample(draws=int(nsamples),cores=1,chains=1, tune=int(burn_in))
-    #idata_mh = pm.sample_smc(3,parallel=True,chains=2,n_steps=2)
+    idata_nuts = pm.sample(draws=int(nsamples),cores=nchains,chains=nchains, tune=int(burn_in), target_accept=acc_rate)
 
 
-# # create our Op
-# PARAMETER_SAMP_PATH = '/Volumes/Wario/PycharmProjects/pdo_pathway_model/MCMC/output'
-# FILE_NAME = '/MCMC_results_data/mass_action/adaptive/preset_std/lambda_0,05_beta_0,01_burn_in_n_cov_2000/nsamples_100000/date_2022_03_04_02_11_52_142790_rank_0.pkl'
-#
-# N_MODEL_PARAMETERS = 15
-# N_DCW_PARAMETERS = 3
-# N_UNKNOWN_PARAMETERS = 19
-# N_TOTAL_PARAMETERS = 15 + 4 + 12
-#
-# param_sample = NORM_PRIOR_MEAN_ALL_EXP.copy()
-# with open(PARAMETER_SAMP_PATH + FILE_NAME, 'rb') as f:
-#     postdraws = pickle.load(f)
-#     samples = postdraws['samples']
-#     burn_in_subset_samples = samples[int(2e4):]
-#     data_subset = burn_in_subset_samples[::600,:]
-#     param_mean = data_subset.mean(axis=0)
-#     param_mean_trans = np.matmul(NORM_PRIOR_STD_RT_ALL_EXP[:len(param_mean), :len(param_mean)].T, param_mean) + NORM_PRIOR_MEAN_ALL_EXP[
-#                                                                                                                 :len(param_mean)]
-# param_sample[:(N_MODEL_PARAMETERS+4)] = param_mean_trans
-# param_sample[N_MODEL_PARAMETERS:] = np.log10(param_sample[N_MODEL_PARAMETERS:])
-# print(likelihood(param_sample))
-# logl = LogLike(likelihood)
-# print(logl.likelihood(param_sample))
+# save samples
+PARAMETER_SAMP_PATH = ROOT_PATH + '/samples'
+directory_name = 'nsamples_' + str(nsamples) + '_burn_in_' + str(burn_in) + '_acc_rate_' + str(acc_rate) +\
+                 '_nchains_' + str(nchains)
+date_string = datetime.now().strftime("%Y_%m_%d_%H_%M_%S_%f") + '.pkl'
+file_name = "tol_" + str(tol) + '_mxsteps_' + str(mxsteps) + '_' + date_string
+sample_file_location = os.path.join(PARAMETER_SAMP_PATH, directory_name)
+Path(sample_file_location).mkdir(parents=True, exist_ok=True)
+idata_nuts.to_netcdf(os.path.join(sample_file_location,date_string))
+
+# save trace plots
+PLOT_SAMP_PATH = ROOT_PATH + '/prelim_trace_plots'
+plot_file_location = os.path.join(PLOT_SAMP_PATH, directory_name, date_string[:-3])
+Path(plot_file_location).mkdir(parents=True, exist_ok=True)
+
+n_display = 10
+for i in range(int(np.ceil(len(ALL_PARAMETERS)/n_display))):
+    az.plot_trace(idata_nuts, var_names=ALL_PARAMETERS[(n_display*i):(n_display*(i+1))], compact=True)
+    plt.savefig(os.path.join(plot_file_location,"trace_plot_" + str(i) + ".jpg"))
+print(az.summary(idata_nuts))
