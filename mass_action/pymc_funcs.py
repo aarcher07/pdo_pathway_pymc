@@ -141,6 +141,7 @@ if __name__ == '__main__':
     PARAMETER_SAMP_PATH = ROOT_PATH + '/samples'
     directory_name = 'nsamples_' + str(nsamples) + '_burn_in_' + str(burn_in) + '_acc_rate_' + str(acc_rate) +\
                      '_nchains_' + str(nchains)
+    directory_name.replace('.','_')
     date_string = datetime.now().strftime("%Y_%m_%d_%H_%M_%S_%f") + '.pkl'
     file_name = "tol_" + str(tol) + '_mxsteps_' + str(mxsteps) + '_' + date_string
     sample_file_location = os.path.join(PARAMETER_SAMP_PATH, directory_name)
@@ -149,7 +150,7 @@ if __name__ == '__main__':
 
     # save trace plots
     PLOT_SAMP_PATH = ROOT_PATH + '/prelim_trace_plots'
-    plot_file_location = os.path.join(PLOT_SAMP_PATH, directory_name, date_string[:-3])
+    plot_file_location = os.path.join(PLOT_SAMP_PATH, directory_name, date_string[:-4])
     Path(plot_file_location).mkdir(parents=True, exist_ok=True)
 
     n_display = 10
