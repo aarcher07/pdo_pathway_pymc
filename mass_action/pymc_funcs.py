@@ -141,7 +141,8 @@ if __name__ == '__main__':
     PARAMETER_SAMP_PATH = ROOT_PATH + '/samples'
     directory_name = 'nsamples_' + str(nsamples) + '_burn_in_' + str(burn_in) + '_acc_rate_' + str(acc_rate) +\
                      '_nchains_' + str(nchains)
-    directory_name.replace('.','_')
+    directory_name = directory_name.replace('.','_')
+
     date_string = datetime.now().strftime("%Y_%m_%d_%H_%M_%S_%f") + '.nc'
     file_name = "tol_" + str(tol) + '_mxsteps_' + str(mxsteps) + '_' + date_string
     sample_file_location = os.path.join(PARAMETER_SAMP_PATH, directory_name)

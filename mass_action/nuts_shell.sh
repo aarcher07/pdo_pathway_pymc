@@ -4,7 +4,7 @@
 #SBATCH --nodes=1
 #SBATCH --array=1-12
 #SBATCH --ntasks=2
-#SBATCH --time=00-01:00:00
+#SBATCH --time=05-00:00:00
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=andrearcher2017@u.northwestern.edu
 #SBATCH --mem-per-cpu=10GB
@@ -12,12 +12,12 @@
 #SBATCH --output=out/mass_action_out_%A_%a
 #SBATCH --error=err/mass_action_err_%A_%a
 
-nsamples=(1e0 2e0)
-burn_in=(1e0 2e0)
+nsamples=(5e5 1e4)
+burn_in=(5e5 1e4)
 nchains=2
-acc_rate=(0.7 0.8 0.9)
+acc_rate=(0.8 0.85 0.9)
 tol=1e-8
-mxsteps=1e4
+mxsteps=5e4
 
 len_nsamples=${#nsamples[@]}
 len_burn_in=${#burn_in[@]}
