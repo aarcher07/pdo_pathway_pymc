@@ -51,3 +51,4 @@ docs/_build/
 *.png
 *.jpg
 *.nc
+*.pkl
