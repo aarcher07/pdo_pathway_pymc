@@ -18,7 +18,7 @@ import numpy as np
 from datetime import datetime
 from scipy.stats import multivariate_normal
 import pickle
-from likelihood_funcs_adj_tempered import likelihood_adj, likelihood_derivative_adj
+from likelihood_funcs_adj import likelihood_adj, likelihood_derivative_adj
 from os.path import dirname, abspath
 
 ROOT_PATH = dirname(abspath(__file__))
