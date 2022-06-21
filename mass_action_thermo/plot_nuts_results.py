@@ -4,8 +4,6 @@ import aesara.tensor as at
 import arviz as az
 import matplotlib.pyplot as plt
 import os
-import seaborn as sns
-
 import pymc as pm
 mpl.rcParams['text.usetex'] = True
 mpl.rcParams['text.latex.preamble'] = r'\usepackage{amsmath}'
@@ -27,10 +25,8 @@ from likelihood_funcs_adj import likelihood_adj, likelihood_derivative_adj
 from os.path import dirname, abspath
 from exp_data import *
 from rhs_funcs import RHS, lib, problem, solver
-import pandas as pd
-from formatting_constants import VARS_ALL_EXP_TO_TEX
+
 ROOT_PATH = dirname(abspath(__file__))
-from pandas.plotting import scatter_matrix
 
 nsamples = 5000
 burn_in = 1000
@@ -62,6 +58,7 @@ Path(plot_file_location).mkdir(parents=True, exist_ok=True)
 #     ax[i, 1].set_title('Trajectory of Log-Likelihood')
 # fig.tight_layout()
 # plt.savefig(os.path.join(plot_file_location, 'loglik_plot_individual.png'))
+# plt.close()
 #
 # fig, ax = plt.subplots(1,2)
 # for i in range(nchains):
@@ -73,7 +70,7 @@ Path(plot_file_location).mkdir(parents=True, exist_ok=True)
 # ax[0].legend(['chain ' + str(i) for i in range(nchains)])
 # ax[1].legend(['chain ' + str(i) for i in range(nchains)])
 # plt.savefig(os.path.join(plot_file_location, 'loglik_plot_overlay.png'))
-
+# plt.close()
 # for exp_ind, gly_cond in enumerate([50, 60, 70, 80]):
 #     fig, ax = plt.subplots(5, min(5, nchains))
 #     for chain_ind in range(nchains):
@@ -131,60 +128,7 @@ Path(plot_file_location).mkdir(parents=True, exist_ok=True)
 #     plt.suptitle('Initial Glycerol ' + str(gly_cond) + ' g/L')
 #     fig.tight_layout()
 #     plt.savefig(os.path.join(plot_file_location, 'time_series_results_' + str(gly_cond) + '.png'))
+#     plt.close()
 
-def plot_corr(data, directory_plot, plot_preamble, thres=5e-2):
-    fig, ax = plt.subplots()
-    data_corr = np.corrcoef(data.to_numpy().T)
-    # matrix = data_corr
-
-    for i in range(data_corr.shape[0]):
-        for j in range(data_corr.shape[1]):
-            if np.abs(data_corr[i,j]) < thres:
-                data_corr[i,j] = np.nan
-
-
-    # using diag as mask
-    ax = sns.heatmap(data_corr, mask = np.eye(len(ALL_PARAMETERS)), annot=True, cmap="YlGnBu", vmin=-1, vmax=1, annot_kws={"size":15},fmt='.1g')
-    xticks = [(i + 0.5) for i in range(len(ALL_PARAMETERS))]
-    yticks = [(i + 0.5) for i in range(len(ALL_PARAMETERS))]
-    plt.xticks(xticks, [VARS_ALL_EXP_TO_TEX[key] for key in ALL_PARAMETERS], fontsize=15,
-               rotation = -25)
-    plt.yticks(yticks, [VARS_ALL_EXP_TO_TEX[key] for key in ALL_PARAMETERS], fontsize=15,
-               rotation = 45, ha="right")
-    plt.title('Correlation Matrix of Posterior Samples', fontsize=20)
-    cbar = ax.collections[0].colorbar
-    cbar.ax.tick_params(labelsize=20)
-    fig.set_size_inches(15, 9.5, forward=True)
-    plt.savefig(directory_plot + '/correlation_plot_' + plot_preamble , bbox_inches="tight")
-    plt.close()
-
-def plot_corr_scatter(data, directory_plot, plot_preamble):
-    # data_array = pd.DataFrame(np.array([data[:, i] for i in range(len(ALL_PARAMETERS))]).T, columns=ALL_PARAMETERS)
-    axes = scatter_matrix(data, alpha=0.2, figsize=(len(ALL_PARAMETERS), len(ALL_PARAMETERS)),
-                          diagonal='kde')
-    for i in range(np.shape(axes)[0]):
-        for j in range(np.shape(axes)[1]):
-            if i < j:
-                axes[i, j].set_visible(False)
-            xlab_curr = axes[i, j].get_xlabel()
-            ylab_curr = axes[i, j].get_ylabel()
-            axes[i, j].set_xlabel(VARS_ALL_EXP_TO_TEX[xlab_curr])
-            axes[i, j].set_ylabel(VARS_ALL_EXP_TO_TEX[ylab_curr])
-
-            axes[i, j].xaxis.label.set_rotation(-25)
-            axes[i, j].xaxis.label.set_fontsize(20)
-            axes[i, j].yaxis.label.set_rotation(45)
-            axes[i, j].yaxis.label.set_ha('right')
-            axes[i, j].yaxis.label.set_fontsize(20)
-            axes[i, j].tick_params(axis="x", labelsize=20, rotation=0)
-            axes[i, j].tick_params(axis="y", labelsize=20)
-
-    plt.suptitle('Scatter Plot Matrix of Posterior Samples', fontsize=20)
-    plt.savefig(directory_plot + '/correlation_scatter_plot_' + plot_preamble, bbox_inches="tight")
-    plt.close()
-
-for chain_ind in range(nchains):
-    dataarray = samples.posterior.to_dataframe().loc[[chain_ind]]
-    dataarray = dataarray[ALL_PARAMETERS]
-    plot_corr(dataarray, plot_file_location, 'chain' + str(chain_ind))
-    plot_corr_scatter(dataarray, plot_file_location, 'chain' + str(chain_ind))
+az.plot_pair(samples,divergences=True,textsize=18)
+plt.show()

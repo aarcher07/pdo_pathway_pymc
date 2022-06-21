@@ -13,12 +13,12 @@ param_sample_copy = param_sample.copy()
 gly_init_val = param_sample[N_MODEL_PARAMETERS:(N_MODEL_PARAMETERS + 4)]
 for i, ((lower, upper), gly_init) in enumerate(zip(LOG_UNIF_G_EXT_INIT_PRIOR_PARAMETERS.values(), gly_init_val)):
     param_sample_copy[N_MODEL_PARAMETERS + i] = np.log((gly_init-lower)/(upper - gly_init))
-print(param_sample)
+
 print(likelihood_fwd(param_sample_copy[:(N_MODEL_PARAMETERS+4)]))
 print(likelihood_adj(param_sample_copy[:(N_MODEL_PARAMETERS+4)]))
 
 lik_fwd = likelihood_derivative_fwd(param_sample_copy[:(N_MODEL_PARAMETERS+4)])
-lik_adj = likelihood_derivative_adj(param_sample_copy[:(N_MODEL_PARAMETERS+4)])
+lik_adj = likelihood_derivative_adj(param_sample_copy[:(N_MODEL_PARAMETERS+4)], tol=1e-6, mxsteps=int(1e4))
 lik_diff = lik_fwd - lik_adj
 lik_rel_diff = np.abs(lik_diff)/np.abs(lik_fwd)
 

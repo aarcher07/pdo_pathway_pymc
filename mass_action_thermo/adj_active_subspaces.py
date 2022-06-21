@@ -18,7 +18,6 @@ NN = np.sum([val.shape[1]*val.shape[0] for val in DATA_SAMPLES.values()])
 PARAMETER_SAMP_PATH = '/Volumes/Wario/PycharmProjects/pdo_pathway_model/MCMC/output'
 FILE_NAME = '/MCMC_results_data/mass_action/adaptive/preset_std/lambda_0,05_beta_0,01_burn_in_n_cov_2000/nsamples_100000/date_2022_03_04_02_11_52_142790_rank_0.pkl'
 
-exp_ind = 1
 N_MODEL_PARAMETERS = 15
 N_DCW_PARAMETERS = 3
 N_UNKNOWN_PARAMETERS = 19
@@ -54,11 +53,12 @@ def RHS(t, x, params):
     k1DhaB = 10**params.k1DhaB
     k2DhaB = 10**params.k2DhaB
     k3DhaB = 10**params.k3DhaB
-    k4DhaB = 10**(-params.DeltaGDhaB - params.k2DhaB + params.k3DhaB + params.k1DhaB)
+    k4DhaB = 10**params.k4DhaB
     k1DhaT = 10**params.k1DhaT
     k2DhaT = 10**params.k2DhaT
     k3DhaT = 10**params.k3DhaT
-    k4DhaT = 10**(-params.DeltaGDhaT - params.k2DhaT + params.k3DhaT + params.k1DhaT)
+    k4DhaT = 10**params.k4DhaT
+
     VmaxfMetab = 10**params.VmaxfMetab
     KmMetabG = 10**params.KmMetabG
 
@@ -111,6 +111,8 @@ problem = sunode.symode.SympyProblem(
 #
 # The solver generates uses numba and sympy to generate optimized C functions
 solver = sunode.solver.AdjointSolver(problem, solver='BDF')
+
+
 
 def likelihood_derivative(param_vals):
     lik_dev_params = np.zeros((N_MODEL_PARAMETERS + 4 + 4*N_DCW_PARAMETERS,))
@@ -169,7 +171,7 @@ def likelihood_derivative(param_vals):
 
         # We can convert the solution to an xarray Dataset
         grads = np.zeros_like(yout)
-        lik_dev = 0.5*(DATA_SAMPLES[gly_cond]-yout[:,[7,9,10]])/(NN*np.array([15,15,0.1])**2)
+        lik_dev = (DATA_SAMPLES[gly_cond]-yout[:,[7,9,10]])/(NN*np.array([15,15,0.1])**2)
         grads[:,[7,9,10]] = lik_dev
 
         # backsolve
@@ -203,7 +205,7 @@ def sample_gradient(N):
     lik_dev_array_trans = np.array(lik_dev_array * (2/(LOG_UNIF_PRIOR_ALL_EXP[:,1] - LOG_UNIF_PRIOR_ALL_EXP[:,0])))
     return np.matmul(lik_dev_array_trans.T,lik_dev_array_trans)/N
 
-N = 10000
+N = 50000
 time_start = time.time()
 outer_grad = np.array(sample_gradient(N))
 time_end = time.time()

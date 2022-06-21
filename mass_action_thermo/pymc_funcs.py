@@ -9,7 +9,8 @@ mpl.rcParams['text.usetex'] = True
 mpl.rcParams['text.latex.preamble'] = r'\usepackage{amsmath}'
 from prior_constants import NORM_PRIOR_STD_RT_SINGLE_EXP,NORM_PRIOR_MEAN_SINGLE_EXP, NORM_PRIOR_STD_RT_ALL_EXP, \
     NORM_PRIOR_MEAN_ALL_EXP, LOG_UNIF_PRIOR_ALL_EXP, DATA_LOG_UNIF_PARAMETER_RANGES, NORM_PRIOR_PARAMETER_ALL_EXP_DICT
-from constants import PERMEABILITY_PARAMETERS, KINETIC_PARAMETERS, ENZYME_CONCENTRATIONS, GLYCEROL_EXTERNAL_EXPERIMENTAL, ALL_PARAMETERS
+from constants import PERMEABILITY_PARAMETERS, KINETIC_PARAMETERS, ENZYME_CONCENTRATIONS, GLYCEROL_EXTERNAL_EXPERIMENTAL, \
+    ALL_PARAMETERS, THERMO_PARAMETERS
 import time
 from os.path import dirname, abspath
 import sys
@@ -18,7 +19,7 @@ import numpy as np
 from datetime import datetime
 from scipy.stats import multivariate_normal
 import pickle
-from likelihood_funcs_adj_tempered import likelihood_adj, likelihood_derivative_adj
+from likelihood_funcs_adj import likelihood_adj, likelihood_derivative_adj
 from os.path import dirname, abspath
 
 ROOT_PATH = dirname(abspath(__file__))
@@ -109,6 +110,8 @@ def sample(nsamples, burn_in, nchains, acc_rate=0.8, tol=1e-8, mxsteps=int(2e4))
 
         kinetic_params = [pm.TruncatedNormal(param_name, mu = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][0],
                                     sigma = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][1], lower = -7, upper = 7)
+                          if param_name not in THERMO_PARAMETERS else pm.Uniform(lower= DATA_LOG_UNIF_PARAMETER_RANGES[param_name][0],
+                                                                                 upper=DATA_LOG_UNIF_PARAMETER_RANGES[param_name][1])
                           for param_name in KINETIC_PARAMETERS]
 
         enzyme_init = [pm.TruncatedNormal(param_name, mu = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][0],

@@ -12,8 +12,8 @@
 #SBATCH --output=out/mass_action_out_%A_%a
 #SBATCH --error=err/mass_action_err_%A_%a
 
-nsamples=(5e3 1e4)
-burn_in=(5e3 1e4)
+nsamples=(5e5 1e4)
+burn_in=(5e5 1e4)
 nchains=2
 acc_rate=(0.8 0.85 0.9)
 tol=1e-8

@@ -198,6 +198,7 @@ def sample_gradient(N):
             continue
 
     lik_dev_array = np.array(lik_dev)
+    print(len(lik_dev)/N)
     lik_dev_array_trans = np.array(lik_dev_array * (2/(LOG_UNIF_PRIOR_ALL_EXP[:,1] - LOG_UNIF_PRIOR_ALL_EXP[:,0])))
     return np.matmul(lik_dev_array_trans.T,lik_dev_array_trans)/N
 
