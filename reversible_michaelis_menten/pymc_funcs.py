@@ -18,7 +18,7 @@ import numpy as np
 from datetime import datetime
 from scipy.stats import multivariate_normal
 import pickle
-from likelihood_funcs_adj import likelihood_adj, likelihood_derivative_adj
+from likelihood_funcs_fwd import likelihood_fwd, likelihood_derivative_fwd
 from os.path import dirname, abspath
 
 ROOT_PATH = dirname(abspath(__file__))
@@ -93,13 +93,13 @@ class LogLikeGrad(at.Op):
     def perform(self, node, inputs, outputs):
         (params,) = inputs
         # calculate gradients
-        grads = likelihood_derivative_adj(params)
+        grads = likelihood_derivative_fwd(params)
         outputs[0][0] = grads
 
 def sample(nsamples, burn_in, nchains, acc_rate=0.8, tol=1e-8, mxsteps=int(2e4)):
     # use PyMC to sampler from log-likelihood
 
-    logl = LogLike(likelihood_adj, tol=tol, mxsteps=mxsteps)
+    logl = LogLike(likelihood_fwd, tol=tol, mxsteps=mxsteps)
     with pm.Model():
         permeability_params = [pm.TruncatedNormal(param_name, mu=NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][0],
                                                   sigma= NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][1],

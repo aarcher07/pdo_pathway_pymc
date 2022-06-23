@@ -10,7 +10,7 @@
 #SBATCH --mem-per-cpu=10GB
 #SBATCH --job-name=mass_action_%A_%a
 #SBATCH --output=out/mass_action_out_%A_%a
-#SBATCH --error=err/mass_action_err_%A_%a
+#SBATCH --error=err/c%A_%a
 
 nsamples=(5e5 1e4)
 burn_in=(5e5 1e4)

@@ -26,7 +26,6 @@ def likelihood_fwd(param_vals, tol = 1e-8, mxsteps = int(1e4)):
     gly_init_val = param_vals[N_MODEL_PARAMETERS:(N_MODEL_PARAMETERS+4)]
     for i,((lower,upper),gly_init) in enumerate(zip(LOG_UNIF_G_EXT_INIT_PRIOR_PARAMETERS.values(),gly_init_val)):
         param_vals_copy[N_MODEL_PARAMETERS + i] = lower + (upper - lower)/(1+np.exp(-gly_init))
-
     for exp_ind, gly_cond in enumerate([50,60,70,80]):
         param_sample = NORM_PRIOR_MEAN_SINGLE_EXP[gly_cond].copy()
         param_sample[:N_MODEL_PARAMETERS] = param_vals_copy[:N_MODEL_PARAMETERS]

@@ -15,7 +15,7 @@ MODEL_PARAMS_TO_TEX = {'PermCellGlycerol':r'$P_G$',
                        'VmaxfMetab': r'$V_{\mathrm{max,Metab}}^{f}$',
                        'KmMetabG': r'$K_{\mathrm{M,Metab}}^{G}$',
                        'DHAB_INIT': r'$[\mathrm{DhaB}](0)$',
-                       'DHAT_INIT' : r'$[\mathrm{DhaB}](0)$'}
+                       'DHAT_INIT' : r'$[\mathrm{DhaT}](0)$'}
 
 G_EXT_INIT_TO_TEX = {'G_EXT_INIT_50': r"$G_1(0)$",
                      'G_EXT_INIT_60': r"$G_2(0)$",
