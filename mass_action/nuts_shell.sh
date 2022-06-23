@@ -2,7 +2,7 @@
 #SBATCH --account=b1020
 #SBATCH --partition=b1020
 #SBATCH --nodes=1
-#SBATCH --array=1-16
+#SBATCH --array=1-36
 #SBATCH --ntasks=3
 #SBATCH --time=05-00:00:00
 #SBATCH --mail-type=ALL
@@ -12,10 +12,10 @@
 #SBATCH --output=out/mass_action_out_%A_%a
 #SBATCH --error=err/mass_action_err_%A_%a
 
-nsamples=(2 3)
-burn_in=(3 4)
+nsamples=(3e3 4e3)
+burn_in=(3e3 4e3 5e3)
 nchains=2
-acc_rate=(0.65 0.7 )
+acc_rate=(0.65 0.7 0.8)
 atol=(1e-8 1e-10)
 rtol=(1e-8)
 mxsteps=1e5
