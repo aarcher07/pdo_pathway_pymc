@@ -19,6 +19,7 @@ acc_rate=(0.65 0.7 )
 atol=(1e-8 1e-10)
 rtol=(1e-8)
 mxsteps=1e5
+init="jitter+adapt_diag"
 
 len_nsamples=${#nsamples[@]}
 len_burn_in=${#burn_in[@]}
@@ -36,4 +37,4 @@ zero_index=$(( $SLURM_ARRAY_TASK_ID-1))
 module purge all
 module load texlive/2020
 
-python pymc_funcs.py "${nsamples[(($zero_index / $sublen_burn_in_acc_rate_nsamples) % $len_nsamples)]}" "${burn_in[$zero_index % $len_burn_in]}" "${nchains}" "${acc_rate[($zero_index / $sublen_burn_in_acc_rate) % $len_acc_rate]}" "${atol[(($zero_index / $sublen_burn_in_acc_rate_nsamples_atol) % $len_atol)]}" "${atol[(($zero_index / $sublen_burn_in_acc_rate_nsamples_atol) % $len_atol)]}" "${rtol[(($zero_index / $sublen_burn_in_acc_rate_nsamples_atol_rtol) % $len_rtol)]}" "${mxsteps}"
+python pymc_funcs.py "${nsamples[(($zero_index / $sublen_burn_in_acc_rate_nsamples) % $len_nsamples)]}" "${burn_in[$zero_index % $len_burn_in]}" "${nchains}" "${acc_rate[($zero_index / $sublen_burn_in_acc_rate) % $len_acc_rate]}" "${atol[(($zero_index / $sublen_burn_in_acc_rate_nsamples_atol) % $len_atol)]}" "${rtol[(($zero_index / $sublen_burn_in_acc_rate_nsamples_atol_rtol) % $len_rtol)]}" "${mxsteps}" "${init}"
