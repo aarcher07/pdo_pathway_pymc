@@ -137,6 +137,8 @@ if __name__ == '__main__':
     mxsteps = int(float(sys.argv[7]))
     init = sys.argv[8]
 
+    print(sys.argv)
+
     idata_nuts = sample(nsamples, burn_in, nchains, acc_rate=acc_rate, atol=atol, rtol = rtol, mxsteps=mxsteps, init = init)
 
     # save samples
