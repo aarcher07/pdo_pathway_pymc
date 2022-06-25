@@ -2,8 +2,8 @@
 #SBATCH --account=b1020
 #SBATCH --partition=b1020
 #SBATCH --nodes=1
-#SBATCH --array=1-36
-#SBATCH --ntasks=3
+#SBATCH --array=1-6
+#SBATCH --ntasks=6
 #SBATCH --time=05-00:00:00
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=andrearcher2017@u.northwestern.edu
@@ -12,11 +12,11 @@
 #SBATCH --output=out/mass_action_out_%A_%a
 #SBATCH --error=err/mass_action_err_%A_%a
 
-nsamples=(3e3 4e3)
-burn_in=(3e3 4e3 5e3)
-nchains=2
-acc_rate=(0.65 0.7 0.8)
-atol=(1e-8 1e-10)
+nsamples=(5e3 7e3 1e4)
+burn_in=(5e3 6e3)
+nchains=5
+acc_rate=(0.8)
+atol=(1e-10)
 rtol=(1e-8)
 mxsteps=1e5
 init="jitter+adapt_diag"
