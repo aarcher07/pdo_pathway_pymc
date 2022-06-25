@@ -2,7 +2,7 @@
 #SBATCH --account=b1020
 #SBATCH --partition=b1020
 #SBATCH --nodes=1
-#SBATCH --array=1-9
+#SBATCH --array=1-8
 #SBATCH --ntasks=6
 #SBATCH --time=05-00:00:00
 #SBATCH --mail-type=ALL
