@@ -39,6 +39,10 @@ def likelihood_fwd(param_vals, tol = 1e-8, mxsteps = int(1e4)):
         y0['G_CYTO'] = 10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')]
         y0['H_CYTO'] = 0
         y0['P_CYTO'] = INIT_CONDS_GLY_PDO_DCW[gly_cond][1]
+        y0['DHAB'] = 10**param_sample[PARAMETER_LIST.index('DHAB_INIT')]
+        y0['DHAB_C'] = 0
+        y0['DHAT'] = 10**param_sample[PARAMETER_LIST.index('DHAT_INIT')]
+        y0['DHAT_C'] = 0
         y0['G_EXT'] = 10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')]
         y0['H_EXT'] = 0
         y0['P_EXT'] = INIT_CONDS_GLY_PDO_DCW[gly_cond][1]
@@ -52,6 +56,8 @@ def likelihood_fwd(param_vals, tol = 1e-8, mxsteps = int(1e4)):
         sens0 = np.zeros((19,11))
         sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_CYTO')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
         sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_EXT')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
+        sens0[PARAMETER_LIST.index('DHAB_INIT'), VARIABLE_NAMES.index('DHAB')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('DHAB_INIT')])
+        sens0[PARAMETER_LIST.index('DHAT_INIT'), VARIABLE_NAMES.index('DHAT')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('DHAT_INIT')])
         sens0[PARAMETER_LIST.index('A'), VARIABLE_NAMES.index('dcw')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('A')])
 
         solver.solve(t0=0, tvals=tvals, y0=y0, y_out=yout)
@@ -97,6 +103,10 @@ def likelihood_derivative_fwd(param_vals, tol=1e-8, mxsteps = int(1e4)):
         y0['G_CYTO'] = 10 ** param_sample[PARAMETER_LIST.index('G_EXT_INIT')]
         y0['H_CYTO'] = 0
         y0['P_CYTO'] = INIT_CONDS_GLY_PDO_DCW[gly_cond][1]
+        y0['DHAB'] = 10 ** param_sample[PARAMETER_LIST.index('DHAB_INIT')]
+        y0['DHAB_C'] = 0
+        y0['DHAT'] = 10 ** param_sample[PARAMETER_LIST.index('DHAT_INIT')]
+        y0['DHAT_C'] = 0
         y0['G_EXT'] = 10 ** param_sample[PARAMETER_LIST.index('G_EXT_INIT')]
         y0['H_EXT'] = 0
         y0['P_EXT'] = INIT_CONDS_GLY_PDO_DCW[gly_cond][1]
@@ -113,6 +123,10 @@ def likelihood_derivative_fwd(param_vals, tol=1e-8, mxsteps = int(1e4)):
                     10 ** param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
         sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_EXT')] = np.log(10) * (
                     10 ** param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
+        sens0[PARAMETER_LIST.index('DHAB_INIT'), VARIABLE_NAMES.index('DHAB')] = np.log(10) * (
+                    10 ** param_sample[PARAMETER_LIST.index('DHAB_INIT')])
+        sens0[PARAMETER_LIST.index('DHAT_INIT'), VARIABLE_NAMES.index('DHAT')] = np.log(10) * (
+                    10 ** param_sample[PARAMETER_LIST.index('DHAT_INIT')])
         # sens0[PARAMETER_LIST.index('A'), VARIABLE_NAMES.index('dcw')] = np.log(10) * (
         #             10 ** param_sample[PARAMETER_LIST.index('A')])
         try:
@@ -143,6 +157,7 @@ def likelihood_derivative_fwd(param_vals, tol=1e-8, mxsteps = int(1e4)):
                 dGdtildeG = np.exp(-gly_val)*(lower - upper)/(1 + np.exp(-gly_val))**2
                 lik_dev_params[N_MODEL_PARAMETERS + exp_ind] += lik_dev_param*dGdtildeG
             elif param in ['L', 'k', 'A']:
+
                 jj = ['L', 'k', 'A'].index(param)
                 lik_dev_params[N_MODEL_PARAMETERS + 4 + exp_ind * N_DCW_PARAMETERS + jj] += lik_dev_param
             else:

@@ -65,6 +65,7 @@ def likelihood_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
             loglik += -0.5*(((DATA_SAMPLES[gly_cond]-yout[:,[7,9,10]])/np.array([15,15,0.1]))**2).sum()
         except sunode.solver.SolverError:
             loglik += -np.inf
+        print(loglik)
     return loglik
 
 

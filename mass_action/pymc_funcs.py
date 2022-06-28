@@ -96,7 +96,8 @@ class LogLikeGrad(at.Op):
         grads = likelihood_derivative_adj(params, atol=self.atol, rtol=self.rtol, mxsteps=self.mxsteps)
         outputs[0][0] = grads
 
-def sample(nsamples, burn_in, nchains, acc_rate=0.8, atol=1e-8, rtol=1e-8, mxsteps=int(2e4), init = 'jitter+adapt_full'):
+def sample(nsamples, burn_in, nchains, acc_rate=0.8, atol=1e-8, rtol=1e-8, mxsteps=int(2e4), init = 'jitter+adapt_full',
+           initvals = None, random_seed = None):
     # use PyMC to sampler from log-likelihood
 
     logl = LogLike(likelihood_adj,  atol=atol, rtol=rtol, mxsteps=mxsteps)
@@ -123,7 +124,9 @@ def sample(nsamples, burn_in, nchains, acc_rate=0.8, atol=1e-8, rtol=1e-8, mxste
         theta = at.as_tensor_variable(variables)
         # use a Potential to "call" the Op and include it in the logp computation
         pm.Potential("likelihood", logl(theta))
-        idata_nuts = pm.sample(draws=int(nsamples), init=init,cores=nchains,chains=nchains, tune=int(burn_in), target_accept=acc_rate)
+        idata_nuts = pm.sample(draws=int(nsamples), init=init, cores=nchains, chains=nchains, tune=int(burn_in),
+                               target_accept=acc_rate, initvals=initvals, random_seed=random_seed,
+                               discard_tuned_samples=False)
 
         return idata_nuts
 
@@ -137,12 +140,26 @@ if __name__ == '__main__':
     mxsteps = int(float(sys.argv[7]))
     init = sys.argv[8]
 
+    seed = int(time.time() * 1e6)
+    seed = ((seed & 0xff000000) >> 24) + ((seed & 0x00ff0000) >> 8) + ((seed & 0x0000ff00) << 8) + (
+            (seed & 0x000000ff) << 24)
+    random_seed = seed + np.array(list(range(nchains)))
+    random_seed = list(random_seed.astype(int))
+    print('seed: ' + str(random_seed))
+
+    start_val = None # {'PermCellGlycerol': -3.2387621755443825, 'PermCellPDO': -4.023320346770019,
+    #              'PermCell3HPA': -4.899986741128067, 'k1DhaB': -0.6036725290144016, 'k2DhaB': -0.48615514794602044,
+    #              'k3DhaB': 1.1564894912795705, 'k4DhaB': 1.5738758332657916, 'k1DhaT': 1.804214813153589,
+    #              'k2DhaT': -0.5618853036728277, 'k3DhaT': 0.6856456564770114, 'k4DhaT': 1.1298098325985182,
+    #              'VmaxfMetab': 0.2257880715104006, 'KmMetabG': 2.72562301357831, 'DHAB_INIT': -0.511548640059402,
+    #              'DHAT_INIT': 0.28071248963437223}
     print(sys.argv)
 
-    idata_nuts = sample(nsamples, burn_in, nchains, acc_rate=acc_rate, atol=atol, rtol = rtol, mxsteps=mxsteps, init = init)
+    idata_nuts = sample(nsamples, burn_in, nchains, acc_rate=acc_rate, atol=atol, rtol = rtol, mxsteps=mxsteps,
+                        init=init, initvals=start_val, random_seed=random_seed)
 
     # save samples
-    PARAMETER_SAMP_PATH = ROOT_PATH + '/samples'
+    PARAMETER_SAMP_PATH = ROOT_PATH + '/samples_3HPA'
     directory_name = 'nsamples_' + str(nsamples) + '_burn_in_' + str(burn_in) + '_acc_rate_' + str(acc_rate) +\
                      '_nchains_' + str(nchains) + '_atol_' + str(atol) + '_rtol_' + str(rtol) + '_mxsteps_' + \
                      str(mxsteps) + '_initialization_' + init
@@ -155,7 +172,7 @@ if __name__ == '__main__':
     idata_nuts.to_netcdf(os.path.join(sample_file_location,date_string))
 
     # save trace plots
-    PLOT_SAMP_PATH = ROOT_PATH + '/prelim_trace_plots'
+    PLOT_SAMP_PATH = ROOT_PATH + '/prelim_trace_plots_3HPA'
     plot_file_location = os.path.join(PLOT_SAMP_PATH, directory_name, date_string[:-3])
     Path(plot_file_location).mkdir(parents=True, exist_ok=True)
 

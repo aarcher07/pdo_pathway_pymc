@@ -1,5 +1,6 @@
 import sunode
 import matplotlib.pyplot as plt
+from exp_data import INIT_CONDS_GLY_PDO_DCW, DATA_SAMPLES
 import matplotlib as mpl
 mpl.rcParams['text.usetex'] = True
 mpl.rcParams['text.latex.preamble'] = [r'\usepackage{amsmath}'] #for \text command
@@ -12,11 +13,11 @@ import time
 from rhs_funcs import RHS, lib, problem
 
 
-def likelihood_fwd(param_vals, tol = 1e-8, mxsteps = int(1e4)):
+def likelihood_fwd(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
     solver = sunode.solver.Solver(problem, solver='BDF', sens_mode=None)
 
     # set solver parameters
-    lib.CVodeSStolerances(solver._ode, tol, tol)
+    lib.CVodeSStolerances(solver._ode, atol, rtol)
     lib.CVodeSetMaxNumSteps(solver._ode, mxsteps)
 
     # initialize
@@ -26,10 +27,11 @@ def likelihood_fwd(param_vals, tol = 1e-8, mxsteps = int(1e4)):
     gly_init_val = param_vals[N_MODEL_PARAMETERS:(N_MODEL_PARAMETERS+4)]
     for i,((lower,upper),gly_init) in enumerate(zip(LOG_UNIF_G_EXT_INIT_PRIOR_PARAMETERS.values(),gly_init_val)):
         param_vals_copy[N_MODEL_PARAMETERS + i] = lower + (upper - lower)/(1+np.exp(-gly_init))
+
     for exp_ind, gly_cond in enumerate([50,60,70,80]):
         param_sample = NORM_PRIOR_MEAN_SINGLE_EXP[gly_cond].copy()
         param_sample[:N_MODEL_PARAMETERS] = param_vals_copy[:N_MODEL_PARAMETERS]
-        param_sample[N_MODEL_PARAMETERS+0] = param_vals_copy[N_MODEL_PARAMETERS + exp_ind]
+        # param_sample[N_MODEL_PARAMETERS+0] = param_vals_copy[N_MODEL_PARAMETERS + exp_ind]
         # param_sample[N_MODEL_PARAMETERS+1] = param_vals_copy[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 0]
         # param_sample[N_MODEL_PARAMETERS+2] = param_vals_copy[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 1]
         # param_sample[N_MODEL_PARAMETERS+3] = param_vals_copy[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 2]
@@ -49,10 +51,6 @@ def likelihood_fwd(param_vals, tol = 1e-8, mxsteps = int(1e4)):
         solver.set_params_dict(params_dict)
 
         yout = solver.make_output_buffers(tvals)
-        sens0 = np.zeros((len(DEV_PARAMETERS_LIST), len(VARIABLE_NAMES)))
-        sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_CYTO')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
-        sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_EXT')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
-        # sens0[PARAMETER_LIST.index('A'), VARIABLE_NAMES.index('dcw')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('A')])
 
         try:
             solver.solve(t0=0, tvals=tvals, y0=y0, y_out=yout)
@@ -70,15 +68,15 @@ def likelihood_fwd(param_vals, tol = 1e-8, mxsteps = int(1e4)):
     return loglik
 
 
-def likelihood_derivative_fwd(param_vals, tol=1e-8, mxsteps = int(1e4)):
+def likelihood_derivative_fwd(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
     solver = sunode.solver.Solver(problem, solver='BDF', sens_mode='simultaneous')
 
     # set solver parameters
-    lib.CVodeSStolerances(solver._ode, tol, tol)
+    lib.CVodeSStolerances(solver._ode, atol, rtol)
     lib.CVodeSetMaxNumSteps(solver._ode, mxsteps)
 
     # initialize
-    lik_dev_params = np.zeros(N_MODEL_PARAMETERS + 4)
+    lik_dev_params = np.zeros(N_MODEL_PARAMETERS)
     param_vals_copy = param_vals.copy()
 
     gly_init_val = param_vals[N_MODEL_PARAMETERS:(N_MODEL_PARAMETERS+4)]
@@ -88,7 +86,7 @@ def likelihood_derivative_fwd(param_vals, tol=1e-8, mxsteps = int(1e4)):
     for exp_ind, gly_cond in enumerate([50,60,70,80]):
         param_sample = NORM_PRIOR_MEAN_SINGLE_EXP[gly_cond].copy()
         param_sample[:N_MODEL_PARAMETERS] = param_vals_copy[:N_MODEL_PARAMETERS]
-        param_sample[N_MODEL_PARAMETERS+0] = param_vals_copy[N_MODEL_PARAMETERS + exp_ind]
+        # param_sample[N_MODEL_PARAMETERS+0] = param_vals_copy[N_MODEL_PARAMETERS + exp_ind]
         # param_sample[N_MODEL_PARAMETERS+1] = param_vals_copy[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 0]
         # param_sample[N_MODEL_PARAMETERS+2] = param_vals_copy[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 1]
         # param_sample[N_MODEL_PARAMETERS+3] = param_vals_copy[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 2]
@@ -112,10 +110,10 @@ def likelihood_derivative_fwd(param_vals, tol=1e-8, mxsteps = int(1e4)):
         # initial sensitivities
         sens0 = np.zeros((len(DEV_PARAMETERS_LIST), len(VARIABLE_NAMES)))
         # print(sens0.shape)
-        sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_CYTO')] = np.log(10) * (
-                    10 ** param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
-        sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_EXT')] = np.log(10) * (
-                    10 ** param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
+        # sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_CYTO')] = np.log(10) * (
+        #             10 ** param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
+        # sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_EXT')] = np.log(10) * (
+        #             10 ** param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
         # sens0[PARAMETER_LIST.index('A'), VARIABLE_NAMES.index('dcw')] = np.log(10) * (
         #             10 ** param_sample[PARAMETER_LIST.index('A')])
 

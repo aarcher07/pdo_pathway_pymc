@@ -5,6 +5,8 @@ import arviz as az
 import matplotlib.pyplot as plt
 import os
 import seaborn as sns
+
+import sunode
 from exp_data import *
 import pymc as pm
 mpl.rcParams['text.usetex'] = True
@@ -87,16 +89,18 @@ def plot_time_series_distribution(samples, plot_file_location, nchains, atol, rt
                 # # We can also specify the parameters by name:
                 solver.set_params_dict(params_dict)
                 yout, grad_out, lambda_out = solver.make_output_buffers(tvals)
-
-                solver.solve_forward(t0=0, tvals=tvals, y0=y0, y_out=yout)
-                jj=0
-                for i, var in enumerate(VARIABLE_NAMES):
-                    if i in DATA_INDEX:
-                        ax[jj,chain_ind].plot(tvals / HRS_TO_SECS, yout.view(problem.state_dtype)[var], 'r', alpha=0.1)
-                        jj += 1
-                    elif var == 'H_CYTO':
-                        ax[3,chain_ind].plot(tvals / HRS_TO_SECS, yout.view(problem.state_dtype)[var], 'r', alpha=0.1)
-                        hpa_max.append(np.max(yout.view(problem.state_dtype)[var]))
+                try:
+                    solver.solve_forward(t0=0, tvals=tvals, y0=y0, y_out=yout)
+                    jj=0
+                    for i, var in enumerate(VARIABLE_NAMES):
+                        if i in DATA_INDEX:
+                            ax[jj,chain_ind].plot(tvals / HRS_TO_SECS, yout.view(problem.state_dtype)[var], 'r', alpha=0.1)
+                            jj += 1
+                        elif var == 'H_CYTO':
+                            ax[3,chain_ind].plot(tvals / HRS_TO_SECS, yout.view(problem.state_dtype)[var], 'r', alpha=0.1)
+                            hpa_max.append(np.max(yout.view(problem.state_dtype)[var]))
+                except sunode.solver.SolverError:
+                    pass
             ax[4, chain_ind].hist(hpa_max)
             ax[0, chain_ind].set_title('Glycerol Time Series')
             ax[1, chain_ind].set_title('1,3-PD Distribution')
@@ -144,39 +148,43 @@ def plot_corr_scatter(data, directory_plot, nchains):
         diverging = data.sample_stats.diverging[chain_ind].values
         dataarray = data.posterior.to_dataframe().loc[[chain_ind]]
         dataarray = dataarray[ALL_PARAMETERS]
-        # data_array = pd.DataFrame(np.array([data[:, i] for i in range(len(ALL_PARAMETERS))]).T, columns=ALL_PARAMETERS)
-        axes = scatter_matrix(dataarray.loc[np.invert(diverging),:], alpha=0.2, figsize=(len(ALL_PARAMETERS), len(ALL_PARAMETERS)),
-                              diagonal='kde')
-        for i in range(np.shape(axes)[0]):
-            for j in range(np.shape(axes)[1]):
-                if i < j:
-                    axes[i, j].set_visible(False)
-                xlab_curr = axes[i, j].get_xlabel()
-                ylab_curr = axes[i, j].get_ylabel()
-                if i > j:
-                    axes[i, j].scatter(dataarray.loc[diverging,ALL_PARAMETERS[j]],
-                                       dataarray.loc[diverging,ALL_PARAMETERS[i]], s=1,alpha=0.5)
-                axes[i, j].set_xlabel(VARS_ALL_EXP_TO_TEX[xlab_curr])
-                axes[i, j].set_ylabel(VARS_ALL_EXP_TO_TEX[ylab_curr])
-                axes[i, j].xaxis.label.set_rotation(-25)
-                axes[i, j].xaxis.label.set_fontsize(15)
-                axes[i, j].yaxis.label.set_rotation(45)
-                axes[i, j].yaxis.label.set_ha('right')
-                axes[i, j].yaxis.label.set_fontsize(15)
-                axes[i, j].tick_params(axis="x", labelsize=15, rotation=0)
-                axes[i, j].tick_params(axis="y", labelsize=15)
+        try:
+            # data_array = pd.DataFrame(np.array([data[:, i] for i in range(len(ALL_PARAMETERS))]).T, columns=ALL_PARAMETERS)
+            axes = scatter_matrix(dataarray.loc[np.invert(diverging),:], alpha=0.2, figsize=(len(ALL_PARAMETERS), len(ALL_PARAMETERS)),
+                                  diagonal='kde')
+            for i in range(np.shape(axes)[0]):
+                for j in range(np.shape(axes)[1]):
+                    if i < j:
+                        axes[i, j].set_visible(False)
+                    xlab_curr = axes[i, j].get_xlabel()
+                    ylab_curr = axes[i, j].get_ylabel()
+                    if i > j:
+                        axes[i, j].scatter(dataarray.loc[diverging,ALL_PARAMETERS[j]],
+                                           dataarray.loc[diverging,ALL_PARAMETERS[i]], s=1,alpha=0.5)
+                    axes[i, j].set_xlabel(VARS_ALL_EXP_TO_TEX[xlab_curr])
+                    axes[i, j].set_ylabel(VARS_ALL_EXP_TO_TEX[ylab_curr])
+                    axes[i, j].xaxis.label.set_rotation(-25)
+                    axes[i, j].xaxis.label.set_fontsize(15)
+                    axes[i, j].yaxis.label.set_rotation(45)
+                    axes[i, j].yaxis.label.set_ha('right')
+                    axes[i, j].yaxis.label.set_fontsize(15)
+                    axes[i, j].tick_params(axis="x", labelsize=15, rotation=0)
+                    axes[i, j].tick_params(axis="y", labelsize=15)
 
-        plt.suptitle('Scatter Plot Matrix of Posterior Samples', fontsize=20)
-        plt.savefig(directory_plot + '/correlation_scatter_plot_chain_' + str(chain_ind), bbox_inches="tight")
-        plt.close()
+            plt.suptitle('Scatter Plot Matrix of Posterior Samples', fontsize=20)
+            plt.savefig(directory_plot + '/correlation_scatter_plot_chain_' + str(chain_ind), bbox_inches="tight")
+            plt.close()
+        except np.linalg.LinAlgError:
+            pass
 
 def scatter_hist(x, y, ax, ax_histx, ax_histy):
     # no labels
-    ax_histx.tick_params(axis="x", labelbottom=False)
-    ax_histy.tick_params(axis="y", labelleft=False)
+    ax_histx.tick_params(axis="x", labelbottom=True)
+    ax_histy.tick_params(axis="y", labelleft=True)
 
     # the scatter plot:
     ax.scatter(x, y, s=0.5)
+
     # now determine nice limits by hand:
     binwidth = 0.5
     xymax = max(np.max(x), np.max(y))
@@ -211,18 +219,14 @@ def joint_Keq_distribution(KeqDhaB_chains,KeqDhaT_chains, plot_location, nchains
         ax = fig.add_axes(rect_scatter)
         dhaT_fill_between = np.arange(2, 5.1, 0.1)
         dhaB_fill_between = np.arange(7, 8.1, 0.1)
-        ax.fill_between(dhaT_fill_between, dhaB_fill_between[0], dhaB_fill_between[-1], facecolor='yellow', alpha=0.5,
-                        label ="Thermodynamically\n Feasible")
-        ax.set_xlabel(xlab, fontsize=10)
-        ax.set_ylabel(ylab, fontsize=10)
-        sns.kdeplot(x=np.log10(KeqDhaB),y=np.log10(KeqDhaT), fill=True,
-                    alpha=0.5, color='blue', ax=ax)
-        ax.set_xlim([min([min(np.log10(KeqDhaT)), min(dhaT_fill_between)]) - 1,
-                     max([max(np.log10(KeqDhaT)), max(dhaT_fill_between)]) + 1])
-        ax.set_ylim([min([min(np.log10(KeqDhaB)), min(dhaB_fill_between)]) - 1,
-                     max([max(np.log10(KeqDhaB)), max(dhaB_fill_between)]) + 1])
 
 
+        # print([min([min(np.log10(KeqDhaT)) - 1, min(dhaT_fill_between)]) - 1,
+        #              max([max(np.log10(KeqDhaT))+ 1, max(dhaT_fill_between)]) + 1 ])
+
+        # plt.show()
+
+        #
         ax_histx = fig.add_axes(rect_histx, sharex=ax)
         ax_histx.set_ylabel('Probability', fontsize=15)
         ax_histy = fig.add_axes(rect_histy, sharey=ax)
@@ -230,14 +234,24 @@ def joint_Keq_distribution(KeqDhaB_chains,KeqDhaT_chains, plot_location, nchains
         #
         # # use the previously defined function
         scatter_hist(np.log10(KeqDhaT), np.log10(KeqDhaB), ax, ax_histx, ax_histy)
+        sns.kdeplot(x=np.log10(KeqDhaT), y=np.log10(KeqDhaB), fill=True,
+                    alpha=0.5, color='blue', ax=ax)
+        ax.fill_between(dhaT_fill_between, dhaB_fill_between[0], dhaB_fill_between[-1], facecolor='yellow', alpha=0.3,
+                        label ="Thermodynamically\n Feasible")
+        ax.set_xlim([min([min(np.log10(KeqDhaT)) - 1, min(dhaT_fill_between)]) - 1,
+                     max([max(np.log10(KeqDhaT))+ 1, max(dhaT_fill_between)]) + 1 ])
+        ax.set_ylim([min([min(np.log10(KeqDhaB)) - 1, min(dhaB_fill_between)]) - 1,
+                     max([max(np.log10(KeqDhaB))+ 1, max(dhaB_fill_between)]) + 1])
+
         probdhaT = ax_histx.get_ylim()
         probdhaB = ax_histy.get_xlim()
         y_fill_between = np.arange(probdhaB[0], probdhaB[1], 0.05)
         ax_histx.fill_between(dhaT_fill_between, probdhaT[0], probdhaT[1],
-                              facecolor='yellow', alpha=0.5)
+                              facecolor='yellow', alpha=0.3)
         ax_histy.fill_between(y_fill_between, dhaB_fill_between[0], dhaB_fill_between[-1],
-                               facecolor='yellow', alpha=0.5)
-
+                               facecolor='yellow', alpha=0.3)
+        ax.set_xlabel(xlab, fontsize=10)
+        ax.set_ylabel(ylab, fontsize=10)
         ax.legend(fontsize=15)
         ax.tick_params(axis="x", labelsize=15)
         ax.tick_params(axis="y", labelsize=15, rotation=0)

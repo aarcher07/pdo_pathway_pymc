@@ -39,6 +39,10 @@ def likelihood_adj(param_vals, tol=1e-8, mxsteps=int(1e4)):
         y0['G_CYTO'] = 10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')]
         y0['H_CYTO'] = 0
         y0['P_CYTO'] = INIT_CONDS_GLY_PDO_DCW[gly_cond][1]
+        y0['DHAB'] = 10**param_sample[PARAMETER_LIST.index('DHAB_INIT')]
+        y0['DHAB_C'] = 0
+        y0['DHAT'] = 10**param_sample[PARAMETER_LIST.index('DHAT_INIT')]
+        y0['DHAT_C'] = 0
         y0['G_EXT'] = 10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')]
         y0['H_EXT'] = 0
         y0['P_EXT'] = INIT_CONDS_GLY_PDO_DCW[gly_cond][1]
@@ -49,9 +53,11 @@ def likelihood_adj(param_vals, tol=1e-8, mxsteps=int(1e4)):
         solver.set_params_dict(params_dict)
 
         yout, grad_out, lambda_out = solver.make_output_buffers(tvals)
-        sens0 = np.zeros((len(DEV_PARAMETERS_LIST),len(VARIABLE_NAMES)))
+        sens0 = np.zeros((len(DEV_PARAMETERS_LIST),11))
         sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_CYTO')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
         sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_EXT')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
+        sens0[PARAMETER_LIST.index('DHAB_INIT'), VARIABLE_NAMES.index('DHAB')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('DHAB_INIT')])
+        sens0[PARAMETER_LIST.index('DHAT_INIT'), VARIABLE_NAMES.index('DHAT')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('DHAT_INIT')])
         # sens0[PARAMETER_LIST.index('A'), VARIABLE_NAMES.index('dcw')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('A')])
 
         solver.solve_forward(t0=0, tvals=tvals, y0=y0, y_out=yout)
@@ -60,7 +66,7 @@ def likelihood_adj(param_vals, tol=1e-8, mxsteps=int(1e4)):
         for i,var in enumerate(VARIABLE_NAMES):
             if i in DATA_INDEX:
                 plt.plot(tvals / HRS_TO_SECS, yout.view(problem.state_dtype)[var])
-                plt.scatter(tvals[::TIME_SPACING]/HRS_TO_SECS, DATA_SAMPLES[gly_cond][:,jj])
+                plt.scatter(tvals/HRS_TO_SECS, DATA_SAMPLES[gly_cond][:,jj])
                 jj+=1
             plt.show()
 
@@ -87,9 +93,9 @@ def likelihood_derivative_adj(param_vals, tol=1e-8, mxsteps=int(1e4)):
         param_sample = NORM_PRIOR_MEAN_SINGLE_EXP[gly_cond].copy()
         param_sample[:N_MODEL_PARAMETERS] = param_vals_copy[:N_MODEL_PARAMETERS]
         param_sample[N_MODEL_PARAMETERS+0] = param_vals_copy[N_MODEL_PARAMETERS + exp_ind]
-        # param_sample[N_MODEL_PARAMETERS+1] = param_vals_copy[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 0]
-        # param_sample[N_MODEL_PARAMETERS+2] = param_vals_copy[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 1]
-        # param_sample[N_MODEL_PARAMETERS+3] = param_vals_copy[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 2]
+        param_sample[N_MODEL_PARAMETERS+1] = param_vals_copy[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 0]
+        param_sample[N_MODEL_PARAMETERS+2] = param_vals_copy[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 1]
+        param_sample[N_MODEL_PARAMETERS+3] = param_vals_copy[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 2]
 
         tvals = TIME_SAMPLES_EXPANDED[gly_cond] * HRS_TO_SECS
 
@@ -98,6 +104,10 @@ def likelihood_derivative_adj(param_vals, tol=1e-8, mxsteps=int(1e4)):
         y0['G_CYTO'] = 10 ** param_sample[PARAMETER_LIST.index('G_EXT_INIT')]
         y0['H_CYTO'] = 0
         y0['P_CYTO'] = INIT_CONDS_GLY_PDO_DCW[gly_cond][1]
+        y0['DHAB'] = 10 ** param_sample[PARAMETER_LIST.index('DHAB_INIT')]
+        y0['DHAB_C'] = 0
+        y0['DHAT'] = 10 ** param_sample[PARAMETER_LIST.index('DHAT_INIT')]
+        y0['DHAT_C'] = 0
         y0['G_EXT'] = 10 ** param_sample[PARAMETER_LIST.index('G_EXT_INIT')]
         y0['H_EXT'] = 0
         y0['P_EXT'] = INIT_CONDS_GLY_PDO_DCW[gly_cond][1]
@@ -109,15 +119,15 @@ def likelihood_derivative_adj(param_vals, tol=1e-8, mxsteps=int(1e4)):
         yout, grad_out, lambda_out = solver.make_output_buffers(tvals)
 
         # initial sensitivities
-        sens0 = np.zeros((len(DEV_PARAMETERS_LIST), len(VARIABLE_NAMES)))
+        sens0 = np.zeros((len(DEV_PARAMETERS_LIST), 11))
         sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_CYTO')] = np.log(10) * (
                     10 ** param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
         sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_EXT')] = np.log(10) * (
                     10 ** param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
-        # sens0[PARAMETER_LIST.index('DHAB_INIT'), VARIABLE_NAMES.index('DHAB')] = np.log(10) * (
-        #             10 ** param_sample[PARAMETER_LIST.index('DHAB_INIT')])
-        # sens0[PARAMETER_LIST.index('DHAT_INIT'), VARIABLE_NAMES.index('DHAT')] = np.log(10) * (
-        #             10 ** param_sample[PARAMETER_LIST.index('DHAT_INIT')])
+        sens0[PARAMETER_LIST.index('DHAB_INIT'), VARIABLE_NAMES.index('DHAB')] = np.log(10) * (
+                    10 ** param_sample[PARAMETER_LIST.index('DHAB_INIT')])
+        sens0[PARAMETER_LIST.index('DHAT_INIT'), VARIABLE_NAMES.index('DHAT')] = np.log(10) * (
+                    10 ** param_sample[PARAMETER_LIST.index('DHAT_INIT')])
         # sens0[PARAMETER_LIST.index('A'), VARIABLE_NAMES.index('dcw')] = np.log(10) * (
         #             10 ** param_sample[PARAMETER_LIST.index('A')])
         try:
