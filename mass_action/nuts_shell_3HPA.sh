@@ -1,6 +1,6 @@
 #!/bin/bash
-#SBATCH --account=b1020
-#SBATCH --partition=b1020
+#SBATCH --account=b1114
+#SBATCH --partition=b1114
 #SBATCH --nodes=1
 #SBATCH --array=1-8
 #SBATCH --ntasks=6
@@ -28,13 +28,13 @@ len_atol=${#atol[@]}
 len_rtol=${#rtol[@]}
 len_init=${#init[@]}
 
-sublen_init_burn_in=$(($len_init * $len_burn_in))
-sublen_init_burn_in_acc_rate=$(($len_init * $len_burn_in * $len_acc_rate))
-sublen_init_burn_in_acc_rate_nsamples=$(($len_init *  $len_burn_in * $len_acc_rate * $len_nsamples))
-sublen_init_burn_in_acc_rate_nsamples_atol=$(($len_init * $len_burn_in * $len_acc_rate * $len_nsamples * $len_atol))
+sublen_init_acc_rate=$(($len_init * $len_acc_rate))
+sublen_init_acc_rate_burn_in=$(($len_init * $len_burn_in * $len_acc_rate))
+sublen_init_acc_rate_burn_in_nsamples=$(($len_init *  $len_burn_in * $len_acc_rate * $len_nsamples))
+sublen_init_acc_rate_burn_in_nsamples_atol=$(($len_init * $len_burn_in * $len_acc_rate * $len_nsamples * $len_atol))
 zero_index=$(( $SLURM_ARRAY_TASK_ID-1))
 
 module purge all
 module load texlive/2020
 
-python pymc_funcs.py "${nsamples[(($zero_index / $sublen_init_burn_in_acc_rate) % $len_nsamples)]}" "${burn_in[($zero_index / $len_init) % $len_burn_in]}" "${nchains}" "${acc_rate[($zero_index / $sublen_init_burn_in) % $len_acc_rate]}" "${atol[(($zero_index / $sublen_init_burn_in_acc_rate_nsamples) % $len_atol)]}" "${rtol[(($zero_index / $sublen_init_burn_in_acc_rate_nsamples_atol) % $len_rtol)]}" "${mxsteps}" "${init[$zero_index % $len_init]}"
+python pymc_funcs.py "${nsamples[(($zero_index / $sublen_init_acc_rate_burn_in) % $len_nsamples)]}" "${burn_in[($zero_index / $sublen_init_acc_rate) % $len_burn_in]}" "${nchains}" "${acc_rate[($zero_index / $len_init) % $len_acc_rate]}" "${atol[(($zero_index / $sublen_init_acc_rate_burn_in_nsamples) % $len_atol)]}" "${rtol[(($zero_index / $sublen_init_acc_rate_burn_in_nsamples_atol) % $len_rtol)]}" "${mxsteps}" "${init[$zero_index % $len_init]}"
