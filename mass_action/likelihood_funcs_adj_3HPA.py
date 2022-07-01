@@ -67,7 +67,7 @@ def likelihood_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
                       - 0.5*cyto_hpa_max**2
         except sunode.solver.SolverError:
             loglik += -np.inf
-    print(loglik)
+    # print(loglik)
     return loglik
 
 

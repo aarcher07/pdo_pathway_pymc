@@ -66,7 +66,7 @@ def likelihood_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
                       - 0.5*(yout[:,VARIABLE_NAMES.index('H_CYTO')]**2).sum()
         except sunode.solver.SolverError:
             loglik += -np.inf
-        print(loglik)
+        # print(loglik)
     return loglik
 
 
