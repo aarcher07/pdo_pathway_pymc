@@ -33,7 +33,7 @@ def likelihood_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
         # param_sample[N_MODEL_PARAMETERS+2] = param_vals_copy[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 1]
         # param_sample[N_MODEL_PARAMETERS+3] = param_vals_copy[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 2]
 
-        tvals = TIME_SAMPLES[gly_cond]*HRS_TO_SECS
+        tvals = TIME_SAMPLES_EXPANDED[gly_cond]*HRS_TO_SECS
         y0 = np.zeros((), dtype=problem.state_dtype)
         y0['G_CYTO'] = 10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')]
         y0['H_CYTO'] = 0
@@ -63,7 +63,7 @@ def likelihood_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
             #         jj+=1
             #     plt.show()
             cyto_hpa_max = np.max(yout[:, VARIABLE_NAMES.index('H_CYTO')])
-            loglik += -0.5*(((DATA_SAMPLES[gly_cond]-yout[:,DATA_INDEX])/np.array([15,15,0.1]))**2).sum() \
+            loglik += -0.5*(((DATA_SAMPLES[gly_cond]-yout[::TIME_SPACING,DATA_INDEX])/np.array([15,15,0.1]))**2).sum() \
                       - 0.5*cyto_hpa_max**2
         except sunode.solver.SolverError:
             loglik += -np.inf
@@ -136,7 +136,7 @@ def likelihood_derivative_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)
             grads[::TIME_SPACING, DATA_INDEX] = lik_dev
 
             cyto_hpa_arg_max = np.argmax(yout[:, VARIABLE_NAMES.index('H_CYTO')])
-            grads[cyto_hpa_arg_max, VARIABLE_NAMES.index('H_CYTO')] = np.max(yout[:, VARIABLE_NAMES.index('H_CYTO')])
+            grads[cyto_hpa_arg_max, VARIABLE_NAMES.index('H_CYTO')] = -np.max(yout[:, VARIABLE_NAMES.index('H_CYTO')])
 
             # backsolve
             solver.solve_backward(t0=tvals[-1], tend=tvals[0], tvals=tvals[1:-1],

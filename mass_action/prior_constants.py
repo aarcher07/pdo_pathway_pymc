@@ -20,6 +20,11 @@ DATA_LOG_UNIF_PARAMETER_RANGES = {'PermCellGlycerol': np.log10([1e-6, 1e-2]),
                                   'PermCellPDO': np.log10([1e-6, 1e-2]),
                                   'PermCell3HPA':  np.log10([1e-6,1e-2]),
 
+                                  # 'k1DhaB': np.log10([1e0, 1e4]),
+                                  # 'k2DhaB': np.log10([1e-2, 1e2]),
+                                  # 'k3DhaB': np.log10([1e0, 1e4]),
+                                  # 'k4DhaB': np.log10([1e-2, 1e2]),
+
                                   'k1DhaB': np.log10([1e0, 1e4]),
                                   'k2DhaB': np.log10([1e-2, 1e2]),
                                   'k3DhaB': np.log10([1e2, 1e3]),

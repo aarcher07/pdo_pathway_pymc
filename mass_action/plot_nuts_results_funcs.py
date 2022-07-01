@@ -26,18 +26,18 @@ from pandas.plotting import scatter_matrix
 
 
 def plot_loglik_individual(loglik, plot_file_location, nchains):
-    fig, ax = plt.subplots(2,min(5,nchains))
+    fig, ax = plt.subplots(min(5,nchains),2)
     for i in range(min(5,nchains)):
         ax[i,0].hist(loglik[i],alpha=0.5)
-        ax[i, 0].set_title('Histogram of Log-Likelihood')
-        ax[i, 1].plot(list(range(len(loglik[i]))),loglik[i],alpha=0.5)
-        ax[i, 1].set_title('Trajectory of Log-Likelihood')
+        ax[i,0].set_title('Histogram of Log-Likelihood')
+        ax[i,1].plot(list(range(len(loglik[i]))),loglik[i],alpha=0.5)
+        ax[i,1].set_title('Trajectory of Log-Likelihood')
     fig.tight_layout()
     plt.savefig(os.path.join(plot_file_location, 'loglik_plot_individual.png'))
 #
 
 def plot_loglik_overlay(loglik, plot_file_location, nchains):
-    fig, ax = plt.subplots(1,min(5,nchains))
+    fig, ax = plt.subplots(1,2)
     for i in range(nchains):
         ax[0].hist(loglik[i],alpha=0.1)
         ax[0].set_title('Histogram of Log-Likelihood')

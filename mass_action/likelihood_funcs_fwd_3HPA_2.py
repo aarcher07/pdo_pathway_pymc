@@ -65,9 +65,8 @@ def likelihood_fwd(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
             #         plt.scatter(tvals/HRS_TO_SECS, DATA_SAMPLES[gly_cond][:,jj])
             #         jj+=1
             #     plt.show()
-            cyto_hpa_max = np.max(yout[:, VARIABLE_NAMES.index('H_CYTO')])
-            loglik += -0.5*(((DATA_SAMPLES[gly_cond]-yout[::TIME_SPACING,DATA_INDEX])/np.array([15,15,0.1]))**2).sum()\
-                      - 0.5*cyto_hpa_max**2
+            loglik += -0.5*(((DATA_SAMPLES[gly_cond]-yout[::TIME_SPACING,DATA_INDEX])/np.array([15,15,0.1]))**2).sum() \
+                      - 0.5*(yout[:,VARIABLE_NAMES.index('H_CYTO')]**2).sum()
         except sunode.solver.SolverError:
             loglik += -np.inf
     return loglik
@@ -143,12 +142,11 @@ def likelihood_derivative_fwd(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)
             sens_out[:] += -np.inf
         # We can convert the solution to an xarray Dataset
         lik_dev = (DATA_SAMPLES[gly_cond] - yout[::TIME_SPACING, DATA_INDEX]) / (np.array([15, 15, 0.1]) ** 2)
+        lik_dev_H_CYTO = -yout[:, VARIABLE_NAMES.index('H_CYTO')]
 
         lik_dev_zeros = np.zeros_like(sens_out[:, 0, :])
         lik_dev_zeros[::TIME_SPACING, DATA_INDEX] = lik_dev
-        cyto_hpa_arg_max = np.argmax(yout[:, VARIABLE_NAMES.index('H_CYTO')])
-        lik_dev_zeros[cyto_hpa_arg_max, VARIABLE_NAMES.index('H_CYTO')] = -np.max(
-            yout[:, VARIABLE_NAMES.index('H_CYTO')])
+        lik_dev_zeros[:, VARIABLE_NAMES.index('H_CYTO')] = -lik_dev_H_CYTO
 
         # compute gradient
         for j, param in enumerate(DEV_PARAMETERS_LIST):
