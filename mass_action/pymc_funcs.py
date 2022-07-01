@@ -176,8 +176,3 @@ if __name__ == '__main__':
     plot_file_location = os.path.join(PLOT_SAMP_PATH, directory_name, date_string[:-3])
     Path(plot_file_location).mkdir(parents=True, exist_ok=True)
 
-    n_display = 10
-    for i in range(int(np.ceil(len(ALL_PARAMETERS)/n_display))):
-        az.plot_trace(idata_nuts, var_names=ALL_PARAMETERS[(n_display*i):(n_display*(i+1))], compact=True)
-        plt.savefig(os.path.join(plot_file_location,"trace_plot_" + str(i) + ".jpg"))
-    print(az.summary(idata_nuts))

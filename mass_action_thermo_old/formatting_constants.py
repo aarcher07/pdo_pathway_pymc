@@ -52,6 +52,7 @@ G_EXT_INIT_TO_TEX = {'G_EXT_INIT_50': "mM",
                      'G_EXT_INIT_70': "mM",
                      'G_EXT_INIT_80': "mM"
                      }
+
 DCW_UNITS = {'L':'g/L', 'k':'1/hr', 'A': 'g/L'}
 DCW_TO_UNITS_50 = {param_name + "_50": param_unit for param_name, param_unit in DCW_UNITS.items()}
 DCW_TO_UNITS_60 = {param_name + "_60": param_unit for param_name, param_unit in DCW_UNITS.items()}

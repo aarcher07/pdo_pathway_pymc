@@ -14,6 +14,7 @@ solver = sunode.solver.Solver(problem, solver='BDF', sens_mode='simultaneous')
 lib.CVodeSStolerances(solver._ode, 1e-8, 1e-8)
 lib.CVodeSetMaxNumSteps(solver._ode, 10000)
 
+
 param_sample = NORM_PRIOR_MEAN_ALL_EXP.copy()[:(N_MODEL_PARAMETERS+4)]
 param_sample_copy = param_sample.copy()
 lik_dev_params = np.zeros((N_MODEL_PARAMETERS + 4,))
@@ -22,8 +23,8 @@ for exp_ind, gly_cond in enumerate([50,60,70,80]):
     param_sample = NORM_PRIOR_MEAN_SINGLE_EXP[gly_cond]
     param_sample[:(N_MODEL_PARAMETERS+1)] = [*param_sample_copy[:N_MODEL_PARAMETERS], param_sample_copy[N_MODEL_PARAMETERS + exp_ind]]
     tvals = TIME_SAMPLES[gly_cond]*HRS_TO_SECS
-    y0 = np.zeros((), dtype=problem.state_dtype)
 
+    y0 = np.zeros((), dtype=problem.state_dtype)
     y0['G_CYTO'] = 10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')]
     y0['H_CYTO'] = 0
     y0['P_CYTO'] = INIT_CONDS_GLY_PDO_DCW[gly_cond][1]
@@ -43,8 +44,8 @@ for exp_ind, gly_cond in enumerate([50,60,70,80]):
     time_start = time.time()
     sens0 = np.zeros((len(DEV_PARAMETERS_LIST),len(VARIABLE_NAMES)))
 
-    sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_CYTO')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
-    sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_EXT')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
+    # sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_CYTO')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
+    # sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_EXT')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
     sens0[PARAMETER_LIST.index('DHAB_INIT'), VARIABLE_NAMES.index('DHAB')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('DHAB_INIT')])
     sens0[PARAMETER_LIST.index('DHAT_INIT'), VARIABLE_NAMES.index('DHAT')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('DHAT_INIT')])
     # sens0[PARAMETER_LIST.index('A'), VARIABLE_NAMES.index('dcw')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('A')])

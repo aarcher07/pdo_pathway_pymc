@@ -16,10 +16,14 @@ lib.CVodeSStolerancesB(solver._ode, solver._odeB, 1e-8, 1e-8)
 lib.CVodeQuadSStolerancesB(solver._ode, solver._odeB, 1e-8, 1e-8)
 lib.CVodeSetMaxNumSteps(solver._ode, 10000)
 
+PARAMETER_SAMP_PATH = '/home/aarcher/research/pdo-pathway-model/MCMC/output'
+FILE_NAME = '/MCMC_results_data/mass_action/adaptive/preset_std/lambda_0,05_beta_0,1_burn_in_n_cov_2000/nsamples_300000/date_2022_03_19_15_02_31_500660_rank_0.pkl'
+
 param_sample = NORM_PRIOR_MEAN_ALL_EXP.copy()[:(N_MODEL_PARAMETERS+4)]
 param_sample_copy = param_sample.copy()
 lik_dev_params = np.zeros((N_MODEL_PARAMETERS + 4,))
 time_tot = 0
+
 for exp_ind, gly_cond in enumerate([50,60,70,80]):
     param_sample = NORM_PRIOR_MEAN_SINGLE_EXP[gly_cond]
     param_sample[:(N_MODEL_PARAMETERS+1)] = [*param_sample_copy[:N_MODEL_PARAMETERS], param_sample_copy[N_MODEL_PARAMETERS + exp_ind]]
@@ -46,8 +50,8 @@ for exp_ind, gly_cond in enumerate([50,60,70,80]):
 
     # initial sensitivities
     sens0 = np.zeros((len(DEV_PARAMETERS_LIST),len(VARIABLE_NAMES)))
-    sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_CYTO')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
-    sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_EXT')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
+    # sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_CYTO')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
+    # sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_EXT')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
     sens0[PARAMETER_LIST.index('DHAB_INIT'), VARIABLE_NAMES.index('DHAB')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('DHAB_INIT')])
     sens0[PARAMETER_LIST.index('DHAT_INIT'), VARIABLE_NAMES.index('DHAT')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('DHAT_INIT')])
     # sens0[PARAMETER_LIST.index('A'), VARIABLE_NAMES.index('dcw')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('A')])
@@ -57,19 +61,9 @@ for exp_ind, gly_cond in enumerate([50,60,70,80]):
     time_end = time.time()
     time_tot += (time_end-time_start)/60
 
-    jj=0
-    for i,var in enumerate(VARIABLE_NAMES):
-        if i in DATA_INDEX:
-            plt.plot(tvals / HRS_TO_SECS, yout.view(problem.state_dtype)[var])
-            plt.scatter(tvals[::TIME_SPACING]/HRS_TO_SECS, DATA_SAMPLES[gly_cond][:,jj])
-            jj+=1
-        plt.show()
-
     grads = np.zeros_like(yout)
     lik_dev = (DATA_SAMPLES[gly_cond] - yout[::TIME_SPACING, DATA_INDEX])/np.array([15,15,0.1])**2
     grads[::TIME_SPACING, DATA_INDEX] = lik_dev
-
-
 
     # backsolve
     time_start = time.time()

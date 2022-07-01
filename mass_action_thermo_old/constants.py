@@ -1,5 +1,5 @@
 import numpy as np
-from exp_data import TIME_SAMPLES
+from exp_data import *
 
 CELL_RADIUS = 0.375e-6
 CELL_LENGTH = 2.47e-6
@@ -35,7 +35,7 @@ DCW_CONSTANTS = ['L','k','A']
 
 INIT_PARAMETERS_LIST = [*INIT_CONSTANTS, 'A']
 
-DEV_PARAMETERS_LIST = [*MODEL_CONSTANTS, *INIT_CONSTANTS[:2]]
+DEV_PARAMETERS_LIST = [*MODEL_CONSTANTS, *INIT_CONSTANTS]
 
 PARAMETER_LIST = [*MODEL_CONSTANTS, *INIT_CONSTANTS, *DCW_CONSTANTS]
 
@@ -55,17 +55,15 @@ THERMO_PARAMETERS = ['KeqDhaB', 'KeqDhaT']
 ENZYME_CONCENTRATIONS = ['DHAB_INIT', 'DHAT_INIT']
 
 GLYCEROL_EXTERNAL_EXPERIMENTAL = ['G_EXT_INIT_50', 'G_EXT_INIT_60', 'G_EXT_INIT_70', 'G_EXT_INIT_80']
-
 DCW_PARAMETERS_EXPERIMENTAL = ['L_50','k_50','A_50',
                                'L_60','k_60','A_60',
                                'L_70','k_70','A_70',
                                'L_80','k_80','A_80']
-
-ALL_PARAMETERS = [*PERMEABILITY_PARAMETERS, *KINETIC_PARAMETERS, *ENZYME_CONCENTRATIONS]
+ALL_PARAMETERS = [*PERMEABILITY_PARAMETERS, *KINETIC_PARAMETERS, *ENZYME_CONCENTRATIONS, *GLYCEROL_EXTERNAL_EXPERIMENTAL]
 
 DATA_INDEX = [VARIABLE_NAMES.index('G_EXT'), VARIABLE_NAMES.index('P_EXT'), VARIABLE_NAMES.index('dcw')]
 TIME_SAMPLES_EXPANDED = {}
-TIME_SPACING = 15 # TODO: CHANGE TO 15 for _HPA.py and 5 _HPA_2.py
+TIME_SPACING = 100
 for exp_cond, time_samps in TIME_SAMPLES.items():
     time_samps_expanded = [np.linspace(time_samps[i],time_samps[i+1],num=TIME_SPACING, endpoint=False) for i in range(len(time_samps)-1)]
     time_samps_expanded = list(np.concatenate(time_samps_expanded))

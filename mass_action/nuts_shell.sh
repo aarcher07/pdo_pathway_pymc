@@ -7,13 +7,13 @@
 #SBATCH --time=05-00:00:00
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=andrearcher2017@u.northwestern.edu
-#SBATCH --mem-per-cpu=10GB
+#SBATCH --mem-per-cpu=15GB
 #SBATCH --job-name=mass_action_%A_%a
 #SBATCH --output=out/mass_action_out_%A_%a
 #SBATCH --error=err/mass_action_err_%A_%a
 
 nsamples=(1 2)#(5e3 7e3 1e4)
-burn_in=(1 3) #(3e3 4e3 6e3)
+burn_in=(3e3 4e3)
 nchains=2
 acc_rate=(0.75 0.8)
 atol=(1e-8)
