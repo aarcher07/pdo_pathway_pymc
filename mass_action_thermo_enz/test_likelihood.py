@@ -6,8 +6,8 @@ import pdo_model_sympy.prior_constants as pdo_pr_constants
 import pickle
 import numpy as np
 import time
-from likelihood_funcs_fwd_3HPA import likelihood_fwd, likelihood_derivative_fwd
-from likelihood_funcs_adj_3HPA import likelihood_adj, likelihood_derivative_adj
+from likelihood_funcs_fwd import likelihood_fwd, likelihood_derivative_fwd
+from likelihood_funcs_adj import likelihood_adj, likelihood_derivative_adj
 from constants import *
 from os.path import dirname, abspath
 import arviz as az
@@ -35,39 +35,37 @@ file_name = '2022_07_04_15_24_56_643933.nc'
 data_file_location = os.path.join(PARAMETER_SAMP_PATH, directory_name, file_name)
 samples = az.from_netcdf(data_file_location)
 dataarray = samples.posterior.to_dataframe().loc[[0]]
-param_sample_copy = dataarray.iloc[-1,:].to_numpy()
+param_sample = dataarray.iloc[-1,:].to_numpy()
+param_sample_copy = np.zeros(N_MODEL_PARAMETERS + 4*3)
+param_sample_copy[:N_MODEL_PARAMETERS] = param_sample[:N_MODEL_PARAMETERS]
+param_sample_copy[PARAMETER_LIST.index('kcatfMetab')] = param_sample[PARAMETER_LIST.index('kcatfMetab')] - 1
+param_sample_copy[N_MODEL_PARAMETERS + 4*INIT_CONSTANTS.index('DHAB_INIT') : (N_MODEL_PARAMETERS + 4*INIT_CONSTANTS.index('DHAB_INIT') + 4)] = param_sample[N_MODEL_PARAMETERS + INIT_CONSTANTS.index('DHAB_INIT')]
+param_sample_copy[N_MODEL_PARAMETERS + 4*INIT_CONSTANTS.index('DHAT_INIT') : (N_MODEL_PARAMETERS + 4*INIT_CONSTANTS.index('DHAT_INIT') + 4)] = param_sample[N_MODEL_PARAMETERS + INIT_CONSTANTS.index('DHAT_INIT')]
+param_sample_copy[N_MODEL_PARAMETERS + 4*INIT_CONSTANTS.index('E0_Metab') : (N_MODEL_PARAMETERS + 4*INIT_CONSTANTS.index('E0_Metab') + 4)] = 1
 
-# param_sample = NORM_PRIOR_MEAN_ALL_EXP.copy()[:(N_MODEL_PARAMETERS)]
-# param_sample_copy = param_sample.copy()
 
-# gly_init_val = param_sample[N_MODEL_PARAMETERS:(N_MODEL_PARAMETERS + 4)]
-# for i, ((lower, upper), gly_init) in enumerate(zip(LOG_UNIF_G_EXT_INIT_PRIOR_PARAMETERS.values(), gly_init_val)):
-#     param_sample_copy[N_MODEL_PARAMETERS + i] = np.log((gly_init-lower)/(upper - gly_init))
-
-atol = 1e-10
-rtol = 1e-10
+atol = 1e-8
+rtol = 1e-8
 mxsteps = int(1e5)
-print('fwd')
 time_start = time.time()
-print(likelihood_fwd(param_sample_copy[:(N_MODEL_PARAMETERS)],atol = atol, rtol=rtol, mxsteps=mxsteps))
+print(likelihood_fwd(param_sample_copy,atol = atol, rtol=rtol, mxsteps=mxsteps))
 time_end = time.time()
-print((time_end - time_start)/60)
-
-print('adj')
-time_start = time.time()
-print(likelihood_adj(param_sample_copy[:(N_MODEL_PARAMETERS)],atol = atol, rtol=rtol, mxsteps=mxsteps))
-time_end = time.time()
-print((time_end - time_start)/60)
+print('fwd : '+ str((time_end - time_start)/60))
 
 time_start = time.time()
-lik_fwd = likelihood_derivative_fwd(param_sample_copy[:(N_MODEL_PARAMETERS)],atol = atol, rtol=rtol, mxsteps=mxsteps)
+print(likelihood_adj(param_sample_copy,atol = atol, rtol=rtol, mxsteps=mxsteps))
 time_end = time.time()
-print("fwd: " + str((time_end - time_start)/60))
+print('adj : '+ str((time_end - time_start)/60))
 
 time_start = time.time()
-lik_adj = likelihood_derivative_adj(param_sample_copy[:(N_MODEL_PARAMETERS)],atol = atol, rtol=rtol, mxsteps=mxsteps)
+lik_fwd = likelihood_derivative_fwd(param_sample_copy, atol = atol, rtol=rtol, mxsteps=mxsteps)
 time_end = time.time()
-print("adj: " + str((time_end - time_start)/60))
+print('fwd : '+ str((time_end - time_start)/60))
+
+time_start = time.time()
+lik_adj = likelihood_derivative_adj(param_sample_copy, atol = atol, rtol=rtol, mxsteps=mxsteps)
+time_end = time.time()
+print('adj : '+ str((time_end - time_start)/60))
 
 print(lik_fwd)
 print(lik_adj)

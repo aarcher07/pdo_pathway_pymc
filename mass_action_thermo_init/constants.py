@@ -35,7 +35,7 @@ DCW_CONSTANTS = ['L','k','A']
 
 INIT_PARAMETERS_LIST = [*INIT_CONSTANTS, 'A']
 
-DEV_PARAMETERS_LIST = [*MODEL_CONSTANTS, *INIT_CONSTANTS[:-1]] # TODO change to INIT_CONSTANTS[:-1]
+DEV_PARAMETERS_LIST = [*MODEL_CONSTANTS, *INIT_CONSTANTS] # TODO change to INIT_CONSTANTS[:-1]
 
 PARAMETER_LIST = [*MODEL_CONSTANTS, *INIT_CONSTANTS, *DCW_CONSTANTS]
 
@@ -65,7 +65,7 @@ ALL_PARAMETERS = [*PERMEABILITY_PARAMETERS, *KINETIC_PARAMETERS, *ENZYME_CONCENT
 
 DATA_INDEX = [VARIABLE_NAMES.index('G_EXT'), VARIABLE_NAMES.index('P_EXT'), VARIABLE_NAMES.index('dcw')]
 TIME_SAMPLES_EXPANDED = {}
-TIME_SPACING = 10 # TODO: CHANGE TO 15 for _HPA.py and 5 _HPA_2.py
+TIME_SPACING = 15 # TODO: CHANGE TO 15 for _HPA.py and 5 _HPA_2.py
 for exp_cond, time_samps in TIME_SAMPLES.items():
     time_samps_expanded = [np.linspace(time_samps[i],time_samps[i+1],num=TIME_SPACING, endpoint=False) for i in range(len(time_samps)-1)]
     time_samps_expanded = list(np.concatenate(time_samps_expanded))

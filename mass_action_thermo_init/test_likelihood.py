@@ -22,22 +22,22 @@ atol = 1e-8
 rtol = 1e-8
 mxsteps = int(1e5)
 time_start = time.time()
-print(likelihood_fwd(param_sample_copy[:(N_MODEL_PARAMETERS)],atol = atol, rtol=rtol, mxsteps=mxsteps))
+print(likelihood_fwd(param_sample_copy[:(N_MODEL_PARAMETERS + 4)],atol = atol, rtol=rtol, mxsteps=mxsteps))
 time_end = time.time()
 print('fwd : '+ str((time_end - time_start)/60))
 
 time_start = time.time()
-print(likelihood_adj(param_sample_copy[:(N_MODEL_PARAMETERS)],atol = atol, rtol=rtol, mxsteps=mxsteps))
+print(likelihood_adj(param_sample_copy[:(N_MODEL_PARAMETERS + 4)],atol = atol, rtol=rtol, mxsteps=mxsteps))
 time_end = time.time()
 print('adj : '+ str((time_end - time_start)/60))
 
 time_start = time.time()
-lik_fwd = likelihood_derivative_fwd(param_sample_copy[:(N_MODEL_PARAMETERS)],atol = atol, rtol=rtol, mxsteps=mxsteps)
+lik_fwd = likelihood_derivative_fwd(param_sample_copy[:(N_MODEL_PARAMETERS + 4)],atol = atol, rtol=rtol, mxsteps=mxsteps)
 time_end = time.time()
 print('fwd : '+ str((time_end - time_start)/60))
 
 time_start = time.time()
-lik_adj = likelihood_derivative_adj(param_sample_copy[:(N_MODEL_PARAMETERS)],atol = atol, rtol=rtol, mxsteps=mxsteps)
+lik_adj = likelihood_derivative_adj(param_sample_copy[:(N_MODEL_PARAMETERS + 4)],atol = atol, rtol=rtol, mxsteps=mxsteps)
 time_end = time.time()
 print('adj : '+ str((time_end - time_start)/60))
 

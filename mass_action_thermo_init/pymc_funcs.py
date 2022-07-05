@@ -17,7 +17,7 @@ import sys
 from pathlib import Path
 import numpy as np
 from datetime import datetime
-from likelihood_multiplicative_noise_funcs_adj import likelihood_adj, likelihood_derivative_adj  #TODO : change to _3HPA
+from likelihood_funcs_adj import likelihood_adj, likelihood_derivative_adj  #TODO : change to _3HPA
 from os.path import dirname, abspath
 
 ROOT_PATH = dirname(abspath(__file__))
@@ -118,9 +118,9 @@ def sample(nsamples, burn_in, nchains, acc_rate=0.8, atol=1e-8, rtol=1e-8, mxste
                                  sigma = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][1], lower = -4, upper = 2)
                        for param_name in ENZYME_CONCENTRATIONS]
 
-        # gly_init = [pm.Normal(param_name, mu = 0,sigma = 4) for param_name in GLYCEROL_EXTERNAL_EXPERIMENTAL]
+        gly_init = [pm.Normal(param_name, mu = 0,sigma = 4) for param_name in GLYCEROL_EXTERNAL_EXPERIMENTAL]
 
-        variables = [*permeability_params, *kinetic_params, *enzyme_init]#, *gly_init]
+        variables = [*permeability_params, *kinetic_params, *enzyme_init, *gly_init]
 
         # convert m and c to a tensor vector
         theta = at.as_tensor_variable(variables)

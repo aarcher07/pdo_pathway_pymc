@@ -19,22 +19,47 @@ ROOT_PATH = dirname(dirname(dirname(dirname(abspath(__file__)))))
 DATA_LOG_UNIF_PARAMETER_RANGES = {'PermCellGlycerol': np.log10([1e-6, 1e-2]),
                                   'PermCellPDO': np.log10([1e-6, 1e-2]),
                                   'PermCell3HPA':  np.log10([1e-6,1e-2]),
+                                  'PermCellDHA': np.log10([1e-6, 1e-2]),
 
                                   'k1DhaB': np.log10([1e0, 1e4]),
                                   'k2DhaB': np.log10([1e-2, 1e2]),
-                                  'k3DhaB': np.log10([1e0, 1e4]),
+                                  'k3DhaB': np.log10([1e2, 1e3]),
                                   'KeqDhaB': np.log10([1e7, 1e8]),
 
                                   'k1DhaT': np.log10([1e0, 1e4]),
                                   'k2DhaT': np.log10([1e-2, 1e2]),
                                   'k3DhaT': np.log10([1e0, 1e4]),
+                                  'k4DhaT': np.log10([1e-2, 1e2]),
+                                  'k5DhaT': np.log10([1e0, 1e4]),
+                                  'k6DhaT': np.log10([1e-2, 1e2]),
+                                  'k7DhaT': np.log10([1e0, 1e4]),
                                   'KeqDhaT': np.log10([1e2, 1e5]),
 
-                                  'VmaxfMetab': np.log10([1e2*0.1, 1e4*10]),
-                                  'KmMetabG': np.log10([1e-3,1e-1]),
+                                  'k1DhaD': np.log10([1e-2, 1e2]),
+                                  'k2DhaD': np.log10([1e0, 1e4]),
+                                  'k3DhaD': np.log10([1e-2, 1e2]),
+                                  'k4DhaD': np.log10([1e0, 1e4]),
+                                  'k5DhaD': np.log10([1e-2, 1e2]),
+                                  'k6DhaD': np.log10([1e0, 1e4]),
+                                  'k7DhaD': np.log10([1e-2, 1e2]),
+                                  'KeqDhaD': np.log10([1e-6, 1e-3]),
+
+                                  'k1E0': np.log10([1e0, 1e4]),
+                                  'k2E0': np.log10([1e-2, 1e2]),
+                                  'k3E0': np.log10([1e2, 1e3]),
+                                  'k4E0': np.log10([1e7, 1e8]),
+
+                                  'VmaxfDhaK': np.log10([1e0*0.1, 1e1*10]),
+                                  'KmDhaK': np.log10([1e-3,1e-1]),
 
                                   'DHAB_INIT': np.log10([0.1,1e1]),
-                                  'DHAT_INIT': np.log10([0.1, 1e1])}
+                                  'DHAT_INIT': np.log10([0.1, 1e1]),
+                                  'DHAD_INIT': np.log10([0.1, 1e1]),
+                                  'E0_INIT': np.log10([0.1, 1e1]),
+
+                                  'NADH_NAD_TOTAL_INIT': np.log10([0.1, 1e1]),
+                                  'NADH_NAD_RATIO_INIT': np.log10([0.1, 1e1])
+                                  }
 
 LOG_UNIF_G_EXT_INIT_PRIOR_PARAMETERS = {'G_EXT_INIT_50': [np.log10(INIT_CONDS_GLY_PDO_DCW[50][0] - 4*15.),
                                                           np.log10(INIT_CONDS_GLY_PDO_DCW[50][0] + 4*15.)],

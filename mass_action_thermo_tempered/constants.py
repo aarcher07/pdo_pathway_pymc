@@ -66,8 +66,12 @@ ALL_PARAMETERS = [*PERMEABILITY_PARAMETERS, *KINETIC_PARAMETERS, *ENZYME_CONCENT
 DATA_INDEX = [VARIABLE_NAMES.index('G_EXT'), VARIABLE_NAMES.index('P_EXT'), VARIABLE_NAMES.index('dcw')]
 TIME_SAMPLES_EXPANDED = {}
 TIME_SPACING = 10 # TODO: CHANGE TO 15 for _HPA.py and 5 _HPA_2.py
+NN = 0
+
 for exp_cond, time_samps in TIME_SAMPLES.items():
     time_samps_expanded = [np.linspace(time_samps[i],time_samps[i+1],num=TIME_SPACING, endpoint=False) for i in range(len(time_samps)-1)]
     time_samps_expanded = list(np.concatenate(time_samps_expanded))
     time_samps_expanded.append(time_samps[-1])
     TIME_SAMPLES_EXPANDED[exp_cond] = np.array(time_samps_expanded)
+    NN += 2*len(time_samps)
+print(NN)

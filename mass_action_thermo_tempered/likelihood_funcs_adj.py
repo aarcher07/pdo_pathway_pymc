@@ -11,7 +11,6 @@ import time
 from rhs_funcs import RHS, lib, problem
 
 solver = sunode.solver.AdjointSolver(problem, solver='BDF')
-
 def likelihood_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
     # set solver parameters
     lib.CVodeSStolerances(solver._ode, atol, rtol)
@@ -62,7 +61,7 @@ def likelihood_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
             #         plt.scatter(tvals/HRS_TO_SECS, DATA_SAMPLES[gly_cond][:,jj])
             #         jj+=1
             #     plt.show()
-            loglik += -0.5*(((DATA_SAMPLES[gly_cond]-yout[:,[7,9,10]])/np.array([15,15,0.1]))**2).sum()
+            loglik += -0.5*(((DATA_SAMPLES[gly_cond]-yout[:,[7,9,10]])/np.array([15,15,0.1]))**2).sum()/NN
         except sunode.solver.SolverError:
             loglik += -np.inf
     print(loglik)
@@ -138,7 +137,7 @@ def likelihood_derivative_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)
             #     plt.show()
 
             grads = np.zeros_like(yout)
-            lik_dev = (DATA_SAMPLES[gly_cond] - yout[::TIME_SPACING, DATA_INDEX]) / np.array([15, 15, 0.1]) ** 2
+            lik_dev = (DATA_SAMPLES[gly_cond] - yout[::TIME_SPACING, DATA_INDEX]) / (NN * np.array([15, 15, 0.1]) ** 2)
             grads[::TIME_SPACING, DATA_INDEX] = lik_dev
 
             # backsolve

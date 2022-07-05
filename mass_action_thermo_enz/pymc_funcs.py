@@ -17,7 +17,7 @@ import sys
 from pathlib import Path
 import numpy as np
 from datetime import datetime
-from likelihood_multiplicative_noise_funcs_adj import likelihood_adj, likelihood_derivative_adj  #TODO : change to _3HPA
+from likelihood_funcs_adj import likelihood_adj, likelihood_derivative_adj  #TODO : change to _3HPA
 from os.path import dirname, abspath
 
 ROOT_PATH = dirname(abspath(__file__))

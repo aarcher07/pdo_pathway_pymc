@@ -172,7 +172,7 @@ if __name__ == '__main__':
     idata_nuts.to_netcdf(os.path.join(sample_file_location,date_string))
 
     # save trace plots
-    PLOT_SAMP_PATH = ROOT_PATH + '/prelim_trace_plots_3HPA_1' #TODO : change to _3HPA
+    PLOT_SAMP_PATH = ROOT_PATH + '/prelim_trace_plots' #TODO : change to _3HPA
     plot_file_location = os.path.join(PLOT_SAMP_PATH, directory_name, date_string[:-3])
     Path(plot_file_location).mkdir(parents=True, exist_ok=True)
 

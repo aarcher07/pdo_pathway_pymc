@@ -15,19 +15,15 @@ DCW_TO_CELL_CONCENTRATION = OD_TO_CELL_CONCENTRATION/OD_TO_DCW #number of cell/m
 EXTERNAL_VOLUME = 0.002 # external volume from experiment
 DCW_TO_CELL_COUNT = DCW_TO_CELL_CONCENTRATION*EXTERNAL_VOLUME
 
-N_MODEL_PARAMETERS = 15
-N_DCW_PARAMETERS = 3
-N_UNKNOWN_PARAMETERS = 19
-N_TOTAL_PARAMETERS = 15 + 4 + 12
-
 MODEL_CONSTANTS = ['PermCellGlycerol','PermCellPDO','PermCell3HPA',
                   'k1DhaB', 'k2DhaB', 'k3DhaB', 'KeqDhaB',
                   'k1DhaT', 'k2DhaT', 'k3DhaT', 'KeqDhaT',
-                  'VmaxfMetab', 'KmMetabG',
+                  'kcatfMetab', 'KmMetabG',
                   ]
 
 INIT_CONSTANTS = ['DHAB_INIT',
                   'DHAT_INIT',
+                  'E0_Metab',
                   'G_EXT_INIT']
 
 DCW_CONSTANTS = ['L','k','A']
@@ -48,11 +44,13 @@ PERMEABILITY_PARAMETERS = ['PermCellGlycerol','PermCellPDO','PermCell3HPA']
 
 KINETIC_PARAMETERS = ['k1DhaB', 'k2DhaB', 'k3DhaB', 'KeqDhaB',
                       'k1DhaT', 'k2DhaT', 'k3DhaT', 'KeqDhaT',
-                      'VmaxfMetab', 'KmMetabG']
+                      'kcatfMetab', 'KmMetabG']
 
 THERMO_PARAMETERS = ['KeqDhaB', 'KeqDhaT']
 
-ENZYME_CONCENTRATIONS = ['DHAB_INIT', 'DHAT_INIT']
+ENZYME_CONCENTRATIONS = ['DHAB_INIT_50', 'DHAB_INIT_60', 'DHAB_INIT_70', 'DHAB_INIT_80',
+                         'DHAT_INIT_50', 'DHAT_INIT_60', 'DHAT_INIT_70', 'DHAT_INIT_80',
+                         'E0_Metab_50', 'E0_Metab_60', 'E0_Metab_70', 'E0_Metab_80']
 
 GLYCEROL_EXTERNAL_EXPERIMENTAL = ['G_EXT_INIT_50', 'G_EXT_INIT_60', 'G_EXT_INIT_70', 'G_EXT_INIT_80']
 
@@ -65,9 +63,14 @@ ALL_PARAMETERS = [*PERMEABILITY_PARAMETERS, *KINETIC_PARAMETERS, *ENZYME_CONCENT
 
 DATA_INDEX = [VARIABLE_NAMES.index('G_EXT'), VARIABLE_NAMES.index('P_EXT'), VARIABLE_NAMES.index('dcw')]
 TIME_SAMPLES_EXPANDED = {}
-TIME_SPACING = 10 # TODO: CHANGE TO 15 for _HPA.py and 5 _HPA_2.py
+TIME_SPACING = 15 # TODO: CHANGE TO 15 for _HPA.py and 5 _HPA_2.py
 for exp_cond, time_samps in TIME_SAMPLES.items():
     time_samps_expanded = [np.linspace(time_samps[i],time_samps[i+1],num=TIME_SPACING, endpoint=False) for i in range(len(time_samps)-1)]
     time_samps_expanded = list(np.concatenate(time_samps_expanded))
     time_samps_expanded.append(time_samps[-1])
     TIME_SAMPLES_EXPANDED[exp_cond] = np.array(time_samps_expanded)
+
+N_MODEL_PARAMETERS = len(MODEL_CONSTANTS)
+N_DCW_PARAMETERS = len(DCW_CONSTANTS)
+N_UNKNOWN_PARAMETERS = N_MODEL_PARAMETERS + 4*len(INIT_CONSTANTS[-1])
+N_TOTAL_PARAMETERS = N_MODEL_PARAMETERS + 4*len(INIT_CONSTANTS) + 4*N_DCW_PARAMETERS

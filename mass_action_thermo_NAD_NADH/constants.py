@@ -15,19 +15,22 @@ DCW_TO_CELL_CONCENTRATION = OD_TO_CELL_CONCENTRATION/OD_TO_DCW #number of cell/m
 EXTERNAL_VOLUME = 0.002 # external volume from experiment
 DCW_TO_CELL_COUNT = DCW_TO_CELL_CONCENTRATION*EXTERNAL_VOLUME
 
-N_MODEL_PARAMETERS = 15
-N_DCW_PARAMETERS = 3
-N_UNKNOWN_PARAMETERS = 19
-N_TOTAL_PARAMETERS = 15 + 4 + 12
 
-MODEL_CONSTANTS = ['PermCellGlycerol','PermCellPDO','PermCell3HPA',
-                  'k1DhaB', 'k2DhaB', 'k3DhaB', 'KeqDhaB',
-                  'k1DhaT', 'k2DhaT', 'k3DhaT', 'KeqDhaT',
-                  'VmaxfMetab', 'KmMetabG',
+
+MODEL_CONSTANTS = ['PermCellGlycerol','PermCellPDO','PermCell3HPA', 'PermCellDHA',
+                   'k1DhaB', 'k2DhaB', 'k3DhaB', 'KeqDhaB',
+                   'k1DhaT', 'k2DhaT', 'k3DhaT', 'k4DhaT', 'k5DhaT', 'k6DhaT', 'k7DhaT', 'KeqDhaT',
+                   'k1DhaD', 'k2DhaD', 'k3DhaD', 'k4DhaD', 'k5DhaD', 'k6DhaD', 'k7DhaD', 'KeqDhaD',
+                   'k1E0', 'k2E0', 'k3E0', 'k4E0',
+                   'VmaxfDhaK', 'KmDhaK'
                   ]
 
 INIT_CONSTANTS = ['DHAB_INIT',
                   'DHAT_INIT',
+                  'DHAD_INIT',
+                  'E0_INIT',
+                  'NADH_NAD_TOTAL_INIT',
+                  'NADH_NAD_RATIO_INIT',
                   'G_EXT_INIT']
 
 DCW_CONSTANTS = ['L','k','A']
@@ -35,24 +38,33 @@ DCW_CONSTANTS = ['L','k','A']
 
 INIT_PARAMETERS_LIST = [*INIT_CONSTANTS, 'A']
 
-DEV_PARAMETERS_LIST = [*MODEL_CONSTANTS, *INIT_CONSTANTS[:-1]] # TODO change to INIT_CONSTANTS[:-1]
+DEV_PARAMETERS_LIST = [*MODEL_CONSTANTS, *INIT_CONSTANTS[:-1]]
 
 PARAMETER_LIST = [*MODEL_CONSTANTS, *INIT_CONSTANTS, *DCW_CONSTANTS]
 
-VARIABLE_NAMES = ['G_CYTO', 'H_CYTO','P_CYTO',
-                   'DHAB', 'DHAB_C',
-                   'DHAT', 'DHAT_C',
-                   'G_EXT', 'H_EXT','P_EXT', 'dcw']
+VARIABLE_NAMES = ['G_CYTO', 'H_CYTO','P_CYTO', 'DHA_CYTO',
+                  'NADH', 'NAD',
 
-PERMEABILITY_PARAMETERS = ['PermCellGlycerol','PermCellPDO','PermCell3HPA']
+                  'DHAB', 'DHAB_C',
+                  'DHAT', 'DHAT_NADH', 'DHAT_NADH_HPA', 'DHAT_NAD',
+                  'DHAD', 'DHAD_NAD', 'DHAD_NAD_GLY', 'DHAD_NADH',
+                  'E0', 'E0_C',
+
+                  'G_EXT', 'H_EXT','P_EXT', 'DHA_EXT', 'dcw']
+
+PERMEABILITY_PARAMETERS = ['PermCellGlycerol','PermCellPDO','PermCell3HPA', 'PermCellDHA']
 
 KINETIC_PARAMETERS = ['k1DhaB', 'k2DhaB', 'k3DhaB', 'KeqDhaB',
-                      'k1DhaT', 'k2DhaT', 'k3DhaT', 'KeqDhaT',
-                      'VmaxfMetab', 'KmMetabG']
+                      'k1DhaT', 'k2DhaT', 'k3DhaT', 'k4DhaT', 'k5DhaT', 'k6DhaT', 'k7DhaT', 'KeqDhaT',
+                      'k1DhaD', 'k2DhaD', 'k3DhaD', 'k4DhaD', 'k5DhaD', 'k6DhaD', 'k7DhaD', 'KeqDhaD',
+                      'k1E0', 'k2E0', 'k3E0', 'k4E0',
+                      'VmaxfDhaK', 'KmDhaK']
 
 THERMO_PARAMETERS = ['KeqDhaB', 'KeqDhaT']
 
-ENZYME_CONCENTRATIONS = ['DHAB_INIT', 'DHAT_INIT']
+ENZYME_CONCENTRATIONS = ['DHAB_INIT', 'DHAT_INIT', 'DHAD_INIT', 'E0_INIT']
+
+COFACTOR_PARAMETERS = ['NADH_NAD_TOTAL_INIT', 'NADH_NAD_RATIO_INIT']
 
 GLYCEROL_EXTERNAL_EXPERIMENTAL = ['G_EXT_INIT_50', 'G_EXT_INIT_60', 'G_EXT_INIT_70', 'G_EXT_INIT_80']
 
@@ -65,9 +77,14 @@ ALL_PARAMETERS = [*PERMEABILITY_PARAMETERS, *KINETIC_PARAMETERS, *ENZYME_CONCENT
 
 DATA_INDEX = [VARIABLE_NAMES.index('G_EXT'), VARIABLE_NAMES.index('P_EXT'), VARIABLE_NAMES.index('dcw')]
 TIME_SAMPLES_EXPANDED = {}
-TIME_SPACING = 10 # TODO: CHANGE TO 15 for _HPA.py and 5 _HPA_2.py
+TIME_SPACING = 15 # TODO: CHANGE TO 15 for _HPA.py and 5 _HPA_2.py
 for exp_cond, time_samps in TIME_SAMPLES.items():
     time_samps_expanded = [np.linspace(time_samps[i],time_samps[i+1],num=TIME_SPACING, endpoint=False) for i in range(len(time_samps)-1)]
     time_samps_expanded = list(np.concatenate(time_samps_expanded))
     time_samps_expanded.append(time_samps[-1])
     TIME_SAMPLES_EXPANDED[exp_cond] = np.array(time_samps_expanded)
+
+N_MODEL_PARAMETERS = len(MODEL_CONSTANTS) + len(INIT_CONSTANTS) - 1
+N_DCW_PARAMETERS = 3
+N_UNKNOWN_PARAMETERS = N_MODEL_PARAMETERS + N_DCW_PARAMETERS + 1
+N_TOTAL_PARAMETERS = N_MODEL_PARAMETERS + 4 + 12
