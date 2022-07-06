@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --account=b1114
+#SBATCH --account=b1020
 #SBATCH --partition=b1020
 #SBATCH --nodes=1
 #SBATCH --array=1-4
