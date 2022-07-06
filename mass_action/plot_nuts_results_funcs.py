@@ -125,7 +125,7 @@ def plot_time_series_distribution(samples, plot_file_location, nchains, atol, rt
 def plot_corr(data, directory_plot, nchains, thres=5e-2):
     for chain_ind in range(nchains):
         dataarray = data.posterior.to_dataframe().loc[[chain_ind]]
-        dataarray = dataarray[ALL_PARAMETERS]
+        dataarray = dataarray[ALL_PARAMETERS].iloc[::int(dataarray.shape[0]/500),:]
 
         fig, ax = plt.subplots()
         data_corr = np.corrcoef(dataarray.to_numpy().T)
@@ -223,7 +223,8 @@ def joint_Keq_distribution(KeqDhaB_chains,KeqDhaT_chains, plot_location, nchains
     for chain_ind in range(nchains):
         KeqDhaB = KeqDhaB_chains[chain_ind]
         KeqDhaT = KeqDhaT_chains[chain_ind]
-
+        KeqDhaB = KeqDhaB
+        KeqDhaT = KeqDhaT
         # start with a square Figure
         fig = plt.figure(figsize=(8, 8))
 
