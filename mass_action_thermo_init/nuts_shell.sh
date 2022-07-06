@@ -12,7 +12,7 @@
 #SBATCH --output=out/mass_action_out_%A_%a
 #SBATCH --error=err/mass_action_err_%A_%a
 
-nsamples=(1 2)#(5e3 7e3 1e4)
+nsamples=(3e3 7e3 1e4)
 burn_in=(3e3 4e3)
 nchains=2
 acc_rate=(0.75 0.8)
