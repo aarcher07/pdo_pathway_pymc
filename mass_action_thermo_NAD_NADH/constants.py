@@ -44,7 +44,6 @@ PARAMETER_LIST = [*MODEL_CONSTANTS, *INIT_CONSTANTS, *DCW_CONSTANTS]
 
 VARIABLE_NAMES = ['G_CYTO', 'H_CYTO','P_CYTO', 'DHA_CYTO',
                   'NADH', 'NAD',
-
                   'DHAB', 'DHAB_C',
                   'DHAT', 'DHAT_NADH', 'DHAT_NADH_HPA', 'DHAT_NAD',
                   'DHAD', 'DHAD_NAD', 'DHAD_NAD_GLY', 'DHAD_NADH',

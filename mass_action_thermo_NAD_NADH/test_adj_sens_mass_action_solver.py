@@ -14,7 +14,7 @@ solver = sunode.solver.AdjointSolver(problem, solver='BDF')
 lib.CVodeSStolerances(solver._ode, 1e-8, 1e-8)
 lib.CVodeSStolerancesB(solver._ode, solver._odeB, 1e-8, 1e-8)
 lib.CVodeQuadSStolerancesB(solver._ode, solver._odeB, 1e-8, 1e-8)
-lib.CVodeSetMaxNumSteps(solver._ode, 10000)
+lib.CVodeSetMaxNumSteps(solver._ode, 100000)
 
 param_sample = NORM_PRIOR_MEAN_ALL_EXP.copy()[:(N_MODEL_PARAMETERS+4)]
 param_sample_copy = param_sample.copy()
@@ -61,8 +61,40 @@ for exp_ind, gly_cond in enumerate([50,60,70,80]):
 
     time_start = time.time()
     solver.solve_forward(t0=0, tvals=tvals, y0=y0, y_out=yout)
+    # jj =0
+    # for i,var in enumerate(VARIABLE_NAMES):
+    #     plt.plot(tvals / HRS_TO_SECS, yout.view(problem.state_dtype)[var])
+    #     if i in DATA_INDEX:
+    #         plt.scatter(tvals[::TIME_SPACING]/HRS_TO_SECS, DATA_SAMPLES[gly_cond][:,jj])
+    #         jj+=1
+    #     plt.title(var)
+    #     plt.show()
     print('DHAB INIT ' + str(y0['DHAB'] + y0['DHAB_C']))
     print('DHAB FINAL ' + str(yout[-1,VARIABLE_NAMES.index('DHAB')] + yout[-1,VARIABLE_NAMES.index('DHAB_C')]))
+
+    print('E0 INIT ' + str(y0['E0'] + y0['E0_C']))
+    print('E0 FINAL ' + str(yout[-1,VARIABLE_NAMES.index('E0')] + yout[-1,VARIABLE_NAMES.index('E0_C')]))
+
+    print('DHAT INIT ' + str(y0['DHAT']))
+    print('DHAT FINAL ' + str(yout[-1,VARIABLE_NAMES.index('DHAT')] + yout[-1,VARIABLE_NAMES.index('DHAT_NAD')]
+                              + yout[-1,VARIABLE_NAMES.index('DHAT_NADH_HPA')]
+                              + yout[-1,VARIABLE_NAMES.index('DHAT_NADH')]))
+
+    print('DHAD INIT ' + str(y0['DHAD']))
+    print('DHAD FINAL ' + str(yout[-1,VARIABLE_NAMES.index('DHAD')] + yout[-1,VARIABLE_NAMES.index('DHAD_NAD')]
+                              + yout[-1,VARIABLE_NAMES.index('DHAD_NAD_GLY')]
+                              + yout[-1,VARIABLE_NAMES.index('DHAD_NADH')]))
+    print('NAD/NADH INIT ' + str(y0['NADH'] + y0['NAD']))
+
+    print('NAD/NADH FINAL ' + str(yout[-1,VARIABLE_NAMES.index('NAD')] + yout[-1,VARIABLE_NAMES.index('NADH')]
+
+                                  + yout[-1,VARIABLE_NAMES.index('DHAD_NAD')]
+                                  + yout[-1,VARIABLE_NAMES.index('DHAD_NAD_GLY')]
+                                  + yout[-1,VARIABLE_NAMES.index('DHAD_NADH')]
+
+                                  + yout[-1,VARIABLE_NAMES.index('DHAT_NAD')]
+                              + yout[-1,VARIABLE_NAMES.index('DHAT_NADH_HPA')]
+                              + yout[-1,VARIABLE_NAMES.index('DHAT_NADH')] + yout[-1,VARIABLE_NAMES.index('E0_C')]))
     time_end = time.time()
     time_tot += (time_end-time_start)/60
 #

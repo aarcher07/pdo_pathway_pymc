@@ -43,14 +43,15 @@ def RHS(t, x, params):
     k4DhaB = 10**(params.k1DhaB + params.k3DhaB - params.KeqDhaB - params.k2DhaB)
 
     k1DhaT = 10**params.k1DhaT
-    k2DhaT = 10**params.k2DhaT
-    k3DhaT = 10**params.k3DhaT
+    k2DhaT =  10**params.k2DhaT
+    k3DhaT =  10**params.k3DhaT
     k4DhaT = 10**params.k4DhaT
     k5DhaT = 10**params.k5DhaT
     k6DhaT = 10**params.k6DhaT
     k7DhaT = 10**params.k7DhaT
-    k8DhaT = 10**(params.k1DhaT + params.k3DhaT + params.k5DhaT + params.k7DhaT - params.KeqDhaT  - params.k2DhaT
-                  - params.k4DhaT  - params.k6DhaT)
+    k8DhaT = 10**(params.k1DhaT + params.k3DhaT + params.k5DhaT + params.k7DhaT - params.KeqDhaT - params.k2DhaT
+                  - params.k4DhaT - params.k6DhaT)
+
     k1DhaD = 10**params.k1DhaD
     k2DhaD = 10**params.k2DhaD
     k3DhaD = 10**params.k3DhaD
@@ -58,15 +59,15 @@ def RHS(t, x, params):
     k5DhaD = 10**params.k5DhaD
     k6DhaD = 10**params.k6DhaD
     k7DhaD = 10**params.k7DhaD
-    k8DhaD = 10**(params.k1DhaD + params.k3DhaD + params.k5DhaD + params.k7DhaD - params.KeqDhaD  - params.k2DhaD
-                  - params.k4DhaD  - params.k6DhaD)
+    k8DhaD = 10**(params.k1DhaD + params.k3DhaD + params.k5DhaD + params.k7DhaD - params.KeqDhaD
+                  - params.k2DhaD - params.k4DhaD - params.k6DhaD)
 
-    k1E0 = 0 # 10**params.k1E0
-    k2E0 = 0 # 10**params.k2E0
-    k3E0 = 0 # 10**params.k3E0
-    k4E0 = 0 # 10**params.k4E0
+    k1E0 = 10**params.k1E0
+    k2E0 = 10**params.k2E0
+    k3E0 = 10**params.k3E0
+    k4E0 = 10**params.k4E0
 
-    VmaxfDhaK =  0 #10**params.VmaxfDhaK # TODO: CHANGE
+    VmaxfDhaK = 10**params.VmaxfDhaK # TODO: CHANGE
     KmDhaK = 10**params.KmDhaK
 
 
@@ -75,7 +76,7 @@ def RHS(t, x, params):
 
     cell_area_cell_volume = CELL_SURFACE_AREA / CELL_VOLUME
     cell_area_external_volume = CELL_SURFACE_AREA / EXTERNAL_VOLUME
-    R_DhaK = VmaxfDhaK * x.G_CYTO / (KmDhaK + x.G_CYTO)
+    R_DhaK = VmaxfDhaK * x.DHA_CYTO / (KmDhaK + x.DHA_CYTO)
 
     d['G_CYTO'] = cell_area_cell_volume * PermCellGlycerol * (x.G_EXT - x.G_CYTO) \
                   - k1DhaB * x.G_CYTO * x.DHAB + k2DhaB * x.DHAB_C  \
@@ -89,11 +90,12 @@ def RHS(t, x, params):
                   - k6DhaT * x.P_CYTO * x.DHAT_NAD + k5DhaT * x.DHAT_NADH_HPA
 
     d['DHA_CYTO'] = cell_area_cell_volume * PermCellDHA * (x.DHA_EXT - x.DHA_CYTO) \
-               - k6DhaD * x.DHA_CYTO * x.DHAD_NADH + k5DhaD * x.DHAD_NAD_GLY
+               - k6DhaD * x.DHA_CYTO * x.DHAD_NADH + k5DhaD * x.DHAD_NAD_GLY - R_DhaK
 
-    d['NAD'] = k7DhaT * x.DHAD_NAD - k8DhaT * x.NAD * x.DHAT\
-               - k4E0 * x.NAD * x.E0 + k3E0 * x.E0_C\
-               - k1DhaD * x.NAD * x.DHAD + k2DhaD * x.DHAD_NAD
+    d['NAD'] = k7DhaT * x.DHAT_NAD - k8DhaT * x.DHAT * x.NAD\
+               - k1DhaD * x.NAD * x.DHAD + k2DhaD * x.DHAD_NAD\
+               - k4E0 * x.NAD * x.E0 + k3E0 * x.E0_C
+
 
     d['NADH'] = - k1DhaT * x.NADH * x.DHAT + k2DhaT * x.DHAT_NADH \
                 + k7DhaD * x.DHAD_NADH - k8DhaD * x.NADH * x.DHAD \
@@ -106,9 +108,9 @@ def RHS(t, x, params):
                   + k4DhaB * x.H_CYTO * x.DHAB
 
     d['DHAT'] = - k1DhaT * x.NADH * x.DHAT + k2DhaT * x.DHAT_NADH + k7DhaT * x.DHAT_NAD \
-                - k8DhaT * x.NAD * x.DHAT
+                - k8DhaT * x.DHAT * x.NAD
 
-    d['DHAT_NADH'] =  k1DhaT * x.NADH * x.DHAT - k2DhaT * x.DHAT_NADH \
+    d['DHAT_NADH'] = k1DhaT * x.NADH * x.DHAT - k2DhaT * x.DHAT_NADH \
                       - k3DhaT * x.DHAT_NADH * x.H_CYTO + k4DhaT * x.DHAT_NADH_HPA
 
     d['DHAT_NADH_HPA'] = -k4DhaT * x.DHAT_NADH_HPA + k3DhaT * x.DHAT_NADH * x.H_CYTO \
@@ -127,7 +129,7 @@ def RHS(t, x, params):
                         - k5DhaD * x.DHAD_NAD_GLY + k6DhaD * x.DHAD_NADH * x.DHA_CYTO
 
     d['DHAD_NADH'] = k5DhaD * x.DHAD_NAD_GLY - k6DhaD * x.DHAD_NADH * x.DHA_CYTO \
-                    - k7DhaD * x.DHAT_NADH + k8DhaD * x.DHAD * x.NAD
+                    - k7DhaD * x.DHAD_NADH + k8DhaD * x.DHAD * x.NADH
 
     d['E0'] = - k1E0 * x.NADH * x.E0 + k2E0 * x.E0_C + k3E0 * x.E0_C \
               - k4E0 * x.NAD * x.E0
