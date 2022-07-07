@@ -12,10 +12,22 @@ MODEL_PARAMS_TO_TEX = {'PermCellGlycerol':r'$P_G$',
                        'k2DhaT': r'$k_{2,\mathrm{DhaT}}$',
                        'k3DhaT': r'$k_{3,\mathrm{DhaT}}$',
                        'KeqDhaT': r'$K_{eq}^{\mathrm{DhaT}}$',
-                       'VmaxfMetab': r'$V_{\mathrm{max,Metab}}^{f}$',
-                       'KmMetabG': r'$K_{\mathrm{M,Metab}}^{G}$',
-                       'DHAB_INIT': r'$[\mathrm{DhaB}](0)$',
-                       'DHAT_INIT' : r'$[\mathrm{DhaB}](0)$'}
+                       'kcatfMetab': r'$V_{\mathrm{max,Metab}}^{f}$',
+                       'KmMetabG': r'$K_{\mathrm{M,Metab}}^{G}$'}
+
+ENZ_INIT_TO_TEX = {'DHAB_INIT_50': r"$[\mathrm{DhaB}]_1(0)$",
+                     'DHAB_INIT_60': r"$[\mathrm{DhaB}]_2(0)$",
+                     'DHAB_INIT_70': r"$[\mathrm{DhaB}]_3(0)$",
+                     'DHAB_INIT_80': r"$[\mathrm{DhaB}]_4(0)$",
+                     'DHAT_INIT_50': r"$[\mathrm{DhaT}]_1(0)$",
+                     'DHAT_INIT_60': r"$[\mathrm{DhaT}]_2(0)$",
+                     'DHAT_INIT_70': r"$[\mathrm{DhaT}]_3(0)$",
+                     'DHAT_INIT_80': r"$[\mathrm{DhaT}]_4(0)$",
+                     'E0_Metab_50': r"$[\mathrm{Metab}]_1$",
+                     'E0_Metab_60': r"$[\mathrm{Metab}]_2$",
+                     'E0_Metab_70': r"$[\mathrm{Metab}]_3$",
+                     'E0_Metab_80': r"$[\mathrm{Metab}]_4$"
+                     }
 
 G_EXT_INIT_TO_TEX = {'G_EXT_INIT_50': r"$G_1(0)$",
                      'G_EXT_INIT_60': r"$G_2(0)$",
@@ -28,7 +40,7 @@ DCW_TO_TEX_60 = {param_name + "_60": "$"+param_name + "_{2}$" for param_name in 
 DCW_TO_TEX_70 = {param_name + "_70": "$"+param_name + "_{3}$" for param_name in DCW_CONSTANTS}
 DCW_TO_TEX_80 = {param_name + "_80": "$"+param_name + "_{4}$" for param_name in DCW_CONSTANTS}
 
-VARS_ALL_EXP_TO_TEX = {**MODEL_PARAMS_TO_TEX, **G_EXT_INIT_TO_TEX, **DCW_TO_TEX_50, **DCW_TO_TEX_60, **DCW_TO_TEX_70,
+VARS_ALL_EXP_TO_TEX = {**MODEL_PARAMS_TO_TEX, **ENZ_INIT_TO_TEX, **G_EXT_INIT_TO_TEX, **DCW_TO_TEX_50, **DCW_TO_TEX_60, **DCW_TO_TEX_70,
                        **DCW_TO_TEX_80}
 
 MODEL_PARAMS_TO_UNITS =  {'PermCellGlycerol':'m/s',

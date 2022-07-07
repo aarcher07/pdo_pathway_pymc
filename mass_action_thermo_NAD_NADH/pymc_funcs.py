@@ -9,8 +9,7 @@ mpl.rcParams['text.usetex'] = True
 mpl.rcParams['text.latex.preamble'] = r'\usepackage{amsmath}'
 from prior_constants import NORM_PRIOR_STD_RT_SINGLE_EXP,NORM_PRIOR_MEAN_SINGLE_EXP, NORM_PRIOR_STD_RT_ALL_EXP, \
     NORM_PRIOR_MEAN_ALL_EXP, LOG_UNIF_PRIOR_ALL_EXP, DATA_LOG_UNIF_PARAMETER_RANGES, NORM_PRIOR_PARAMETER_ALL_EXP_DICT
-from constants import PERMEABILITY_PARAMETERS, KINETIC_PARAMETERS, ENZYME_CONCENTRATIONS, GLYCEROL_EXTERNAL_EXPERIMENTAL, \
-    ALL_PARAMETERS, THERMO_PARAMETERS
+from constants import PERMEABILITY_PARAMETERS, KINETIC_PARAMETERS, ENZYME_CONCENTRATIONS, GLYCEROL_EXTERNAL_EXPERIMENTAL, ALL_PARAMETERS
 import time
 from os.path import dirname, abspath
 import sys
@@ -111,9 +110,8 @@ def sample(nsamples, burn_in, nchains, acc_rate=0.8, atol=1e-8, rtol=1e-8, mxste
 
         kinetic_params = [pm.TruncatedNormal(param_name, mu = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][0],
                                     sigma = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][1], lower = -7, upper = 7)
-                          if param_name not in THERMO_PARAMETERS else pm.Uniform(param_name, lower= DATA_LOG_UNIF_PARAMETER_RANGES[param_name][0],
-                                                                                 upper=DATA_LOG_UNIF_PARAMETER_RANGES[param_name][1])
                           for param_name in KINETIC_PARAMETERS]
+
         enzyme_init = [pm.TruncatedNormal(param_name, mu = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][0],
                                  sigma = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][1], lower = -4, upper = 2)
                        for param_name in ENZYME_CONCENTRATIONS]
@@ -172,4 +170,9 @@ if __name__ == '__main__':
     sample_file_location = os.path.join(PARAMETER_SAMP_PATH, directory_name)
     Path(sample_file_location).mkdir(parents=True, exist_ok=True)
     idata_nuts.to_netcdf(os.path.join(sample_file_location,date_string))
+
+    # save trace plots
+    PLOT_SAMP_PATH = ROOT_PATH + '/prelim_trace_plots' #TODO : change to _3HPA
+    plot_file_location = os.path.join(PLOT_SAMP_PATH, directory_name, date_string[:-3])
+    Path(plot_file_location).mkdir(parents=True, exist_ok=True)
 

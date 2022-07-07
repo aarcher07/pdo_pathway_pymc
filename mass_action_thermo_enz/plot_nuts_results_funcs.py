@@ -16,7 +16,7 @@ from prior_constants import NORM_PRIOR_STD_RT_SINGLE_EXP,NORM_PRIOR_MEAN_SINGLE_
     LOG_UNIF_G_EXT_INIT_PRIOR_PARAMETERS
 from constants import PERMEABILITY_PARAMETERS, KINETIC_PARAMETERS, ENZYME_CONCENTRATIONS, \
     GLYCEROL_EXTERNAL_EXPERIMENTAL, ALL_PARAMETERS, PARAMETER_LIST, TIME_SAMPLES_EXPANDED, VARIABLE_NAMES, HRS_TO_SECS, \
-    TIME_SPACING, DATA_INDEX, N_MODEL_PARAMETERS
+    TIME_SPACING, DATA_INDEX, N_MODEL_PARAMETERS, INIT_CONSTANTS
 import numpy as np
 from os.path import dirname, abspath
 from rhs_funcs import RHS, lib, problem, solver
@@ -64,7 +64,7 @@ def plot_time_series_distribution(samples, plot_file_location, nchains, atol, rt
         for chain_ind in range(min(5, nchains)):
             dataarray = samples.posterior.to_dataframe().loc[[chain_ind]]
             dataarray = dataarray[ALL_PARAMETERS]
-            lower, upper = LOG_UNIF_G_EXT_INIT_PRIOR_PARAMETERS["G_EXT_INIT_" + str(gly_cond)]
+            # lower, upper = LOG_UNIF_G_EXT_INIT_PRIOR_PARAMETERS["G_EXT_INIT_" + str(gly_cond)]
             for jj in range(3):
                 ax[jj, chain_ind].scatter(TIME_SAMPLES_EXPANDED[gly_cond][::TIME_SPACING], DATA_SAMPLES[gly_cond][:, jj])
 
@@ -73,6 +73,15 @@ def plot_time_series_distribution(samples, plot_file_location, nchains, atol, rt
                 param = dataarray.iloc[j,:].to_numpy()
                 param_sample = NORM_PRIOR_MEAN_SINGLE_EXP[gly_cond]
                 param_sample[:N_MODEL_PARAMETERS] = param[:N_MODEL_PARAMETERS]
+                param_sample[PARAMETER_LIST.index('DHAB_INIT')] = param[N_MODEL_PARAMETERS +
+                                                                                  4 * INIT_CONSTANTS.index('DHAB_INIT')
+                                                                                  + exp_ind]
+                param_sample[PARAMETER_LIST.index('DHAT_INIT')] = param[N_MODEL_PARAMETERS +
+                                                                                  4 * INIT_CONSTANTS.index('DHAT_INIT')
+                                                                                  + exp_ind]
+                param_sample[PARAMETER_LIST.index('E0_Metab')] = param[N_MODEL_PARAMETERS +
+                                                                                 4 * INIT_CONSTANTS.index('E0_Metab')
+                                                                                 + exp_ind]
                 # g_ext_val = param[N_MODEL_PARAMETERS + exp_ind]
                 # g_ext_val = lower + (upper - lower) / (1 + np.exp(-g_ext_val))
                 # param_sample[N_MODEL_PARAMETERS] = g_ext_val

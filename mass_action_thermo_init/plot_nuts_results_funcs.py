@@ -73,9 +73,9 @@ def plot_time_series_distribution(samples, plot_file_location, nchains, atol, rt
                 param = dataarray.iloc[j,:].to_numpy()
                 param_sample = NORM_PRIOR_MEAN_SINGLE_EXP[gly_cond]
                 param_sample[:N_MODEL_PARAMETERS] = param[:N_MODEL_PARAMETERS]
-                # g_ext_val = param[N_MODEL_PARAMETERS + exp_ind]
-                # g_ext_val = lower + (upper - lower) / (1 + np.exp(-g_ext_val))
-                # param_sample[N_MODEL_PARAMETERS] = g_ext_val
+                g_ext_val = param[N_MODEL_PARAMETERS + exp_ind]
+                g_ext_val = lower + (upper - lower) / (1 + np.exp(-g_ext_val))
+                param_sample[N_MODEL_PARAMETERS] = g_ext_val
 
                 tvals = TIME_SAMPLES_EXPANDED[gly_cond] * HRS_TO_SECS
 
