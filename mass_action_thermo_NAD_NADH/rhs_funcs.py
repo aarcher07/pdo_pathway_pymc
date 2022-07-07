@@ -43,7 +43,7 @@ def RHS(t, x, params):
     k4DhaB = 10**(params.k1DhaB + params.k3DhaB - params.KeqDhaB - params.k2DhaB)
 
     k1DhaT = 10**params.k1DhaT
-    k2DhaT =  10**params.k2DhaT
+    k2DhaT = 10**params.k2DhaT
     k3DhaT =  10**params.k3DhaT
     k4DhaT = 10**params.k4DhaT
     k5DhaT = 10**params.k5DhaT
