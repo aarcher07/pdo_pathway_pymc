@@ -1,8 +1,5 @@
 import matplotlib as mpl
-import aesara
 import aesara.tensor as at
-import arviz as az
-import matplotlib.pyplot as plt
 import os
 import pymc as pm
 mpl.rcParams['text.usetex'] = True

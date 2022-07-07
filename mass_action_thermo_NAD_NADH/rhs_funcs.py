@@ -1,4 +1,4 @@
-import sunode
+import sunode._cvodes.lib as lib
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 mpl.rcParams['text.usetex'] = True
@@ -7,7 +7,7 @@ import numpy as np
 from constants import *
 
 
-lib = sunode._cvodes.lib
+#lib = sunode._cvodes.lib
 
 def RHS(t, x, params):
     """
@@ -144,7 +144,7 @@ def RHS(t, x, params):
     d['G_EXT'] = ncells * cell_area_external_volume * PermCellGlycerol * (x.G_CYTO - x.G_EXT)
     d['H_EXT'] = ncells * cell_area_external_volume * PermCell3HPA * (x.H_CYTO - x.H_EXT)
     d['P_EXT'] = ncells * cell_area_external_volume * PermCellPDO * (x.P_CYTO - x.P_EXT)
-    d['DHA_EXT'] = ncells * cell_area_external_volume * PermCellPDO * (x.DHA_CYTO - x.DHA_EXT)
+    d['DHA_EXT'] = ncells * cell_area_external_volume * PermCellDHA * (x.DHA_CYTO - x.DHA_EXT)
 
     d['dcw'] = k*(1-x.dcw/L)*x.dcw
     return d
