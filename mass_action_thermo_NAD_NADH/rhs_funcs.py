@@ -1,4 +1,4 @@
-import sunode._cvodes.lib as lib
+import sunode
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 mpl.rcParams['text.usetex'] = True
@@ -7,7 +7,7 @@ import numpy as np
 from constants import *
 
 
-#lib = sunode._cvodes.lib
+lib = sunode._cvodes.lib
 
 def RHS(t, x, params):
     """
