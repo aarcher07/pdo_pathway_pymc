@@ -17,15 +17,17 @@ DCW_TO_CELL_COUNT = DCW_TO_CELL_CONCENTRATION*EXTERNAL_VOLUME
 
 
 
-MODEL_CONSTANTS = ['PermCellGlycerol','PermCellPDO','PermCell3HPA', #'PermCellDHA',
+MODEL_CONSTANTS = ['PermCellGlycerol','PermCellPDO','PermCell3HPA', 'PermCellDHA',
                    'k1DhaB', 'k2DhaB', 'k3DhaB', 'KeqDhaB',
                    'k1DhaT', 'k2DhaT', 'k3DhaT', 'k4DhaT', 'k5DhaT', 'k6DhaT', 'k7DhaT', 'KeqDhaT',
+                   'k1DhaD', 'k2DhaD', 'k3DhaD', 'k4DhaD', 'k5DhaD', 'k6DhaD', 'k7DhaD', 'KeqDhaD',
                    'k1E0', 'k2E0', 'k3E0', 'k4E0',
                    'VmaxfDhaK', 'KmDhaK'
                   ]
 
 INIT_CONSTANTS = ['DHAB_INIT',
                   'DHAT_INIT',
+                  'DHAD_INIT',
                   'E0_INIT',
                   'NADH_NAD_TOTAL_INIT',
                   'NADH_NAD_RATIO_INIT',
@@ -40,23 +42,25 @@ DEV_PARAMETERS_LIST = [*MODEL_CONSTANTS, *INIT_CONSTANTS[:-1]]
 
 PARAMETER_LIST = [*MODEL_CONSTANTS, *INIT_CONSTANTS, *DCW_CONSTANTS]
 
-VARIABLE_NAMES = ['G_CYTO', 'H_CYTO','P_CYTO',
+VARIABLE_NAMES = ['G_CYTO', 'H_CYTO','P_CYTO', 'DHA_CYTO',
                   'NADH', 'NAD',
                   'DHAB', 'DHAB_C',
                   'DHAT', 'DHAT_NADH', 'DHAT_NADH_HPA', 'DHAT_NAD',
+                  'DHAD', 'DHAD_NAD', 'DHAD_NAD_GLY', 'DHAD_NADH',
                   'E0', 'E0_C',
-                  'G_EXT', 'H_EXT','P_EXT', 'dcw']
+                  'G_EXT', 'H_EXT','P_EXT', 'DHA_EXT', 'dcw']
 
-PERMEABILITY_PARAMETERS = ['PermCellGlycerol','PermCellPDO','PermCell3HPA']#, 'PermCellDHA']
+PERMEABILITY_PARAMETERS = ['PermCellGlycerol','PermCellPDO','PermCell3HPA', 'PermCellDHA']
 
 KINETIC_PARAMETERS = ['k1DhaB', 'k2DhaB', 'k3DhaB', 'KeqDhaB',
                       'k1DhaT', 'k2DhaT', 'k3DhaT', 'k4DhaT', 'k5DhaT', 'k6DhaT', 'k7DhaT', 'KeqDhaT',
+                      'k1DhaD', 'k2DhaD', 'k3DhaD', 'k4DhaD', 'k5DhaD', 'k6DhaD', 'k7DhaD', 'KeqDhaD',
                       'k1E0', 'k2E0', 'k3E0', 'k4E0',
                       'VmaxfDhaK', 'KmDhaK']
 
-THERMO_PARAMETERS = ['KeqDhaB', 'KeqDhaT']
+THERMO_PARAMETERS = ['KeqDhaB', 'KeqDhaT', 'KeqDhaD']
 
-ENZYME_CONCENTRATIONS = ['DHAB_INIT', 'DHAT_INIT', 'E0_INIT']
+ENZYME_CONCENTRATIONS = ['DHAB_INIT', 'DHAT_INIT', 'DHAD_INIT', 'E0_INIT']
 
 COFACTOR_PARAMETERS = ['NADH_NAD_TOTAL_INIT', 'NADH_NAD_RATIO_INIT']
 

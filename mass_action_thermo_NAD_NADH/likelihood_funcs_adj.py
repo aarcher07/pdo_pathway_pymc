@@ -46,7 +46,6 @@ def likelihood_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
                     10 ** param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_INIT')] + 1)
         y0['DHAB'] = 10 ** param_sample[PARAMETER_LIST.index('DHAB_INIT')]
         y0['DHAT'] = 10 ** param_sample[PARAMETER_LIST.index('DHAT_INIT')]
-        y0['DHAD'] = 10 ** param_sample[PARAMETER_LIST.index('DHAD_INIT')]
         y0['E0'] = 10 ** param_sample[PARAMETER_LIST.index('E0_INIT')]
         y0['G_EXT'] = 10 ** param_sample[PARAMETER_LIST.index('G_EXT_INIT')]
         y0['P_EXT'] = INIT_CONDS_GLY_PDO_DCW[gly_cond][1]
@@ -70,7 +69,7 @@ def likelihood_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
             loglik += -0.5*(((DATA_SAMPLES[gly_cond]-yout[:,[7,9,10]])/np.array([15,15,0.1]))**2).sum()
         except sunode.solver.SolverError:
             loglik += -np.inf
-        print(loglik)
+    print(loglik)
     return loglik
 
 
@@ -113,7 +112,6 @@ def likelihood_derivative_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)
                     10 ** param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_INIT')] + 1)
         y0['DHAB'] = 10 ** param_sample[PARAMETER_LIST.index('DHAB_INIT')]
         y0['DHAT'] = 10 ** param_sample[PARAMETER_LIST.index('DHAT_INIT')]
-        y0['DHAD'] = 10 ** param_sample[PARAMETER_LIST.index('DHAD_INIT')]
         y0['E0'] = 10 ** param_sample[PARAMETER_LIST.index('E0_INIT')]
         y0['G_EXT'] = 10 ** param_sample[PARAMETER_LIST.index('G_EXT_INIT')]
         y0['P_EXT'] = INIT_CONDS_GLY_PDO_DCW[gly_cond][1]
@@ -130,8 +128,8 @@ def likelihood_derivative_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)
         # sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_EXT')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
         sens0[PARAMETER_LIST.index('DHAB_INIT'), VARIABLE_NAMES.index('DHAB')] = np.log(10) * (
                     10 ** param_sample[PARAMETER_LIST.index('DHAB_INIT')])
-        sens0[PARAMETER_LIST.index('DHAD_INIT'), VARIABLE_NAMES.index('DHAD')] = np.log(10) * (
-                    10 ** param_sample[PARAMETER_LIST.index('DHAD_INIT')])
+        # sens0[PARAMETER_LIST.index('DHAD_INIT'), VARIABLE_NAMES.index('DHAD')] = np.log(10) * (
+        #             10 ** param_sample[PARAMETER_LIST.index('DHAD_INIT')])
         sens0[PARAMETER_LIST.index('E0_INIT'), VARIABLE_NAMES.index('E0')] = np.log(10) * (
                     10 ** param_sample[PARAMETER_LIST.index('E0_INIT')])
 
