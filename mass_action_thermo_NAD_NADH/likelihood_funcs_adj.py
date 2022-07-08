@@ -13,6 +13,7 @@ from rhs_funcs import RHS, lib, problem
 solver = sunode.solver.AdjointSolver(problem, solver='BDF')
 
 def likelihood_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
+    print(param_vals)
     # set solver parameters
     lib.CVodeSStolerances(solver._ode, atol, rtol)
     lib.CVodeSetMaxNumSteps(solver._ode, mxsteps)
@@ -33,7 +34,7 @@ def likelihood_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
         # param_sample[N_MODEL_PARAMETERS+2] = param_vals_copy[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 1]
         # param_sample[N_MODEL_PARAMETERS+3] = param_vals_copy[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 2]
 
-        tvals = TIME_SAMPLES[gly_cond]*HRS_TO_SECS
+        tvals = TIME_SAMPLES_EXPANDED[gly_cond]*HRS_TO_SECS
         y0 = np.zeros((), dtype=problem.state_dtype)
         for var in VARIABLE_NAMES:
             y0[var] = 0
@@ -58,7 +59,10 @@ def likelihood_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
         yout, _, _ = solver.make_output_buffers(tvals)
 
         try:
+            # time_start = time.time()
             solver.solve_forward(t0=0, tvals=tvals, y0=y0, y_out=yout)
+            # time_end = time.time()
+            # print((time_end-time_start)/60)
             # jj=0
             # for i,var in enumerate(VARIABLE_NAMES):
                 # if i in DATA_INDEX:
@@ -66,7 +70,7 @@ def likelihood_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
                 #     plt.scatter(tvals/HRS_TO_SECS, DATA_SAMPLES[gly_cond][:,jj])
                 #     jj+=1
                 # plt.show()
-            loglik += -0.5*(((DATA_SAMPLES[gly_cond]-yout[:,DATA_INDEX])/np.array([15,15,0.1]))**2).sum()
+            loglik += -0.5*(((DATA_SAMPLES[gly_cond]-yout[::TIME_SPACING,DATA_INDEX])/np.array([15,15,0.1]))**2).sum()
         except sunode.solver.SolverError:
             loglik += -np.inf
     print(loglik)
@@ -153,7 +157,10 @@ def likelihood_derivative_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)
         # sens0[PARAMETER_LIST.index('A'), VARIABLE_NAMES.index('dcw')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('A')])
 
         try:
+            # time_start = time.time()
             solver.solve_forward(t0=0, tvals=tvals, y0=y0, y_out=yout)
+            # time_end = time.time()
+            # print((time_end-time_start)/60)
 
             # jj=0
             # for i,var in enumerate(VARIABLE_NAMES):
@@ -168,8 +175,11 @@ def likelihood_derivative_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)
             grads[::TIME_SPACING, DATA_INDEX] = lik_dev
 
             # backsolve
+            # time_start = time.time()
             solver.solve_backward(t0=tvals[-1], tend=tvals[0], tvals=tvals[1:-1],
                                   grads=grads, grad_out=grad_out, lamda_out=lambda_out)
+            # time_end = time.time()
+            # print((time_end-time_start)/60)
 
 
             grad_out = -np.matmul(sens0, lambda_out - grads[0, :]) + grad_out

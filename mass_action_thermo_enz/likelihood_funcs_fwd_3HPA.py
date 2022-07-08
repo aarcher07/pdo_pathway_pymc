@@ -24,14 +24,23 @@ def likelihood_fwd(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
     loglik = 0
     param_vals_copy = param_vals.copy()
 
-    gly_init_val = param_vals[N_MODEL_PARAMETERS:(N_MODEL_PARAMETERS+4)]
-    for i,((lower,upper),gly_init) in enumerate(zip(LOG_UNIF_G_EXT_INIT_PRIOR_PARAMETERS.values(),gly_init_val)):
-        param_vals_copy[N_MODEL_PARAMETERS + i] = lower + (upper - lower)/(1+np.exp(-gly_init))
+    # gly_init_val = param_vals[N_MODEL_PARAMETERS:(N_MODEL_PARAMETERS+4)]
+    # for i,((lower,upper),gly_init) in enumerate(zip(LOG_UNIF_G_EXT_INIT_PRIOR_PARAMETERS.values(),gly_init_val)):
+    #     param_vals_copy[N_MODEL_PARAMETERS + i] = lower + (upper - lower)/(1+np.exp(-gly_init))
 
     for exp_ind, gly_cond in enumerate([50,60,70,80]):
         param_sample = NORM_PRIOR_MEAN_SINGLE_EXP[gly_cond].copy()
         param_sample[:N_MODEL_PARAMETERS] = param_vals_copy[:N_MODEL_PARAMETERS]
-        param_sample[N_MODEL_PARAMETERS+0] = param_vals_copy[N_MODEL_PARAMETERS + exp_ind]
+        param_sample[PARAMETER_LIST.index('DHAB_INIT')] = param_vals_copy[N_MODEL_PARAMETERS +
+                                                                          4 * INIT_CONSTANTS.index('DHAB_INIT')
+                                                                          + exp_ind]
+        param_sample[PARAMETER_LIST.index('DHAT_INIT')] = param_vals_copy[N_MODEL_PARAMETERS +
+                                                                          4 * INIT_CONSTANTS.index('DHAT_INIT')
+                                                                          + exp_ind]
+        param_sample[PARAMETER_LIST.index('E0_Metab')] = param_vals_copy[N_MODEL_PARAMETERS +
+                                                                         4 * INIT_CONSTANTS.index('E0_Metab')
+                                                                         + exp_ind]
+        # param_sample[N_MODEL_PARAMETERS+0] = param_vals_copy[N_MODEL_PARAMETERS + exp_ind]
         # param_sample[N_MODEL_PARAMETERS+1] = param_vals_copy[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 0]
         # param_sample[N_MODEL_PARAMETERS+2] = param_vals_copy[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 1]
         # param_sample[N_MODEL_PARAMETERS+3] = param_vals_copy[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 2]
@@ -81,17 +90,25 @@ def likelihood_derivative_fwd(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)
     lib.CVodeSetMaxNumSteps(solver._ode, mxsteps)
 
     # initialize
-    lik_dev_params = np.zeros(N_MODEL_PARAMETERS + 4)
+    lik_dev_params = np.zeros_like(param_vals)
     param_vals_copy = param_vals.copy()
 
-    gly_init_val = param_vals[N_MODEL_PARAMETERS:(N_MODEL_PARAMETERS+4)]
-    for i,((lower,upper),gly_init) in enumerate(zip(LOG_UNIF_G_EXT_INIT_PRIOR_PARAMETERS.values(),gly_init_val)):
-        param_vals_copy[N_MODEL_PARAMETERS + i] = lower + (upper - lower)/(1+np.exp(-gly_init))
+    # gly_init_val = param_vals[N_MODEL_PARAMETERS:(N_MODEL_PARAMETERS+4)]
+    # for i,((lower,upper),gly_init) in enumerate(zip(LOG_UNIF_G_EXT_INIT_PRIOR_PARAMETERS.values(),gly_init_val)):
+    #     param_vals_copy[N_MODEL_PARAMETERS + i] = lower + (upper - lower)/(1+np.exp(-gly_init))
     time_tot = 0
     for exp_ind, gly_cond in enumerate([50,60,70,80]):
         param_sample = NORM_PRIOR_MEAN_SINGLE_EXP[gly_cond].copy()
         param_sample[:N_MODEL_PARAMETERS] = param_vals_copy[:N_MODEL_PARAMETERS]
-        param_sample[N_MODEL_PARAMETERS+0] = param_vals_copy[N_MODEL_PARAMETERS + exp_ind]
+        param_sample[PARAMETER_LIST.index('DHAB_INIT')] = param_vals_copy[N_MODEL_PARAMETERS +
+                                                                          4 * INIT_CONSTANTS.index('DHAB_INIT')
+                                                                          + exp_ind]
+        param_sample[PARAMETER_LIST.index('DHAT_INIT')] = param_vals_copy[N_MODEL_PARAMETERS +
+                                                                          4 * INIT_CONSTANTS.index('DHAT_INIT')
+                                                                          + exp_ind]
+        param_sample[PARAMETER_LIST.index('E0_Metab')] = param_vals_copy[N_MODEL_PARAMETERS +
+                                                                         4 * INIT_CONSTANTS.index('E0_Metab')
+                                                                         + exp_ind]
         # param_sample[N_MODEL_PARAMETERS+1] = param_vals_copy[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 0]
         # param_sample[N_MODEL_PARAMETERS+2] = param_vals_copy[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 1]
         # param_sample[N_MODEL_PARAMETERS+3] = param_vals_copy[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 2]
@@ -153,16 +170,18 @@ def likelihood_derivative_fwd(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)
         # compute gradient
         for j, param in enumerate(DEV_PARAMETERS_LIST):
             lik_dev_param = (lik_dev_zeros * sens_out[:, j, :]).sum()
+            if param in INIT_CONSTANTS[:-1]:
+                lik_dev_params[N_MODEL_PARAMETERS + 4*INIT_CONSTANTS.index(param) + exp_ind] += lik_dev_param
             if param == 'G_EXT_INIT':
                 param_gly_name = param + '_' + str(gly_cond)
                 lower, upper = LOG_UNIF_G_EXT_INIT_PRIOR_PARAMETERS[param_gly_name]
                 gly_val = param_sample[N_MODEL_PARAMETERS]
                 dGdtildeG = np.exp(-gly_val)*(lower - upper)/(1 + np.exp(-gly_val))**2
-                lik_dev_params[N_MODEL_PARAMETERS + exp_ind] += lik_dev_param*dGdtildeG
+                lik_dev_params[N_MODEL_PARAMETERS + 4*INIT_CONSTANTS.index(param) + exp_ind] += lik_dev_param*dGdtildeG
             elif param in ['L', 'k', 'A']:
 
                 jj = ['L', 'k', 'A'].index(param)
-                lik_dev_params[N_MODEL_PARAMETERS + 4 + exp_ind * N_DCW_PARAMETERS + jj] += lik_dev_param
+                lik_dev_params[N_MODEL_PARAMETERS + 4*len(INIT_CONSTANTS) + exp_ind * N_DCW_PARAMETERS + jj] += lik_dev_param
             else:
                 lik_dev_params[j] += lik_dev_param
 

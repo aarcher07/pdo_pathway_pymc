@@ -18,10 +18,18 @@ lib.CVodeSetMaxNumSteps(solver._ode, 100000)
 
 param_sample = NORM_PRIOR_MEAN_ALL_EXP.copy()[:(N_MODEL_PARAMETERS+4)]
 param_sample_copy = param_sample.copy()
+param_sample_copy[:N_MODEL_PARAMETERS] = np.array([-3.41, -3.84, -4.9, -4.3,
+                                                   2.56e-1, -5.22, 2.93, 7.30,
+                                                   2.77, 8.27e-1, 1.16, 8.23e-1,
+                                                   1.40, 7.28e-1, 1.48, 3.22,
+                                                   1.65, 1.21, -3.14e-1, 1.88,
+                                                   -2.15, 5.22e-1, -5.26e-1, -4.25,
+                                                   -5.98e-1, 5.41e-1, -6.85e-1, 2.88,
+                                                   5.48e-3, -2.49, -1.98, 8.34e-2,
+                                                   -8.34e-2, 4.82e-1, 6.73e-1, -9e-2])
 lik_dev_params = np.zeros((N_MODEL_PARAMETERS + 4,))
 time_tot = 0
-print(NORM_PRIOR_MEAN_ALL_EXP.shape)
-print(N_MODEL_PARAMETERS)
+
 for exp_ind, gly_cond in enumerate([50,60,70,80]):
     param_sample = NORM_PRIOR_MEAN_SINGLE_EXP[gly_cond]
     param_sample[:(N_MODEL_PARAMETERS+1)] = [*param_sample_copy[:N_MODEL_PARAMETERS], param_sample_copy[N_MODEL_PARAMETERS + exp_ind]]
@@ -30,13 +38,15 @@ for exp_ind, gly_cond in enumerate([50,60,70,80]):
     y0 = np.zeros((), dtype=problem.state_dtype)
     for var in VARIABLE_NAMES:
         y0[var] = 0
+    print(PARAMETER_LIST)
+
     y0['G_CYTO'] = 10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')]
     y0['P_CYTO'] = INIT_CONDS_GLY_PDO_DCW[gly_cond][1]
     y0['NADH'] = (10**(param_sample[PARAMETER_LIST.index('NADH_NAD_TOTAL_INIT')] + param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_INIT')]))/(10**param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_INIT')] + 1)
     y0['NAD'] = 10**param_sample[PARAMETER_LIST.index('NADH_NAD_TOTAL_INIT')]/(10**param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_INIT')] + 1)
     y0['DHAB'] = 10**param_sample[PARAMETER_LIST.index('DHAB_INIT')]
     y0['DHAT'] = 10**param_sample[PARAMETER_LIST.index('DHAT_INIT')]
-    y0['DHAD'] = 10**param_sample[PARAMETER_LIST.index('DHAD_INIT')]
+    # y0['DHAD'] = 10**param_sample[PARAMETER_LIST.index('DHAD_INIT')]
     y0['E0'] = 10**param_sample[PARAMETER_LIST.index('E0_INIT')]
     y0['G_EXT'] = 10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')]
     y0['P_EXT'] = INIT_CONDS_GLY_PDO_DCW[gly_cond][1]
@@ -52,7 +62,7 @@ for exp_ind, gly_cond in enumerate([50,60,70,80]):
     # sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_CYTO')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
     # sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_EXT')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
     sens0[PARAMETER_LIST.index('DHAB_INIT'), VARIABLE_NAMES.index('DHAB')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('DHAB_INIT')])
-    sens0[PARAMETER_LIST.index('DHAD_INIT'), VARIABLE_NAMES.index('DHAD')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('DHAD_INIT')])
+    # sens0[PARAMETER_LIST.index('DHAD_INIT'), VARIABLE_NAMES.index('DHAD')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('DHAD_INIT')])
     sens0[PARAMETER_LIST.index('E0_INIT'), VARIABLE_NAMES.index('E0')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('E0_INIT')])
 
     sens0[PARAMETER_LIST.index('DHAT_INIT'), VARIABLE_NAMES.index('DHAT')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('DHAT_INIT')])

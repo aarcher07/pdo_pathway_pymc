@@ -32,8 +32,8 @@ def plot_trace(samples, plot_file_location):
         plt.close()
 
 def plot_loglik_individual(loglik, plot_file_location, nchains):
-    fig, ax = plt.subplots(nchains,2)
-    for i in range(nchains):
+    fig, ax = plt.subplots(len(loglik),2)
+    for i in range(len(loglik)):
         ax[i,0].hist(loglik[i],alpha=0.5)
         ax[i,0].set_title('Histogram of Log-Likelihood')
         ax[i,1].plot(list(range(len(loglik[i]))),loglik[i],alpha=0.5)
@@ -61,7 +61,7 @@ def plot_time_series_distribution(samples, plot_file_location, nchains, atol, rt
     legend_names = ['chain ' + str(i)  for i in range(min(5, nchains))]
     for exp_ind, gly_cond in enumerate([50, 60, 70, 80]):
         fig, ax = plt.subplots(5, min(5, nchains), figsize=(15,15)) #min(5, nchains))
-        for chain_ind in range(min(5, nchains)):
+        for chain_ind in samples.posterior.chain[:5]:
             dataarray = samples.posterior.to_dataframe().loc[[chain_ind]]
             dataarray = dataarray[ALL_PARAMETERS]
             # lower, upper = LOG_UNIF_G_EXT_INIT_PRIOR_PARAMETERS["G_EXT_INIT_" + str(gly_cond)]
@@ -132,7 +132,7 @@ def plot_time_series_distribution(samples, plot_file_location, nchains, atol, rt
         plt.savefig(os.path.join(plot_file_location, 'time_series_results_' + str(gly_cond) + '.png'))
 
 def plot_corr(data, directory_plot, nchains, thres=5e-2):
-    for chain_ind in range(nchains):
+    for chain_ind in data.posterior.chain[:5]:
         dataarray = data.posterior.to_dataframe().loc[[chain_ind]]
         dataarray = dataarray[ALL_PARAMETERS]
 
@@ -160,11 +160,11 @@ def plot_corr(data, directory_plot, nchains, thres=5e-2):
         cbar = ax.collections[0].colorbar
         cbar.ax.tick_params(labelsize=20)
         fig.set_size_inches(15, 9.5, forward=True)
-        plt.savefig(directory_plot + '/correlation_plot_chain_' + str(chain_ind), bbox_inches="tight")
+        plt.savefig(directory_plot + '/correlation_plot_chain_' + str(int(chain_ind)), bbox_inches="tight")
         plt.close()
 
 def plot_corr_scatter(data, directory_plot, nchains):
-    for chain_ind in range(nchains):
+    for chain_ind in data.posterior.chain[:5]:
         diverging = data.sample_stats.diverging[chain_ind].values
         dataarray = data.posterior.to_dataframe().loc[[chain_ind]]
         dataarray = dataarray[ALL_PARAMETERS]
@@ -192,7 +192,7 @@ def plot_corr_scatter(data, directory_plot, nchains):
                     axes[i, j].tick_params(axis="y", labelsize=15)
 
             plt.suptitle('Scatter Plot Matrix of Posterior Samples', fontsize=20)
-            plt.savefig(directory_plot + '/correlation_scatter_plot_chain_' + str(chain_ind), bbox_inches="tight")
+            plt.savefig(directory_plot + '/correlation_scatter_plot_chain_' + str(int(chain_ind)), bbox_inches="tight")
             plt.close()
         except np.linalg.LinAlgError:
             pass
@@ -229,7 +229,7 @@ def joint_Keq_distribution(KeqDhaB_chains,KeqDhaT_chains, plot_location, nchains
     rect_scatter = [left, bottom, width, height]
     rect_histx = [left, bottom + height + spacing, width, 0.2]
     rect_histy = [left + width + spacing, bottom, 0.2, height]
-    for chain_ind in range(nchains):
+    for chain_ind in range(len(KeqDhaB_chains)):
         KeqDhaB = KeqDhaB_chains[chain_ind]
         KeqDhaT = KeqDhaT_chains[chain_ind]
 

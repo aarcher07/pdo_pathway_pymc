@@ -18,6 +18,15 @@ lib.CVodeSetMaxNumSteps(solver._ode, 100000)
 
 param_sample = NORM_PRIOR_MEAN_ALL_EXP.copy()[:(N_MODEL_PARAMETERS+4)]
 param_sample_copy = param_sample.copy()
+param_sample_copy[:N_MODEL_PARAMETERS] = np.array([-3.41, -3.84, -4.9, -4.3,
+                                                   2.56e-1, -5.22, 2.93, 7.30,
+                                                   2.77, 8.27e-1, 1.16, 8.23e-1,
+                                                   1.40, 7.28e-1, 1.48, 3.22,
+                                                   1.65, 1.21, -3.14e-1, 1.88,
+                                                   -2.15, 5.22e-1, -5.26e-1, -4.25,
+                                                   -5.98e-1, 5.41e-1, -6.85e-1, 2.88,
+                                                   5.48e-3, -2.49, -1.98, 8.34e-2,
+                                                   -8.34e-2, 4.82e-1, 6.73e-1, -9e-2])
 lik_dev_params = np.zeros((N_MODEL_PARAMETERS + 4,))
 time_tot = 0
 print(NORM_PRIOR_MEAN_ALL_EXP.shape)
@@ -64,14 +73,18 @@ for exp_ind, gly_cond in enumerate([50,60,70,80]):
 
     time_start = time.time()
     solver.solve_forward(t0=0, tvals=tvals, y0=y0, y_out=yout)
-    # jj =0
-    # for i,var in enumerate(VARIABLE_NAMES):
-    #     plt.plot(tvals / HRS_TO_SECS, yout.view(problem.state_dtype)[var])
-    #     if i in DATA_INDEX:
-    #         plt.scatter(tvals[::TIME_SPACING]/HRS_TO_SECS, DATA_SAMPLES[gly_cond][:,jj])
-    #         jj+=1
-    #     plt.title(var)
-    #     plt.show()
+    jj =0
+    for i,var in enumerate(VARIABLE_NAMES):
+        if i in DATA_INDEX:
+            plt.plot(tvals / HRS_TO_SECS, yout.view(problem.state_dtype)[var])
+            plt.scatter(tvals[::TIME_SPACING]/HRS_TO_SECS, DATA_SAMPLES[gly_cond][:,jj])
+            plt.title(var)
+            plt.show()
+            jj+=1
+        if var in ['H_CYTO']:
+            plt.plot(tvals / HRS_TO_SECS, yout.view(problem.state_dtype)[var])
+            plt.title(var)
+            plt.show()
     # print('DHAB INIT ' + str(y0['DHAB'] + y0['DHAB_C']))
     # print('DHAB FINAL ' + str(yout[-1,VARIABLE_NAMES.index('DHAB')] + yout[-1,VARIABLE_NAMES.index('DHAB_C')]))
     #

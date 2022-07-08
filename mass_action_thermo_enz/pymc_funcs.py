@@ -17,7 +17,7 @@ import sys
 from pathlib import Path
 import numpy as np
 from datetime import datetime
-from likelihood_funcs_adj import likelihood_adj, likelihood_derivative_adj  #TODO : change to _3HPA
+from likelihood_funcs_adj_3HPA import likelihood_adj, likelihood_derivative_adj  #TODO : change to _3HPA
 from os.path import dirname, abspath
 
 ROOT_PATH = dirname(abspath(__file__))
@@ -161,7 +161,7 @@ if __name__ == '__main__':
                         init=init, initvals=start_val, random_seed=random_seed)
 
     # save samples
-    PARAMETER_SAMP_PATH = ROOT_PATH + '/samples'  #TODO : change to _3HPA
+    PARAMETER_SAMP_PATH = ROOT_PATH + '/samples_3HPA'  #TODO : change to _3HPA
     directory_name = 'nsamples_' + str(nsamples) + '_burn_in_' + str(burn_in) + '_acc_rate_' + str(acc_rate) +\
                      '_nchains_' + str(nchains) + '_atol_' + str(atol) + '_rtol_' + str(rtol) + '_mxsteps_' + \
                      str(mxsteps) + '_initialization_' + init
