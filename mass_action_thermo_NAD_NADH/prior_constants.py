@@ -32,7 +32,7 @@ DATA_LOG_UNIF_PARAMETER_RANGES = {'PermCellGlycerol': np.log10([1e-6, 1e-2]),
                                   'k5DhaT': np.log10([1e0, 1e4]),
                                   'k6DhaT': np.log10([1e-2, 1e2]),
                                   'k7DhaT': np.log10([1e0, 1e4]),
-                                  'KeqDhaT': np.log10([1e-2, 1e2]),
+                                  'KeqDhaT': np.log10([1e2, 1e5]),
 
                                   'k1E0': np.log10([1e-2, 1e0]),
                                   'k2E0': np.log10([1e0, 1e2]),

@@ -8,9 +8,9 @@
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=andrearcher2017@u.northwestern.edu
 #SBATCH --mem-per-cpu=15GB
-#SBATCH --job-name=mass_action_thermo_init_%A_%a
-#SBATCH --output=out/mass_action_thermo_init_out_%A_%a
-#SBATCH --error=err/mass_action_thermo_init_err_%A_%a
+#SBATCH --job-name=mass_action_thermo_NAD_NADH_%A_%a
+#SBATCH --output=out/mass_action_thermo_NAD_NADH_out_%A_%a
+#SBATCH --error=err/mass_action_thermo_NAD_NADH_err_%A_%a
 
 nsamples=(1e3 3e3)
 burn_in=(3e3 4e3)
