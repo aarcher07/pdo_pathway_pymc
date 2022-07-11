@@ -13,7 +13,7 @@
 #SBATCH --error=err/mass_action_3HPA_err_%A_%a
 
 nsamples=(1e4)
-burn_in=(3e3 4e4)
+burn_in=(6e3)
 nchains=5
 acc_rate=(0.8)
 atol=(1e-8)
@@ -37,4 +37,4 @@ zero_index=$(( $SLURM_ARRAY_TASK_ID-1))
 module purge all
 module load texlive/2020
 
-python pymc_funcs.py "${nsamples[(($zero_index / $sublen_init_acc_rate_burn_in) % $len_nsamples)]}" "${burn_in[($zero_index / $sublen_init_acc_rate) % $len_burn_in]}" "${nchains}" "${acc_rate[($zero_index / $len_init) % $len_acc_rate]}" "${atol[(($zero_index / $sublen_init_acc_rate_burn_in_nsamples) % $len_atol)]}" "${rtol[(($zero_index / $sublen_init_acc_rate_burn_in_nsamples_atol) % $len_rtol)]}" "${mxsteps}" "${init[$zero_index % $len_init]}"
+python pymc_funcs_3HPA.py "${nsamples[(($zero_index / $sublen_init_acc_rate_burn_in) % $len_nsamples)]}" "${burn_in[($zero_index / $sublen_init_acc_rate) % $len_burn_in]}" "${nchains}" "${acc_rate[($zero_index / $len_init) % $len_acc_rate]}" "${atol[(($zero_index / $sublen_init_acc_rate_burn_in_nsamples) % $len_atol)]}" "${rtol[(($zero_index / $sublen_init_acc_rate_burn_in_nsamples_atol) % $len_rtol)]}" "${mxsteps}" "${init[$zero_index % $len_init]}"
