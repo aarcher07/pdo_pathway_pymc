@@ -1,0 +1,2 @@
+Chains in different modes? -- Chain one and two seem to be exploring different but overlapping regions. (See likelihood
+plots, K_eq distributions and 3-HPA plots) The overlapping region is characterized by large accumulation of 3-HPA.
