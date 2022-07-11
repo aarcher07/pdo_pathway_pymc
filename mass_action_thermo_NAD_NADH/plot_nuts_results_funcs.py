@@ -78,7 +78,7 @@ def plot_time_series_distribution(samples, plot_file_location, nchains, atol, rt
                 # g_ext_val = lower + (upper - lower) / (1 + np.exp(-g_ext_val))
                 # param_sample[N_MODEL_PARAMETERS] = g_ext_val
 
-                tvals = TIME_SAMPLES_EXPANDED[gly_cond] * HRS_TO_SECS
+                tvals = np.linspace(TIME_SAMPLES_EXPANDED[gly_cond][0], TIME_SAMPLES_EXPANDED[gly_cond][-1] + 10,100) * HRS_TO_SECS
 
                 y0 = np.zeros((), dtype=problem.state_dtype)
                 for var in VARIABLE_NAMES:
