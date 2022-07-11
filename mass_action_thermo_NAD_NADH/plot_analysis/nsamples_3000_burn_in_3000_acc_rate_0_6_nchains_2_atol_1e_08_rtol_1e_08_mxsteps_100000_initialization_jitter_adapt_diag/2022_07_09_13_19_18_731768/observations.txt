@@ -1,0 +1,1 @@
+one chain did not converge. The chain that did had many divergences.
