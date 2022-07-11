@@ -13,7 +13,6 @@ from rhs_funcs import RHS, lib, problem
 solver = sunode.solver.AdjointSolver(problem, solver='BDF')
 
 def likelihood_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
-    print(param_vals)
 
     # set solver parameters
     lib.CVodeSStolerances(solver._ode, atol, rtol)
@@ -75,7 +74,6 @@ def likelihood_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
                       - 0.5*cyto_hpa_max**2
         except sunode.solver.SolverError:
             loglik += -np.inf
-    print(loglik)
     return loglik
 
 
