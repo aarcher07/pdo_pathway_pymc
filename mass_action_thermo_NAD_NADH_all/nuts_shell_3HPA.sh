@@ -1,6 +1,6 @@
 #!/bin/bash
-#SBATCH --account=b1114
-#SBATCH --partition=b1114
+#SBATCH --account=b1020
+#SBATCH --partition=b1020
 #SBATCH --nodes=1
 #SBATCH --array=1-8
 #SBATCH --ntasks=2
