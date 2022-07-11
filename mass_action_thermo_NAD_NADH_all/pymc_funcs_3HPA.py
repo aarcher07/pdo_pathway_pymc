@@ -162,7 +162,7 @@ if __name__ == '__main__':
                         init=init, initvals=start_val, random_seed=random_seed)
 
     # save samples
-    PARAMETER_SAMP_PATH = ROOT_PATH + '/samples'  #TODO : change to _3HPA
+    PARAMETER_SAMP_PATH = ROOT_PATH + '/samples_3HPA'  #TODO : change to _3HPA
     directory_name = 'nsamples_' + str(nsamples) + '_burn_in_' + str(burn_in) + '_acc_rate_' + str(acc_rate) +\
                      '_nchains_' + str(nchains) + '_atol_' + str(atol) + '_rtol_' + str(rtol) + '_mxsteps_' + \
                      str(mxsteps) + '_initialization_' + init
@@ -174,8 +174,4 @@ if __name__ == '__main__':
     Path(sample_file_location).mkdir(parents=True, exist_ok=True)
     idata_nuts.to_netcdf(os.path.join(sample_file_location,date_string))
 
-    # save trace plots
-    PLOT_SAMP_PATH = ROOT_PATH + '/prelim_trace_plots' #TODO : change to _3HPA
-    plot_file_location = os.path.join(PLOT_SAMP_PATH, directory_name, date_string[:-3])
-    Path(plot_file_location).mkdir(parents=True, exist_ok=True)
 

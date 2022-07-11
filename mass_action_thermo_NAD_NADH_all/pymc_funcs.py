@@ -113,11 +113,11 @@ def sample(nsamples, burn_in, nchains, acc_rate=0.8, atol=1e-8, rtol=1e-8, mxste
                           for param_name in KINETIC_PARAMETERS]
 
         enzyme_init = [pm.TruncatedNormal(param_name, mu = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][0],
-                                 sigma = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][1], lower = -4, upper = 2)
+                                 sigma = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][1], lower = -4, upper = 1)
                        for param_name in ENZYME_CONCENTRATIONS]
 
         cofactor_init = [pm.TruncatedNormal(param_name, mu = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][0],
-                                 sigma = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][1], lower = -4, upper = 2)
+                                 sigma = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][1], lower = -4, upper = 1)
                        for param_name in COFACTOR_PARAMETERS]
         # gly_init = [pm.Normal(param_name, mu = 0,sigma = 4) for param_name in GLYCEROL_EXTERNAL_EXPERIMENTAL]
 
@@ -173,9 +173,3 @@ if __name__ == '__main__':
     sample_file_location = os.path.join(PARAMETER_SAMP_PATH, directory_name)
     Path(sample_file_location).mkdir(parents=True, exist_ok=True)
     idata_nuts.to_netcdf(os.path.join(sample_file_location,date_string))
-
-    # save trace plots
-    PLOT_SAMP_PATH = ROOT_PATH + '/prelim_trace_plots' #TODO : change to _3HPA
-    plot_file_location = os.path.join(PLOT_SAMP_PATH, directory_name, date_string[:-3])
-    Path(plot_file_location).mkdir(parents=True, exist_ok=True)
-
