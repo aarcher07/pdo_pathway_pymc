@@ -1,6 +1,6 @@
 #!/bin/bash
-#SBATCH --account=b1114
-#SBATCH --partition=b1114
+#SBATCH --account=b1020
+#SBATCH --partition=b1020
 #SBATCH --nodes=1
 #SBATCH --array=1-8
 #SBATCH --ntasks=2
@@ -12,10 +12,10 @@
 #SBATCH --output=out/mass_action_thermo_NAD_NADH_out_%A_%a
 #SBATCH --error=err/mass_action_thermo_NAD_NADH_err_%A_%a
 
-nsamples=(1e3 3e3)
-burn_in=(3e3 4e3)
+nsamples=(3e3)
+burn_in=(4e3 5e3)
 nchains=2
-acc_rate=(0.6 0.8)
+acc_rate=(0.8)
 atol=(1e-8)
 rtol=(1e-8)
 mxsteps=1e5
