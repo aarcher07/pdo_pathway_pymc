@@ -2,9 +2,9 @@
 #SBATCH --account=b1020
 #SBATCH --partition=b1020
 #SBATCH --nodes=1
-#SBATCH --array=1-6%3
+#SBATCH --array=1-3
 #SBATCH --ntasks=6
-#SBATCH --time=11-00:00:00
+#SBATCH --time=7-00:00:00
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=andrearcher2017@u.northwestern.edu
 #SBATCH --mem-per-cpu=15GB
