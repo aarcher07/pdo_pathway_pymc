@@ -4,7 +4,7 @@
 #SBATCH --nodes=1
 #SBATCH --array=1-8
 #SBATCH --ntasks=2
-#SBATCH --time=07-00:00:00
+#SBATCH --time=05-00:00:00
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=andrearcher2017@u.northwestern.edu
 #SBATCH --mem-per-cpu=15GB
@@ -13,8 +13,8 @@
 #SBATCH --error=err/mass_action_thermo_NAD_NADH_err_%A_%a
 
 nsamples=(3e3)
-burn_in=(5e3)
-nchains=5
+burn_in=(3e3)
+nchains=2
 acc_rate=(0.8)
 atol=(1e-8)
 rtol=(1e-8)

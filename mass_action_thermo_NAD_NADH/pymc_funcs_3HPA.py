@@ -173,5 +173,3 @@ if __name__ == '__main__':
     sample_file_location = os.path.join(PARAMETER_SAMP_PATH, directory_name)
     Path(sample_file_location).mkdir(parents=True, exist_ok=True)
     idata_nuts.to_netcdf(os.path.join(sample_file_location,date_string))
-
-
