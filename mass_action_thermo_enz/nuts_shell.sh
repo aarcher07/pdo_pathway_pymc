@@ -12,10 +12,10 @@
 #SBATCH --output=out/mass_action_thermo_enz_out_%A_%a
 #SBATCH --error=err/mass_action_thermo_enz_err_%A_%a
 
-nsamples=(3e3 1e4)
+nsamples=(3e3)
 burn_in=(3e3)
 nchains=5
-acc_rate=(0.8)
+acc_rate=(0.75)
 atol=(1e-8)
 rtol=(1e-8)
 mxsteps=1e5

@@ -1,0 +1,5 @@
+Two modes. One characterized by the same enz metabolic enzyme concentration. One characterized by different
+metabolic update enzyme concentration. Interestingly, DhaT enzyme concentration across experiments
+are uncorrelated. This maybe due to no observations of 3-HPA.
+
+Max depth exceeded. Took 5 days.

@@ -4,7 +4,7 @@
 #SBATCH --nodes=1
 #SBATCH --array=1-4
 #SBATCH --ntasks=6
-#SBATCH --time=05-00:00:00
+#SBATCH --time=07-00:00:00
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=andrearcher2017@u.northwestern.edu
 #SBATCH --mem-per-cpu=15GB
