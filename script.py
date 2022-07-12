@@ -3,6 +3,7 @@ import sunode
 import sunode.wrappers.as_aesara
 import pymc as pm
 import matplotlib.pyplot as plt
+lib = sunode._cvodes.lib
 
 
 def lotka_volterra(t, y, p):
@@ -16,7 +17,7 @@ def lotka_volterra(t, y, p):
         'lynx': p.delta * y.hares * y.lynx - p.gamma * y.lynx,
     }
 
-
+# initialize problem
 problem = sunode.symode.SympyProblem(
     params={
         # We need to specify the shape of each parameter.
@@ -25,6 +26,7 @@ problem = sunode.symode.SympyProblem(
         'beta': (),
         'gamma': (),
         'delta': (),
+        'hares0': ()
     },
     states={
         # The same for all state variables
@@ -37,26 +39,55 @@ problem = sunode.symode.SympyProblem(
         # gradients should be computed.
         ('alpha',),
         ('beta',),
+        ('hares0',),
     ],
 )
 
-solver = sunode.solver.Solver(problem, sens_mode=None, solver='BDF')
+tvals = np.linspace(0, 10, 3)
 
-tvals = np.linspace(0, 200,100)
 y0 = np.zeros((), dtype=problem.state_dtype)
-y0['hares'] = 1
+y0['hares'] = 1e0
 y0['lynx'] = 0.1
+params_dict = {
+    'alpha': 0.1,
+    'beta': 0.2,
+    'gamma': 0.3,
+    'delta': 0.4,
+    'hares0': 1e0
+}
 
+
+sens0 = np.zeros((3, 2))
+sens0[2,0] = np.log(10)*1e0
+
+solver = sunode.solver.Solver(problem, solver='BDF', sens_mode='simultaneous')
+yout, sens_out = solver.make_output_buffers(tvals)
+
+
+# gradient via fwd senstivity
+solver.set_params_dict(params_dict)
+output = solver.make_output_buffers(tvals)
+solver.solve(t0=0, tvals=tvals, y0=y0, y_out=yout, sens0=sens0, sens_out=sens_out)
+
+grad_out_fwd = [ sens_out[:,j,:].sum() for j in range(3)]
+print(grad_out_fwd)
+
+# gradient via adj senstivity
+solver = sunode.solver.AdjointSolver(problem, solver='BDF')
 solver.set_params_dict({
     'alpha': 0.1,
     'beta': 0.2,
     'gamma': 0.3,
     'delta': 0.4,
+    'hares0': 1e0
 })
-
-output = solver.make_output_buffers(tvals)
-solver.solve(t0=0, tvals=tvals, y0=y0, y_out=output)
-
-plt.plot(tvals, output.view(problem.state_dtype)['hares'])
-plt.plot(tvals,output.view(problem.state_dtype)['lynx'])
-plt.show()
+tvals_expanded = np.linspace(0, 10, 21)
+yout, grad_out, lambda_out = solver.make_output_buffers(tvals_expanded)
+lib.CVodeSetMaxNumSteps(solver._ode, 10000)
+solver.solve_forward(t0=0, tvals=tvals, y0=y0, y_out=yout)
+grads = np.zeros_like(yout)
+grads[::10,:] = 1
+solver.solve_backward(t0=tvals_expanded[-1], tend=tvals_expanded[0], tvals=tvals_expanded[1:-1],
+                      grads=grads, grad_out=grad_out, lamda_out=lambda_out)
+grad_out_adj = -np.matmul(sens0, lambda_out  -grads[0, :]) + grad_out
+print(grad_out_adj)

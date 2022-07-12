@@ -69,7 +69,9 @@ def likelihood_fwd(param_vals, tol = 1e-8, mxsteps = int(1e4)):
                 jj+=1
             plt.show()
 
-        loglik += -0.5*(((DATA_SAMPLES[gly_cond]-yout[:,[7,9,10]])/np.array([15,15,0.1]))**2).sum()
+        yout[np.abs(yout) < 1e-3] = 1e-3
+        loglik += -0.5 * (
+                    (np.log(DATA_SAMPLES[gly_cond] / yout[:, DATA_INDEX]) / np.array([5e-2, 5e-2, 5e-2])) ** 2).sum()
     return loglik
 
 

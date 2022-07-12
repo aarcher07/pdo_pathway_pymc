@@ -1,5 +1,5 @@
 import numpy as np
-from exp_data import TIME_SAMPLES
+from exp_data import TIME_SAMPLES, NORM_DCW_MEAN_PRIOR_TRANS_PARAMETERS
 
 CELL_RADIUS = 0.375e-6
 CELL_LENGTH = 2.47e-6
@@ -30,8 +30,7 @@ INIT_CONSTANTS = ['DHAB_INIT',
                   'DHAT_INIT',
                   'G_EXT_INIT']
 
-DCW_CONSTANTS = ['L','k','A']
-
+DCW_CONSTANTS = [key[5:] for key in NORM_DCW_MEAN_PRIOR_TRANS_PARAMETERS.columns]
 
 INIT_PARAMETERS_LIST = [*INIT_CONSTANTS, 'A']
 

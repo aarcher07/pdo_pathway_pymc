@@ -35,6 +35,7 @@ def likelihood_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
 
         tvals = TIME_SAMPLES[gly_cond]*HRS_TO_SECS
         y0 = np.zeros((), dtype=problem.state_dtype)
+
         y0['G_CYTO'] = 10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')]
         y0['H_CYTO'] = 0
         y0['P_CYTO'] = INIT_CONDS_GLY_PDO_DCW[gly_cond][1]

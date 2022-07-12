@@ -34,10 +34,10 @@ def plot_trace(samples, plot_file_location):
 def plot_loglik_individual(loglik, plot_file_location, nchains):
     fig, ax = plt.subplots(nchains,2)
     for i in range(nchains):
-        ax[0].hist(loglik[i],alpha=0.5)
-        ax[0].set_title('Histogram of Log-Likelihood')
-        ax[1].plot(list(range(len(loglik[i]))),loglik[i],alpha=0.5)
-        ax[1].set_title('Trajectory of Log-Likelihood')
+        ax[0,i].hist(loglik[i],alpha=0.5)
+        ax[0,i].set_title('Histogram of Log-Likelihood')
+        ax[1,i].plot(list(range(len(loglik[i]))),loglik[i],alpha=0.5)
+        ax[1,i].set_title('Trajectory of Log-Likelihood')
     fig.tight_layout()
     plt.savefig(os.path.join(plot_file_location, 'loglik_plot_individual.png'))
 
@@ -60,15 +60,16 @@ def plot_time_series_distribution(samples, plot_file_location, nchains, atol, rt
     c = ['r', 'y', 'b', 'g', 'k']
     legend_names = ['chain ' + str(i)  for i in range(min(5, nchains))]
     for exp_ind, gly_cond in enumerate([50, 60, 70, 80]):
-        fig, ax = plt.subplots(5, min(5, nchains), figsize=(15,15)) #min(5, nchains))
+        fig, ax = plt.subplots(7, min(6, nchains), figsize=(15,15)) #min(5, nchains))
         for chain_ind in range(min(5, nchains)):
             dataarray = samples.posterior.to_dataframe().loc[[chain_ind]]
             dataarray = dataarray[ALL_PARAMETERS]
             lower, upper = LOG_UNIF_G_EXT_INIT_PRIOR_PARAMETERS["G_EXT_INIT_" + str(gly_cond)]
             for jj in range(3):
-                ax[jj].scatter(TIME_SAMPLES_EXPANDED[gly_cond][::TIME_SPACING], DATA_SAMPLES[gly_cond][:, jj])
+                ax[jj, chain_ind].scatter(TIME_SAMPLES_EXPANDED[gly_cond][::TIME_SPACING], DATA_SAMPLES[gly_cond][:, jj])
 
             hpa_max = []
+            NADH_NAD = []
             for j in range(0,dataarray.shape[0],int(dataarray.shape[0]/500)):
                 param = dataarray.iloc[j,:].to_numpy()
                 param_sample = NORM_PRIOR_MEAN_SINGLE_EXP[gly_cond]
@@ -107,21 +108,28 @@ def plot_time_series_distribution(samples, plot_file_location, nchains, atol, rt
                     jj=0
                     for i, var in enumerate(VARIABLE_NAMES):
                         if i in DATA_INDEX:
-                            ax[jj].plot(tvals / HRS_TO_SECS, yout.view(problem.state_dtype)[var], 'r',
+                            ax[jj, chain_ind].plot(tvals / HRS_TO_SECS, yout.view(problem.state_dtype)[var], 'r',
                                                   alpha=0.05)
                             jj += 1
-                        elif var == 'H_CYTO':
-                            ax[3].plot(tvals / HRS_TO_SECS, yout.view(problem.state_dtype)[var], 'r',
-                                                 alpha=0.05)
-                            hpa_max.append(np.max(yout.view(problem.state_dtype)[var]))
+                    ax[3, chain_ind].plot(tvals / HRS_TO_SECS, yout.view(problem.state_dtype)[ 'H_CYTO'], 'r',
+                                         alpha=0.05)
+                    hpa_max.append(np.max(yout.view(problem.state_dtype)[ 'H_CYTO']))
+                    ax[5, chain_ind].plot(tvals / HRS_TO_SECS, yout.view(problem.state_dtype)['NADH'], 'r',
+                                         alpha=0.05)
+                    ax[5, chain_ind].plot(tvals / HRS_TO_SECS, yout.view(problem.state_dtype)['NAD'], 'b',
+                                         alpha=0.05)
+                    NADH_NAD.append(np.max(yout.view(problem.state_dtype)['NADH']/np.max(yout.view(problem.state_dtype)['NAD'])))
                 except sunode.solver.SolverError:
                     pass
-            ax[4].hist(hpa_max, alpha=0.5, color='r')
-            ax[0].set_title('Glycerol Time Series')
-            ax[1].set_title('1,3-PD Distribution')
-            ax[2].set_title('DCW Distribution')
-            ax[3].set_title('Cytosolic 3-HPA Time Series')
-            ax[4].set_title('Max 3-HPA Distribution')
+            ax[4, chain_ind].hist(hpa_max, alpha=0.5, color='r')
+            ax[6, chain_ind].hist(NADH_NAD, alpha=0.5, color='r')
+            ax[0, chain_ind].set_title('Glycerol Time Series')
+            ax[1, chain_ind].set_title('1,3-PD Distribution')
+            ax[2, chain_ind].set_title('DCW Distribution')
+            ax[3, chain_ind].set_title('Cytosolic 3-HPA Time Series')
+            ax[4, chain_ind].set_title('Max 3-HPA Distribution')
+            ax[5, chain_ind].set_title('NAD/NADH Time Series')
+            ax[6, chain_ind].set_title('NAD/NADH Histogram')
 
         plt.suptitle('Initial Glycerol ' + str(gly_cond) + ' g/L')
         fig.tight_layout()

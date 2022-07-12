@@ -12,7 +12,7 @@
 #SBATCH --output=out/mass_action_thermo_NAD_NADH_out_all_3HPA_%A_%a
 #SBATCH --error=err/mass_action_thermo_NAD_NADH_err_all_3HPA_%A_%a
 
-nsamples=(1e3 3e3)
+nsamples=(3e3)
 burn_in=(3e3 4e3)
 nchains=2
 acc_rate=(0.6 0.8)

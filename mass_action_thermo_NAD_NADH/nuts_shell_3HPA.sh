@@ -37,4 +37,4 @@ zero_index=$(( $SLURM_ARRAY_TASK_ID-1))
 module purge all
 module load texlive/2020
 
-python pymc_funcs.py "${nsamples[(($zero_index / $sublen_init_burn_in_acc_rate) % $len_nsamples)]}" "${burn_in[($zero_index / $len_init) % $len_burn_in]}" "${nchains}" "${acc_rate[($zero_index / $sublen_init_burn_in) % $len_acc_rate]}" "${atol[(($zero_index / $sublen_init_burn_in_acc_rate_nsamples) % $len_atol)]}" "${rtol[(($zero_index / $sublen_init_burn_in_acc_rate_nsamples_atol) % $len_rtol)]}" "${mxsteps}" "${init[$zero_index % $len_init]}"
+python pymc_funcs_3HPA.py "${nsamples[(($zero_index / $sublen_init_burn_in_acc_rate) % $len_nsamples)]}" "${burn_in[($zero_index / $len_init) % $len_burn_in]}" "${nchains}" "${acc_rate[($zero_index / $sublen_init_burn_in) % $len_acc_rate]}" "${atol[(($zero_index / $sublen_init_burn_in_acc_rate_nsamples) % $len_atol)]}" "${rtol[(($zero_index / $sublen_init_burn_in_acc_rate_nsamples_atol) % $len_rtol)]}" "${mxsteps}" "${init[$zero_index % $len_init]}"
