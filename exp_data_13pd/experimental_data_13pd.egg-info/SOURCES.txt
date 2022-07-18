@@ -1,0 +1,7 @@
+setup.py
+exp_data_13pd/__init__.py
+exp_data_13pd/exp_import.py
+experimental_data_13pd.egg-info/PKG-INFO
+experimental_data_13pd.egg-info/SOURCES.txt
+experimental_data_13pd.egg-info/dependency_links.txt
+experimental_data_13pd.egg-info/top_level.txt
