@@ -35,14 +35,15 @@ def RHS_WT(t, x, params):
     PermCellGlycerol = 10**vars(params)['PermCellGlycerol'] # todo to all variables
     PermCell3HPA = 10**params.PermCell3HPA
     PermCellPDO = 10**params.PermCellPDO
-    PermCellHate = 10**params.PermCellDHA
-    PermCellHCoA = 10**params.PermCellDHA
+    PermCellHCoA = 10**params.PermCellHCoA
+    PermCellHPhosph = 10**params.PermCellHPhosph
+    PermCellHate = 10**params.PermCellHate
 
     PermMCPGlycerol = 10**vars(params)['PermMCPGlycerol'] # todo to all variables
     PermMCP3HPA = 10**params.PermMCP3HPA
     PermMCPPDO = 10**params.PermMCPPDO
-    PermMCPHate = 10**params.PermMCPHate
     PermMCPHCoA = 10**params.PermMCPHCoA
+    PermMCPHPhosph = 10**params.PermMCPHPhosph
     PermMCPNAD = 10**params.PermMCPNAD
     PermMCPNADH = 10**params.PermMCPNADH
 
@@ -76,6 +77,11 @@ def RHS_WT(t, x, params):
     k3PduL = 10**params.k3PduL
     k4PduL = 10**(params.k1PduL + params.k3PduL - params.KeqPduL - params.k2PduL)
 
+    k1PduW = 10**params.k1PduW
+    k2PduW = 10**params.k2PduW
+    k3PduW = 10**params.k3PduW
+    k4PduW = 10**(params.k1PduW + params.k3PduW - (params.KeqPduLW - params.KeqPduL) - params.k2PduW)
+
     VmaxfGlpK = 10**params.VmaxfGlpK # TODO: CHANGE
     KmGlpK = 10**params.KmGlpK
 
@@ -104,27 +110,27 @@ def RHS_WT(t, x, params):
                   - k1PduCDE * x.G_MCP * x.PduCDE + k2PduCDE * x.PduCDE_C
 
     d['H_MCP'] = mcp_surface_area_mcp_volume * PermMCP3HPA * (x.H_CYTO - x.H_MCP) \
-                 + k3PduCDE * x.DHAB_C - k4PduCDE * x.H_MCP * x.PduCDE \
-                 - k3PduQ * x.H_MCP * x.PduQ_NADH + k4PduQ * x.DHAT_NADH_HPA\
+                 + k3PduCDE * x.PduCDE_C - k4PduCDE * x.H_MCP * x.PduCDE \
+                 - k3PduQ * x.H_MCP * x.PduQ_NADH + k4PduQ * x.PduQ_NADH_HPA\
                  - k3PduP * x.H_MCP * x.PduP_NAD + k4PduQ * x.PduP_NAD_HPA
 
     d['P_MCP'] = mcp_surface_area_mcp_volume * PermMCPPDO * (x.P_CYTO - x.P_MCP) \
                   - k6PduQ * x.P_MCP * x.PduQ_NAD + k5PduP * x.PduQ_NADH_HPA
 
-    d['Hate_MCP'] = mcp_surface_area_mcp_volume * PermMCPHate * (x.Hate_CYTO - x.Hate_MCP) \
-                    - k6PduP * x.Hate_MCP * x.PduP_NADH + k5PduQ * x.PduP_NAD_HPA \
-                    - k1PduL * x.Hate_MCP * x.PduL + k2PduL * x.PduL_C
-
     d['HCoA_MCP'] = mcp_surface_area_mcp_volume * PermMCPHCoA * (x.HCoA_CYTO - x.HCoA_MCP) \
-                    + k3PduL * x.PduL_C - k4PduL * x.HCoA_MCP * x.PduL
+                    - k6PduP * x.HCoA_MCP * x.PduP_NADH + k5PduQ * x.PduP_NAD_HPA \
+                    - k1PduL * x.HCoA_MCP * x.PduL + k2PduL * x.PduL_C
 
-    d['NAD'] = mcp_surface_area_mcp_volume * PermMCPNAD * (NAD_CYTO - x.NAD_MCP) + \
-               k7PduQ * x.PduQ_NAD - k8PduQ * x.PduQ * x.NAD\
-               - k1PduP * x.NAD * x.PduP + k2PduP * x.PduP_NAD\
+    d['HPhosph_MCP'] = mcp_surface_area_mcp_volume * PermMCPHPhosph * (x.HPhosph_CYTO - x.HPhosph_MCP) \
+                    + k3PduL * x.PduL_C - k4PduL * x.HPhosph_MCP * x.PduL
 
-    d['NADH'] = mcp_surface_area_mcp_volume * PermMCPNADH * (NADH_CYTO - x.NADH_MCP)\
-                - k1PduQ * x.NADH * x.PduQ + k2PduQ * x.PduQ_NADH \
-                + k7PduP * x.PduP_NADH - k8PduP * x.NADH * x.PduP \
+    d['NAD_MCP'] = mcp_surface_area_mcp_volume * PermMCPNAD * (NAD_CYTO - x.NAD_MCP) \
+               + k7PduQ * x.PduQ_NAD - k8PduQ * x.PduQ * x.NAD_MCP\
+               - k1PduP * x.NAD_MCP * x.PduP + k2PduP * x.PduP_NAD\
+
+    d['NADH_MCP'] = mcp_surface_area_mcp_volume * PermMCPNADH * (NADH_CYTO - x.NADH_MCP)\
+                - k1PduQ * x.NADH_MCP * x.PduQ + k2PduQ * x.PduQ_NADH \
+                + k7PduP * x.PduP_NADH - k8PduP * x.NADH_MCP * x.PduP \
 
     d['PduCDE'] = - k1PduCDE * x.G_MCP * x.PduCDE + k2PduCDE * x.PduCDE_C + k3PduCDE * x.PduCDE_C \
                 - k4PduCDE * x.H_MCP * x.PduCDE
@@ -143,20 +149,20 @@ def RHS_WT(t, x, params):
     d['PduQ_NAD'] = k5PduQ * x.PduQ_NADH_HPA - k6PduQ * x.PduQ_NAD * x.P_MCP \
                     - k7PduQ * x.PduQ_NAD + k8PduQ * x.PduQ * x.NAD_MCP
 
-    d['PduP'] = - k1PduP * x.NAD * x.PduP + k2PduP * x.PduP_NAD + k7PduP * x.PduP_NADH \
-                - k8PduP * x.NADH * x.PduP
+    d['PduP'] = - k1PduP * x.NAD_MCP * x.PduP + k2PduP * x.PduP_NAD + k7PduP * x.PduP_NADH \
+                - k8PduP * x.NADH_MCP * x.PduP
 
-    d['PduP_NAD'] = k1PduP * x.NAD * x.PduP - k2PduP * x.PduP_NAD \
-                     - k3PduP * x.PduP_NAD * x.G_CYTO + k4PduP * x.PduP_NAD_HPA
+    d['PduP_NAD'] = k1PduP * x.NAD_MCP * x.PduP - k2PduP * x.PduP_NAD \
+                     - k3PduP * x.PduP_NAD * x.G_MCP + k4PduP * x.PduP_NAD_HPA
 
-    d['PduP_NAD_HPA'] = -k4PduP * x.PduP_NAD_HPA + k3PduP * x.PduP_NAD * x.G_CYTO \
-                        - k5PduP * x.PduP_NAD_HPA + k6PduP * x.PduP_NADH * x.DHA_CYTO
+    d['PduP_NAD_HPA'] = -k4PduP * x.PduP_NAD_HPA + k3PduP * x.PduP_NAD * x.H_MCP \
+                        - k5PduP * x.PduP_NAD_HPA + k6PduP * x.PduP_NADH * x.HCoA_MCP
 
-    d['PduP_NADH'] = k5PduP * x.PduP_NAD_HPA - k6PduP * x.PduP_NADH * x.DHA_CYTO \
-                    - k7PduP * x.PduP_NADH + k8PduP * x.PduP * x.NADH
+    d['PduP_NADH'] = k5PduP * x.PduP_NAD_HPA - k6PduP * x.PduP_NADH * x.HCoA_MCP \
+                    - k7PduP * x.PduP_NADH + k8PduP * x.PduP * x.NADH_MCP
 
-    d['PduL'] = - k1PduL * x.Hate_MCP * x.PduL + k2PduL * x.PduL_C + k3PduL * x.PduL_C \
-                - k4PduL * x.HCoA_MCP * x.PduL
+    d['PduL'] = - k1PduL * x.HCoA_MCP * x.PduL + k2PduL * x.PduL_C + k3PduL * x.PduL_C \
+                - k4PduL * x.HPhosph_MCP * x.PduL
 
     d['PduL_C'] = -d['PduL']
 
@@ -174,11 +180,20 @@ def RHS_WT(t, x, params):
     d['P_CYTO'] = - cell_area_cell_volume * PermCellPDO * (x.P_CYTO - x.P_EXT)\
                   - nMCPs * mcp_surface_area_cell_volume * PermMCPPDO * (x.P_CYTO - x.P_MCP)
 
-    d['Hate_CYTO'] = - cell_area_cell_volume * PermCellHate * (x.Hate_CYTO - x.Hate_EXT)\
-                     - nMCPs * mcp_surface_area_cell_volume * PermMCPHate * (x.Hate_CYTO - x.Hate_MCP)
-
     d['HCoA_CYTO'] = - cell_area_cell_volume * PermCellHCoA * (x.HCoA_CYTO - x.HCoA_EXT)\
                      - nMCPs * mcp_surface_area_cell_volume * PermMCPHCoA * (x.HCoA_CYTO - x.HCoA_MCP)
+
+    d['HPhosph_CYTO'] = - cell_area_cell_volume * PermCellHPhosph * (x.HPhosph_CYTO - x.HPhosph_EXT)\
+                        - nMCPs * mcp_surface_area_cell_volume * PermMCPHPhosph * (x.HPhosph_CYTO - x.HPhosph_MCP) \
+                        - k1PduW * x.HPhosph_CYTO * x.PduW + k2PduW * x.PduW_C
+
+    d['Hate_CYTO'] = - cell_area_cell_volume * PermCellHate * (x.Hate_CYTO - x.Hate_EXT) \
+                     + k3PduW * x.PduW_C - k4PduW * x.Hate_CYTO * x.PduW
+
+    d['PduW'] = - k1PduW * x.HPhosph_CYTO * x.PduW + k2PduW * x.PduW_C + k3PduW * x.PduW_C \
+                - k4PduW * x.Hate_CYTO * x.PduW
+
+    d['PduW_C'] = -d['PduW']
 
 
     ################################################################################################################
@@ -188,9 +203,9 @@ def RHS_WT(t, x, params):
     d['G_EXT'] = ncells * cell_area_external_volume * PermCellGlycerol * (x.G_CYTO - x.G_EXT)
     d['H_EXT'] = ncells * cell_area_external_volume * PermCell3HPA * (x.H_CYTO - x.H_EXT)
     d['P_EXT'] = ncells * cell_area_external_volume * PermCellPDO * (x.P_CYTO - x.P_EXT)
+    d['HCoA_EXT'] = ncells * cell_area_external_volume * PermCellHCoA * (x.HCoA_CYTO - x.HCoA_EXT)
+    d['HPhosph_EXT'] = ncells * cell_area_external_volume * PermCellHPhosph * (x.HPhosph_CYTO - x.HPhosph_EXT)
     d['Hate_EXT'] = ncells * cell_area_external_volume * PermCellHate * (x.Hate_CYTO - x.Hate_EXT)
-    d['HCoA_EXT'] = ncells * cell_area_external_volume * PermCellHate * (x.HCoA_CYTO - x.HCoA_EXT)
-
     d['OD'] = k*(1-x.OD/L)*x.OD
     return d
 
@@ -200,9 +215,9 @@ problem = sunode.symode.SympyProblem(
 
     states={ var: () for var in VARIABLE_NAMES},
 
-    rhs_sympy=RHS,
+    rhs_sympy=RHS_WT,
 
-    derivative_params=[ (param,)  for param in DEV_PARAMETERS_LIST]
+    derivative_params=[ (param,)  for param in DEV_PARAMETER_LIST]
 )
 
 #

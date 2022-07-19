@@ -1,5 +1,5 @@
 import numpy as np
-from exp_data import TIME_SAMPLES
+from exp_data_13pd import TIME_SAMPLES
 
 #######################################################################################################################
 ############################################ CELL GEOMETRY CONSTANTS ##################################################
@@ -27,23 +27,26 @@ MCP_SURFACE_AREA = 4*np.pi*(MCP_RADIUS**2)
 PERMEABILITY_CELL_PARAMETERS = ['PermCellGlycerol',
                                 'PermCell3HPA',
                                 'PermCellPDO',
-                                'PermCellHate',
-                                'PermCellHCoA']
+                                'PermCellHCoA',
+                                'PermCellHPhosph',
+                                'PermCellHate']
 
 PERMEABILITY_MCP_PARAMETERS = ['PermMCPGlycerol',
                                'PermMCP3HPA',
                                'PermMCPPDO',
-                               'PermMCPHate',
                                'PermMCPHCoA',
+                               'PermMCPHPhosph',
                                'PermMCPNADH',
                                'PermMCPNAD']
 
 KINETIC_PARAMETERS = ['k1PduCDE', 'k2PduCDE', 'k3PduCDE', 'KeqPduCDE',
-                      'k1PduQ', 'k2PduQ', 'k3PduQ', 'k4PduQ', 'k5PduQ', 'k6DPduQ', 'k7PduQ', 'KeqPduQ',
-                      'k1PduP', 'k2PduP', 'k3PduP', 'k4PduP', 'k5PduP', 'k6DPduP', 'k7PduP', 'KeqPduP',
-                      'k1PduL', 'k2PduL', 'k3PduL', 'k4PduL', 'KeqPduL', 'VmaxfGlpK', 'KmGlpK']
+                      'k1PduQ', 'k2PduQ', 'k3PduQ', 'k4PduQ', 'k5PduQ', 'k6PduQ', 'k7PduQ', 'KeqPduQ',
+                      'k1PduP', 'k2PduP', 'k3PduP', 'k4PduP', 'k5PduP', 'k6PduP', 'k7PduP', 'KeqPduP',
+                      'k1PduL', 'k2PduL', 'k3PduL', 'KeqPduL',
+                      'k1PduW', 'k2PduW', 'k3PduW', 'KeqPduLW',
+                      'VmaxfGlpK', 'KmGlpK']
 
-THERMO_PARAMETERS = ['KeqPduCDE', 'KeqPduQ', 'KeqPduP', 'KeqPduL']
+THERMO_PARAMETERS = ['KeqPduCDE', 'KeqPduQ', 'KeqPduP', 'KeqPduL', 'KeqPduLW']
 
 COFACTOR_PARAMETERS = ['NADH_NAD_TOTAL_CYTO', 'NADH_NAD_RATIO_CYTO',
                        'NADH_NAD_TOTAL_MCP', 'NADH_NAD_RATIO_MCP']
@@ -56,19 +59,20 @@ MODEL_PARAMETERS = [*PERMEABILITY_CELL_PARAMETERS,
                     *COFACTOR_PARAMETERS
                     ]
 
-ENZYME_CONCENTRATIONS = ['PduCDE_INIT',
-                         'PduQ_INIT',
-                         'PduP_INIT',
-                         'PduL_INIT']
+ENZYME_CONCENTRATIONS = ['nPduCDE',
+                         'nPduQ',
+                         'nPduP',
+                         'nPduL',
+                         'nPduW']
 
 DCW_PARAMETERS = ['L', 'k', 'A']
 
 INIT_PARAMETERS_LIST = [*ENZYME_CONCENTRATIONS, 'A']
 
-WT_PARAMETER_LIST = [*MODEL_PARAMETERS, MCP_PARAMETERS[0], *ENZYME_CONCENTRATIONS, *DCW_PARAMETERS]
-DELTA_AJ_PARAMETER_LIST = [*MODEL_PARAMETERS, MCP_PARAMETERS[1], *ENZYME_CONCENTRATIONS, *DCW_PARAMETERS]
+PARAMETER_LIST = [*MODEL_PARAMETERS, *MCP_PARAMETERS, *ENZYME_CONCENTRATIONS, *DCW_PARAMETERS]
+DEV_PARAMETER_LIST = [*MODEL_PARAMETERS, *MCP_PARAMETERS, *ENZYME_CONCENTRATIONS]
 
-VARIABLE_NAMES = ['G_MCP', 'H_MCP', 'P_MCP', 'Hate_MCP', 'HCoA_MCP',
+VARIABLE_NAMES = ['G_MCP', 'H_MCP', 'P_MCP', 'HCoA_MCP', 'HPhosph_MCP',
 
                   'PduCDE', 'PduCDE_C',
                   'PduQ', 'PduQ_NADH', 'PduQ_NADH_HPA', 'PduQ_NAD',
@@ -77,12 +81,13 @@ VARIABLE_NAMES = ['G_MCP', 'H_MCP', 'P_MCP', 'Hate_MCP', 'HCoA_MCP',
 
                   'NADH_MCP', 'NAD_MCP',
 
-                  'G_CYTO', 'H_CYTO', 'P_CYTO', 'Hate_CYTO', 'HCoA_CYTO',
+                  'G_CYTO', 'H_CYTO', 'P_CYTO', 'HCoA_CYTO', 'HPhosph_CYTO', 'Hate_CYTO',
+                  'PduW', 'PduW_C',
 
-                  'G_EXT', 'H_EXT', 'P_EXT', 'Hate_EXT', 'HCoA_EXT', 'OD']
+                  'G_EXT', 'H_EXT', 'P_EXT', 'Hate_EXT', 'HCoA_EXT', 'HPhosph_EXT', 'Hate_EXT', 'OD']
 
 DATA_INDEX = [VARIABLE_NAMES.index('G_EXT'), VARIABLE_NAMES.index('H_EXT'), VARIABLE_NAMES.index('P_EXT'),
-              VARIABLE_NAMES.index('dcw')]
+              VARIABLE_NAMES.index('OD')]
 
 TIME_SPACING = 15  # TODO: CHANGE TO 15 for _HPA.py and 5 _HPA_2.py
 TIME_SAMPLES_EXPANDED = [np.linspace(TIME_SAMPLES[i], TIME_SAMPLES[i + 1], num=TIME_SPACING, endpoint=False) for i in

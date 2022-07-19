@@ -35,16 +35,11 @@ def RHS_delta_AJ(t, x, params):
     PermCellGlycerol = 10**vars(params)['PermCellGlycerol'] # todo to all variables
     PermCell3HPA = 10**params.PermCell3HPA
     PermCellPDO = 10**params.PermCellPDO
-    PermCellHate = 10**params.PermCellDHA
-    PermCellHCoA = 10**params.PermCellDHA
+    PermCellHCoA = 10**params.PermCellHCoA
+    PermCellHPhosph = 10**params.PermCellHPhosph
+    PermCellHate = 10**params.PermCellHate
 
-    PermMCPGlycerol = 10**vars(params)['PermMCPGlycerol'] # todo to all variables
-    PermMCP3HPA = 10**params.PermMCP3HPA
-    PermMCPPDO = 10**params.PermMCPPDO
-    PermMCPHate = 10**params.PermMCPHate
-    PermMCPHCoA = 10**params.PermMCPHCoA
-    PermMCPNAD = 10**params.PermMCPNAD
-    PermMCPNADH = 10**params.PermMCPNADH
+    PermPolar = 0.5
 
     k1PduCDE = 10**params.k1PduCDE
     k2PduCDE = 10**params.k2PduCDE
@@ -76,6 +71,11 @@ def RHS_delta_AJ(t, x, params):
     k3PduL = 10**params.k3PduL
     k4PduL = 10**(params.k1PduL + params.k3PduL - params.KeqPduL - params.k2PduL)
 
+    k1PduW = 10**params.k1PduW
+    k2PduW = 10**params.k2PduW
+    k3PduW = 10**params.k3PduW
+    k4PduW = 10**(params.k1PduW + params.k3PduW - (params.KeqPduLW - params.KeqPduL) - params.k2PduW)
+
     VmaxfGlpK = 10**params.VmaxfGlpK # TODO: CHANGE
     KmGlpK = 10**params.KmGlpK
 
@@ -102,29 +102,29 @@ def RHS_delta_AJ(t, x, params):
     ################################################ MCP equations #################################################
     ################################################################################################################
 
-    d['G_MCP'] = polar_surface_area_mcp_volume * PermMCPGlycerol * (x.G_CYTO - x.G_MCP) \
+    d['G_MCP'] = polar_surface_area_mcp_volume * PermPolar * (x.G_CYTO - x.G_MCP) \
                  - k1PduCDE * x.G_MCP * x.PduCDE + k2PduCDE * x.PduCDE_C  \
 
-    d['H_MCP'] = polar_surface_area_mcp_volume * PermMCP3HPA * (x.H_CYTO - x.H_MCP) \
+    d['H_MCP'] = polar_surface_area_mcp_volume * PermPolar * (x.H_CYTO - x.H_MCP) \
                  + k3PduCDE * x.DHAB_C - k4PduCDE * x.H_MCP * x.PduCDE \
                  - k3PduQ * x.H_MCP * x.PduQ_NADH + k4PduQ * x.DHAT_NADH_HPA \
                  - k3PduP * x.H_MCP * x.PduP_NAD + k4PduQ * x.PduP_NAD_HPA
 
-    d['P_MCP'] = polar_surface_area_mcp_volume * PermMCPPDO * (x.P_CYTO - x.P_MCP) \
+    d['P_MCP'] = polar_surface_area_mcp_volume * PermPolar * (x.P_CYTO - x.P_MCP) \
                  - k6PduQ * x.P_MCP * x.PduQ_NAD + k5PduP * x.PduQ_NADH_HPA
 
-    d['Hate_MCP'] = polar_surface_area_mcp_volume * PermMCPHate * (x.Hate_CYTO - x.Hate_MCP) \
+    d['Hate_MCP'] = polar_surface_area_mcp_volume * PermPolar * (x.Hate_CYTO - x.Hate_MCP) \
                     - k6PduP * x.Hate_MCP * x.PduP_NADH + k5PduQ * x.PduP_NAD_HPA \
                     - k1PduL * x.Hate_MCP * x.PduL + k2PduL * x.PduL_C
 
-    d['HCoA_MCP'] = polar_surface_area_mcp_volume * PermMCPHCoA * (x.HCoA_CYTO - x.HCoA_MCP) \
+    d['HCoA_MCP'] = polar_surface_area_mcp_volume * PermPolar * (x.HCoA_CYTO - x.HCoA_MCP) \
                     + k3PduL * x.PduL_C - k4PduL * x.HCoA_MCP * x.PduL
 
-    d['NAD'] = polar_surface_area_mcp_volume * PermMCPNAD * (NAD_CYTO - x.NAD_MCP) \
+    d['NAD'] = polar_surface_area_mcp_volume * PermPolar * (NAD_CYTO - x.NAD_MCP) \
                + k7PduQ * x.PduQ_NAD - k8PduQ * x.PduQ * x.NAD \
                - k1PduP * x.NAD * x.PduP + k2PduP * x.PduP_NAD\
 
-    d['NADH'] = polar_surface_area_mcp_volume * PermMCPNADH * (NADH_CYTO - x.NADH_MCP) \
+    d['NADH'] = polar_surface_area_mcp_volume * PermPolar * (NADH_CYTO - x.NADH_MCP) \
                 - k1PduQ * x.NADH * x.PduQ + k2PduQ * x.PduQ_NADH \
                 + k7PduP * x.PduP_NADH - k8PduP * x.NADH * x.PduP \
 
@@ -167,20 +167,29 @@ def RHS_delta_AJ(t, x, params):
     ################################################################################################################
 
     d['G_CYTO'] = - cell_area_cell_volume * PermCellGlycerol * (x.G_CYTO - x.G_EXT) \
-                  - nMCPs * polar_surface_area_cell_volume * PermMCPGlycerol * (x.G_CYTO - x.G_MCP) \
+                  - polar_surface_area_cell_volume * PermMCPGlycerol * (x.G_CYTO - x.G_MCP) \
                   - R_GlpK
 
     d['H_CYTO'] = - cell_area_cell_volume * PermCell3HPA * (x.H_CYTO - x.H_EXT) \
-                  - nMCPs * polar_surface_area_cell_volume * PermMCP3HPA * (x.H_CYTO - x.H_MCP)
+                  - polar_surface_area_cell_volume * PermMCP3HPA * (x.H_CYTO - x.H_MCP)
 
     d['P_CYTO'] = - cell_area_cell_volume * PermCellPDO * (x.P_CYTO - x.P_EXT) \
-                  - nMCPs * polar_surface_area_cell_volume * PermMCPPDO * (x.P_CYTO - x.P_MCP)
+                  - polar_surface_area_cell_volume * PermMCPPDO * (x.P_CYTO - x.P_MCP)
+
+    d['HCoA_CYTO'] = - cell_area_cell_volume * PermCellHCoA * (x.Hate_CYTO - x.Hate_EXT) \
+                     - polar_surface_area_cell_volume * PermMCPHCoA * (x.Hate_CYTO - x.Hate_MCP)
+
+    d['HPhosph_CYTO'] = - cell_area_cell_volume * PermCellHPhosph * (x.HCoA_CYTO - x.HCoA_EXT) \
+                        - polar_surface_area_cell_volume * PermMCPHPhosph * (x.HCoA_CYTO - x.HCoA_MCP) \
+                        - k1PduW * x.HPhosph_CYTO * x.PduW + k2PduW * x.PduW_C
 
     d['Hate_CYTO'] = - cell_area_cell_volume * PermCellHate * (x.Hate_CYTO - x.Hate_EXT) \
-                     - nMCPs * polar_surface_area_cell_volume * PermMCPHate * (x.Hate_CYTO - x.Hate_MCP)
+                     + k3PduW * x.PduW_C - k4PduW * x.Hate_CYTO * x.PduW
 
-    d['HCoA_CYTO'] = - cell_area_cell_volume * PermCellHCoA * (x.HCoA_CYTO - x.HCoA_EXT) \
-                     - nMCPs * polar_surface_area_cell_volume * PermMCPHCoA * (x.HCoA_CYTO - x.HCoA_MCP)
+    d['PduW'] = - k1PduW * x.HPhosph_CYTO * x.PduL + k2PduL * x.PduL_C + k3PduL * x.PduL_C \
+                - k4PduW * x.Hate_CYTO * x.PduL
+
+    d['PduW_C'] = -d['PduW']
 
 
     ################################################################################################################
@@ -190,10 +199,11 @@ def RHS_delta_AJ(t, x, params):
     d['G_EXT'] = ncells * cell_area_external_volume * PermCellGlycerol * (x.G_CYTO - x.G_EXT)
     d['H_EXT'] = ncells * cell_area_external_volume * PermCell3HPA * (x.H_CYTO - x.H_EXT)
     d['P_EXT'] = ncells * cell_area_external_volume * PermCellPDO * (x.P_CYTO - x.P_EXT)
+    d['HCoA_EXT'] = ncells * cell_area_external_volume * PermCellHCoA * (x.HCoA_CYTO - x.HCoA_EXT)
+    d['HPhosph_EXT'] = ncells * cell_area_external_volume * PermCellHPhosph * (x.HPhosph_CYTO - x.HPhosph_EXT)
     d['Hate_EXT'] = ncells * cell_area_external_volume * PermCellHate * (x.Hate_CYTO - x.Hate_EXT)
-    d['HCoA_EXT'] = ncells * cell_area_external_volume * PermCellHate * (x.HCoA_CYTO - x.HCoA_EXT)
-
     d['OD'] = k*(1-x.OD/L)*x.OD
+
     return d
 
 
