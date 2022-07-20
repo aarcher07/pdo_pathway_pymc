@@ -3,7 +3,7 @@
 #SBATCH --partition=b1020
 #SBATCH --nodes=1
 #SBATCH --array=1-8
-#SBATCH --ntasks=6
+#SBATCH --ntasks=2
 #SBATCH --time=07-00:00:00
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=andrearcher2017@u.northwestern.edu
@@ -14,12 +14,12 @@
 
 nsamples=(3e3)
 burn_in=(3e3)
-nchains=5
+nchains=2
 acc_rate=(0.78 0.8)
 atol=(1e-8)
 rtol=(1e-8)
 mxsteps=1e5
-init=("jitter+adapt_diag")
+init=("adapt_diag")
 
 len_burn_in=${#burn_in[@]}
 len_acc_rate=${#acc_rate[@]}
