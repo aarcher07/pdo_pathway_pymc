@@ -46,18 +46,13 @@ KINETIC_PARAMETERS = ['k1PduCDE', 'k2PduCDE', 'k3PduCDE', 'KeqPduCDE',
                       'k1PduW', 'k2PduW', 'k3PduW', 'KeqPduLW',
                       'VmaxfGlpK', 'KmGlpK']
 
+MCP_PARAMETERS = ['nMCPs', 'AJ_radius']
+
 THERMO_PARAMETERS = ['KeqPduCDE', 'KeqPduQ', 'KeqPduP', 'KeqPduL', 'KeqPduLW']
 
 COFACTOR_PARAMETERS = ['NADH_NAD_TOTAL_CYTO', 'NADH_NAD_RATIO_CYTO',
                        'NADH_NAD_TOTAL_MCP', 'NADH_NAD_RATIO_MCP']
 
-MCP_PARAMETERS = ['nMCPs', 'AJ_radius']
-
-MODEL_PARAMETERS = [*PERMEABILITY_CELL_PARAMETERS,
-                    *PERMEABILITY_MCP_PARAMETERS,
-                    *KINETIC_PARAMETERS,
-                    *COFACTOR_PARAMETERS
-                    ]
 
 ENZYME_CONCENTRATIONS = ['nPduCDE',
                          'nPduQ',
@@ -65,12 +60,20 @@ ENZYME_CONCENTRATIONS = ['nPduCDE',
                          'nPduL',
                          'nPduW']
 
+MODEL_PARAMETERS = [*PERMEABILITY_CELL_PARAMETERS,
+                    *PERMEABILITY_MCP_PARAMETERS,
+                    *KINETIC_PARAMETERS,
+                    *MCP_PARAMETERS,
+                    *COFACTOR_PARAMETERS,
+                    *ENZYME_CONCENTRATIONS
+                    ]
+
 DCW_PARAMETERS = ['L', 'k', 'A']
 
 INIT_PARAMETERS_LIST = [*ENZYME_CONCENTRATIONS, 'A']
 
-PARAMETER_LIST = [*MODEL_PARAMETERS, *MCP_PARAMETERS, *ENZYME_CONCENTRATIONS, *DCW_PARAMETERS]
-DEV_PARAMETER_LIST = [*MODEL_PARAMETERS, *MCP_PARAMETERS, *ENZYME_CONCENTRATIONS]
+PARAMETER_LIST = [*MODEL_PARAMETERS, *DCW_PARAMETERS]
+DEV_PARAMETER_LIST = [*MODEL_PARAMETERS]
 
 VARIABLE_NAMES = ['G_MCP', 'H_MCP', 'P_MCP', 'HCoA_MCP', 'HPhosph_MCP',
 

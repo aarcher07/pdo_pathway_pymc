@@ -7,24 +7,77 @@ from exp_data_13pd import *
 from prior_constants import *
 import time
 from rhs_WT import RHS_WT, lib, problem
-
+from scipy.constants import Avogadro
 # The solver generates uses numba and sympy to generate optimized C functions
 solver = sunode.solver.AdjointSolver(problem, solver='BDF')
 lib.CVodeSStolerances(solver._ode, 1e-8, 1e-8)
 lib.CVodeSStolerancesB(solver._ode, solver._odeB, 1e-8, 1e-8)
 lib.CVodeQuadSStolerancesB(solver._ode, solver._odeB, 1e-8, 1e-8)
 lib.CVodeSetMaxNumSteps(solver._ode, 100000)
-
+print(MCP_RADIUS)
+print(np.log10((MCP_RADIUS*(10**(GEOMETRY_PARAMETER_MEAN['nMCPs']/3.))
+       + MCP_RADIUS*(10**(GEOMETRY_PARAMETER_MEAN['nMCPs']/2.)))/2))
 param_sample = np.array([*CELL_PERMEABILITY_MEAN.values(),
                          *MCP_PERMEABILITY_MEAN.values(),
                          *KINETIC_PARAMETER_MEAN.values(),
-                         *PDU_WT_ENZ_NUMBERS_PARAMETER_MEAN.values(),
+                         *GEOMETRY_PARAMETER_MEAN.values(),
+                         np.log10((MCP_RADIUS*(10**(GEOMETRY_PARAMETER_MEAN['nMCPs']/3.))
+                                   + MCP_RADIUS*(10**(GEOMETRY_PARAMETER_MEAN['nMCPs']/2.)))/2),
                          *COFACTOR_NUMBER_PARAMETER_MEAN.values(),
+                         *PDU_WT_ENZ_NUMBERS_PARAMETER_MEAN.values(),
                          *list(OD_PRIOR_PARAMETERS_MEAN['WT-L'].values())
                          ])
 lik_dev_params = np.zeros(len(DEV_PARAMETER_LIST))
 time_tot = 0
 print(param_sample)
+y0 = np.zeros((), dtype=problem.state_dtype)
+for var in VARIABLE_NAMES:
+    y0[var] = 0
+y0['G_EXT'] = TIME_SERIES_MEAN['WT-L']['glycerol'][0]
+y0['G_CYTO'] = TIME_SERIES_MEAN['WT-L']['glycerol'][0]
+y0['G_MCP'] = TIME_SERIES_MEAN['WT-L']['glycerol'][0]
+y0['H_EXT'] = TIME_SERIES_MEAN['WT-L']['3-HPA'][0]
+y0['H_CYTO'] = TIME_SERIES_MEAN['WT-L']['3-HPA'][0]
+y0['H_MCP'] = TIME_SERIES_MEAN['WT-L']['3-HPA'][0]
+y0['P_EXT'] = TIME_SERIES_MEAN['WT-L']['13PD'][0]
+y0['P_CYTO'] = TIME_SERIES_MEAN['WT-L']['13PD'][0]
+y0['P_MCP'] = TIME_SERIES_MEAN['WT-L']['13PD'][0]
+y0['NADH_MCP'] = (10**(param_sample[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP')] + param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')]))/(10**param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')] + 1)
+y0['NAD_MCP'] = 10**param_sample[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP')]/(10**param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')] + 1)
+y0['PduCDE'] = 10**param_sample[PARAMETER_LIST.index('nPduCDE')]/(Avogadro * MCP_VOLUME)
+y0['PduP'] = 10**param_sample[PARAMETER_LIST.index('nPduP')]/(Avogadro * MCP_VOLUME)
+y0['PduQ'] = 10**param_sample[PARAMETER_LIST.index('nPduQ')]/(Avogadro * MCP_VOLUME)
+y0['PduL'] = 10**param_sample[PARAMETER_LIST.index('nPduL')]/(Avogadro * MCP_VOLUME)
+y0['PduW'] = 10**param_sample[PARAMETER_LIST.index('nPduW')]/(Avogadro * MCP_VOLUME)
+
+params_dict = { param_name : param_val for param_val,param_name in zip(param_sample, PARAMETER_LIST)}
+print(params_dict)
+# # We can also specify the parameters by name:
+solver.set_params_dict(params_dict)
+yout, grad_out, lambda_out = solver.make_output_buffers(TIME_SAMPLES)
+
+# # initial sensitivities
+sens0 = np.zeros((len(DEV_PARAMETER_LIST),len(VARIABLE_NAMES)))
+sens0[PARAMETER_LIST.index('nPduCDE'), VARIABLE_NAMES.index('PduCDE')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('nPduCDE')])/(Avogadro * MCP_VOLUME)
+sens0[PARAMETER_LIST.index('nPduP'), VARIABLE_NAMES.index('PduP')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('nPduP')])/(Avogadro * MCP_VOLUME)
+sens0[PARAMETER_LIST.index('nPduQ'), VARIABLE_NAMES.index('PduQ')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('nPduQ')])/(Avogadro * MCP_VOLUME)
+sens0[PARAMETER_LIST.index('nPduL'), VARIABLE_NAMES.index('PduL')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('nPduL')])/(Avogadro * MCP_VOLUME)
+sens0[PARAMETER_LIST.index('nPduW'), VARIABLE_NAMES.index('PduW')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('nPduW')])/(Avogadro * MCP_VOLUME)
+sens0[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP'), VARIABLE_NAMES.index('NADH_MCP')] = np.log(10)*(10**(param_sample[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP')] + param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')]))/(10**param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')] + 1)
+sens0[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP'), VARIABLE_NAMES.index('NADH_MCP')] = np.log(10)*(10**(param_sample[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP')] + param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')]))/(10**param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')] + 1)**2
+sens0[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP'), VARIABLE_NAMES.index('NAD_MCP')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP')])/(10**param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')] + 1)
+sens0[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP'), VARIABLE_NAMES.index('NAD_MCP')] = -np.log(10)*(10**(param_sample[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP')] + param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')]))/(10**param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')] + 1)**2
+
+time_start = time.time()
+solver.solve_forward(t0=0, tvals=TIME_SAMPLES, y0=y0, y_out=yout)
+jj =0
+for i,var in enumerate(VARIABLE_NAMES):
+    if i in DATA_INDEX:
+        plt.plot(TIME_SAMPLES / HRS_TO_SECS, yout.view(problem.state_dtype)[var])
+        plt.scatter(TIME_SAMPLES_EXPANDED[::TIME_SPACING]/HRS_TO_SECS, TIME_SERIES_MEAN['WT-L'].iloc[:,jj])
+        plt.title(var)
+        plt.show()
+        jj+=1
 # for exp_ind, gly_cond in enumerate([50,60,70,80]):
 #     param_sample = NORM_PRIOR_MEAN_SINGLE_EXP[gly_cond]
 #     param_sample[:(N_MODEL_PARAMETERS+1)] = [*param_sample_copy[:N_MODEL_PARAMETERS], param_sample_copy[N_MODEL_PARAMETERS + exp_ind]]
