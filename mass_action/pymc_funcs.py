@@ -113,20 +113,20 @@ def sample(nsamples, burn_in, nchains, acc_rate=0.8, atol=1e-8, rtol=1e-8, mxste
                           for param_name in KINETIC_PARAMETERS]
 
         enzyme_init = [pm.TruncatedNormal(param_name, mu = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][0],
-                                 sigma = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][1], lower = -4, upper = 2)
+                                 sigma = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][1], lower = -4, upper = 1)
                        for param_name in ENZYME_CONCENTRATIONS]
 
         # gly_init = [pm.Normal(param_name, mu = 0,sigma = 4) for param_name in GLYCEROL_EXTERNAL_EXPERIMENTAL]
 
-        variables = [*permeability_params, *kinetic_params, *enzyme_init]#, *gly_init]
+        all_variables = [*permeability_params, *kinetic_params, *enzyme_init]
 
+        # all_vars = [*nuts_vars, *gly_init]
         # convert m and c to a tensor vector
-        theta = at.as_tensor_variable(variables)
+        theta = at.as_tensor_variable(all_variables)
         # use a Potential to "call" the Op and include it in the logp computation
         pm.Potential("likelihood", logl(theta))
         idata_nuts = pm.sample(draws=int(nsamples), init=init, cores=nchains, chains=nchains, tune=int(burn_in),
-                               target_accept=acc_rate, initvals=initvals, random_seed=random_seed,
-                               discard_tuned_samples=False)
+                               initvals=initvals, random_seed=random_seed, discard_tuned_samples=False)
 
         return idata_nuts
 

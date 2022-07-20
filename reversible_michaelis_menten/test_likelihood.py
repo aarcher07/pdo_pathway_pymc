@@ -20,6 +20,8 @@ print(likelihood_adj(param_sample_copy[:(N_MODEL_PARAMETERS+1)]))
 lik_fwd = likelihood_derivative_fwd(param_sample_copy[:(N_MODEL_PARAMETERS+1)])
 lik_adj = likelihood_derivative_adj(param_sample_copy[:(N_MODEL_PARAMETERS+1)])
 lik_diff = lik_fwd - lik_adj
+print(lik_fwd)
+print(lik_adj)
 lik_rel_diff = np.abs(lik_diff)/np.abs(lik_fwd)
 
 print('lik_fwd - lik_adj: ' + str(lik_diff))

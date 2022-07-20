@@ -31,7 +31,25 @@ MODEL_PARAMS_TO_TEX = {'PermCellGlycerol':r'$P_{\mathrm{G}}$',
                        'k3E0': r'$k_{3,\mathrm{E0}}$',
                        'k4E0': r'$k_{4,\mathrm{E0}}$',
                        'VmaxfDhaK': r'$V_{\mathrm{max,DhaK}}^{f}$',
-                       'KmDhaK': r'$K_{\mathrm{M,DhaK}}^{G}$'}
+                       'KmDhaK': r'$K_{\mathrm{M,DhaK}}^{G}$',
+                       'kcatfDhaB': r'$k_{\mathrm{cat,DhaB}}^{f}$',
+                       'KmGlycerolDhaB': r'$K_{\mathrm{M,DhaB}}^{\mathrm{Glycerol}}$',
+                       'kcatrDhaB': r'$k_{\mathrm{cat,DhaB}}^{r}$',
+                       'KmHPADhaB': r'$K_{\mathrm{M,DhaB}}^{\mathrm{HPA}}$',
+                       'kcatfDhaT': r'$k_{\mathrm{cat,DhaT}}^{f}$',
+                       'KmHPADhaT': r'$K_{\mathrm{M,DhaT}}^{\mathrm{HPA}}$',
+                       'KmNADHDhaT': r'$K_{\mathrm{M,DhaT}}^{\mathrm{NADH}}$',
+                       'kcatrDhaT': r'$k_{\mathrm{cat,DhaT}}^{r}$',
+                       'KmPDODhaT': r'$K_{\mathrm{M,DhaT}}^{\mathrm{PDO}}$',
+                       'KmNADDhaT': r'$K_{\mathrm{M,DhaT}}^{\mathrm{NAD}}$',
+                       'kcatfDhaD': r'$k_{\mathrm{cat,DhaD}}^{f}$',
+                       'KmGlycerolDhaD': r'$K_{\mathrm{M,DhaD}}^{\mathrm{Glycerol}}$',
+                       'KmNADDhaD': r'$K_{\mathrm{M,DhaD}}^{\mathrm{NAD}}$',
+                       'kcatrDhaD': r'$k_{\mathrm{cat,DhaD}}^{r}$',
+                       'KmNADHDhaD': r'$K_{\mathrm{M,DhaD}}^{\mathrm{NADH}}$',
+                       'KmDHADhaD': r'$K_{\mathrm{M,DhaD}}^{\mathrm{DHA}}$'
+
+                       }
 
 ENZ_INIT_TO_TEX = {'DHAB_INIT': r"$[\mathrm{DhaB}](0)$",
                     'DHAT_INIT': r"$[\mathrm{DhaT}](0)$",

@@ -61,18 +61,21 @@ def likelihood_fwd(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
         sens0[PARAMETER_LIST.index('DHAB_INIT'), VARIABLE_NAMES.index('DHAB')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('DHAB_INIT')])
         sens0[PARAMETER_LIST.index('DHAT_INIT'), VARIABLE_NAMES.index('DHAT')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('DHAT_INIT')])
         # sens0[PARAMETER_LIST.index('A'), VARIABLE_NAMES.index('dcw')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('A')])
+        try:
+            solver.solve(t0=0, tvals=tvals, y0=y0, y_out=yout)
+            jj=0
+            for i,var in enumerate(VARIABLE_NAMES):
+                if i in DATA_INDEX:
+                    plt.plot(tvals / HRS_TO_SECS, yout.view(problem.state_dtype)[var])
+                    plt.scatter(tvals/HRS_TO_SECS, DATA_SAMPLES[gly_cond][:,jj])
+                    jj+=1
+                plt.show()
+            yout[np.abs(yout) < 1e-3] = 1e-3
 
-        solver.solve(t0=0, tvals=tvals, y0=y0, y_out=yout)
-        jj=0
-        for i,var in enumerate(VARIABLE_NAMES):
-            if i in DATA_INDEX:
-                plt.plot(tvals / HRS_TO_SECS, yout.view(problem.state_dtype)[var])
-                plt.scatter(tvals/HRS_TO_SECS, DATA_SAMPLES[gly_cond][:,jj])
-                jj+=1
-            plt.show()
-        yout[np.abs(yout) < 1e-3] = 1e-3
+            loglik += -0.5*((np.log(DATA_SAMPLES[gly_cond]/yout[:, DATA_INDEX]) / np.array([5e-2, 5e-2, 5e-2]))**2).sum()
 
-        loglik += -0.5*((np.log(DATA_SAMPLES[gly_cond]/yout[:, DATA_INDEX]) / np.array([5e-2, 5e-2, 5e-2]))**2).sum()
+        except sunode.solver.SolverError:
+            loglik += np.nan
     return loglik
 
 

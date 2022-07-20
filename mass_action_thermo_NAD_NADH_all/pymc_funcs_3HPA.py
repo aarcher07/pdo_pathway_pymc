@@ -113,11 +113,11 @@ def sample(nsamples, burn_in, nchains, acc_rate=0.8, atol=1e-8, rtol=1e-8, mxste
                           for param_name in KINETIC_PARAMETERS]
 
         enzyme_init = [pm.TruncatedNormal(param_name, mu = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][0],
-                                 sigma = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][1], lower = -4, upper = 2)
+                                 sigma = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][1], lower = -4, upper = 1)
                        for param_name in ENZYME_CONCENTRATIONS]
 
         cofactor_init = [pm.TruncatedNormal(param_name, mu = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][0],
-                                 sigma = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][1], lower = -4, upper = 2)
+                                 sigma = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][1], lower = -4, upper = 1)
                        for param_name in COFACTOR_PARAMETERS]
         # gly_init = [pm.Normal(param_name, mu = 0,sigma = 4) for param_name in GLYCEROL_EXTERNAL_EXPERIMENTAL]
 

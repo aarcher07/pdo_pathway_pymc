@@ -1,0 +1,5 @@
+Both chains have yet to converge to stable region. Appears that, at acc rate = 0.8, a tune size of 1e4 is necessary for convergence of all chains. At likelihood of -250, the data fit seems to be reasonably good with reasonably low 3HPA toxity.
+
+It is possible a lower acceptance probability might speed up convergence and tuning. 
+
+The total NAD & NADH concentration is way too high.

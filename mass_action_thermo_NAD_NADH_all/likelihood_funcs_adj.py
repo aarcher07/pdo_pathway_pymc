@@ -69,7 +69,7 @@ def likelihood_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
             #     plt.show()
             loglik += -0.5*(((DATA_SAMPLES[gly_cond]-yout[:, DATA_INDEX])/np.array([15,15,0.1]))**2).sum()
         except sunode.solver.SolverError:
-            loglik += -np.inf
+            loglik += np.nan
     return loglik
 
 
@@ -179,7 +179,7 @@ def likelihood_derivative_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)
             grad_out = -np.matmul(sens0, lambda_out - grads[0, :]) + grad_out
         except sunode.solver.SolverError:
         #     print(1)
-            grad_out[:] += -np.inf
+            grad_out[:] += np.nan
 
         for j, param in enumerate(DEV_PARAMETERS_LIST):
             if param == 'G_EXT_INIT':

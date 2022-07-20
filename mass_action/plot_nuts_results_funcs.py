@@ -16,7 +16,7 @@ from prior_constants import NORM_PRIOR_STD_RT_SINGLE_EXP,NORM_PRIOR_MEAN_SINGLE_
     LOG_UNIF_G_EXT_INIT_PRIOR_PARAMETERS
 from constants import PERMEABILITY_PARAMETERS, KINETIC_PARAMETERS, ENZYME_CONCENTRATIONS, \
     GLYCEROL_EXTERNAL_EXPERIMENTAL, ALL_PARAMETERS, PARAMETER_LIST, TIME_SAMPLES_EXPANDED, VARIABLE_NAMES, HRS_TO_SECS, \
-    TIME_SPACING, DATA_INDEX, N_MODEL_PARAMETERS
+    TIME_SPACING, DATA_INDEX, N_MODEL_PARAMETERS, PLOT_PARAMETERS
 import numpy as np
 from os.path import dirname, abspath
 from rhs_funcs import RHS, lib, problem, solver
@@ -64,6 +64,7 @@ def plot_time_series_distribution(samples, plot_file_location, nchains, atol, rt
         for chain_ind in range(min(5, nchains)):
             dataarray = samples.posterior.to_dataframe().loc[[chain_ind]]
             dataarray = dataarray[ALL_PARAMETERS]
+
             lower, upper = LOG_UNIF_G_EXT_INIT_PRIOR_PARAMETERS["G_EXT_INIT_" + str(gly_cond)]
             for jj in range(3):
                 ax[jj, chain_ind].scatter(TIME_SAMPLES_EXPANDED[gly_cond][::TIME_SPACING], DATA_SAMPLES[gly_cond][:, jj])
@@ -126,9 +127,17 @@ def plot_corr(data, directory_plot, nchains, thres=5e-2):
     for chain_ind in range(nchains):
         dataarray = data.posterior.to_dataframe().loc[[chain_ind]]
         dataarray = dataarray[ALL_PARAMETERS].iloc[::int(dataarray.shape[0]/500),:]
+        dataarray['kcatfDhaB'] = dataarray['k3DhaB']
+        dataarray['kcatrDhaB'] = dataarray['k2DhaB']
+        dataarray['KmGlycerolDhaB'] = np.log10((np.power(10,dataarray['k2DhaB']) + np.power(10,dataarray['k3DhaB']))/np.power(10,dataarray['k1DhaB']))
+        dataarray['KmHPADhaB'] = np.log10((np.power(10,dataarray['k2DhaB']) + np.power(10,dataarray['k3DhaB']))/np.power(10,dataarray['k4DhaB']))
+        dataarray['kcatfDhaT'] = dataarray['k3DhaT']
+        dataarray['kcatrDhaT'] = dataarray['k2DhaT']
+        dataarray['KmHPADhaT'] = np.log10((np.power(10,dataarray['k2DhaT']) + np.power(10,dataarray['k3DhaT']))/np.power(10,dataarray['k1DhaT']))
+        dataarray['KmPDODhaT'] = np.log10((np.power(10,dataarray['k2DhaT']) + np.power(10,dataarray['k3DhaT']))/np.power(10,dataarray['k4DhaT']))
 
         fig, ax = plt.subplots()
-        data_corr = np.corrcoef(dataarray.to_numpy().T)
+        data_corr = np.corrcoef(dataarray[PLOT_PARAMETERS].to_numpy().T)
         # matrix = data_corr
 
         for i in range(data_corr.shape[0]):
@@ -141,16 +150,16 @@ def plot_corr(data, directory_plot, nchains, thres=5e-2):
         mask_mat = np.ones_like(data_corr)
         mask_mat = np.triu(mask_mat,k=0)
         ax = sns.heatmap(data_corr, mask = mask_mat, annot=True, cmap="YlGnBu", vmin=-1, vmax=1, annot_kws={"size":15},fmt='.1g')
-        xticks = [(i + 0.5) for i in range(len(ALL_PARAMETERS))]
-        yticks = [(i + 0.5) for i in range(len(ALL_PARAMETERS))]
-        plt.xticks(xticks, [VARS_ALL_EXP_TO_TEX[key] for key in ALL_PARAMETERS], fontsize=15,
+        xticks = [(i + 0.5) for i in range(len(PLOT_PARAMETERS))]
+        yticks = [(i + 0.5) for i in range(len(PLOT_PARAMETERS))]
+        plt.xticks(xticks, [VARS_ALL_EXP_TO_TEX[key] for key in PLOT_PARAMETERS], fontsize=15,
                    rotation = -25)
-        plt.yticks(yticks, [VARS_ALL_EXP_TO_TEX[key] for key in ALL_PARAMETERS], fontsize=15,
+        plt.yticks(yticks, [VARS_ALL_EXP_TO_TEX[key] for key in PLOT_PARAMETERS], fontsize=15,
                    rotation = 45, ha="right")
         plt.title('Correlation Matrix of Posterior Samples', fontsize=20)
         cbar = ax.collections[0].colorbar
         cbar.ax.tick_params(labelsize=20)
-        fig.set_size_inches(15, 9.5, forward=True)
+        fig.set_size_inches(15, 15, forward=True)
         plt.savefig(directory_plot + '/correlation_plot_chain_' + str(chain_ind), bbox_inches="tight")
         plt.close()
 
@@ -159,9 +168,18 @@ def plot_corr_scatter(data, directory_plot, nchains):
         diverging = data.sample_stats.diverging[chain_ind].values
         dataarray = data.posterior.to_dataframe().loc[[chain_ind]]
         dataarray = dataarray[ALL_PARAMETERS]
+        dataarray['kcatfDhaB'] = dataarray['k3DhaB']
+        dataarray['kcatrDhaB'] = dataarray['k2DhaB']
+        dataarray['KmGlycerolDhaB'] = np.log10((np.power(10,dataarray['k2DhaB']) + np.power(10,dataarray['k3DhaB']))/np.power(10,dataarray['k1DhaB']))
+        dataarray['KmHPADhaB'] = np.log10((np.power(10,dataarray['k2DhaB']) + np.power(10,dataarray['k3DhaB']))/np.power(10,dataarray['k4DhaB']))
+        dataarray['kcatfDhaT'] = dataarray['k3DhaT']
+        dataarray['kcatrDhaT'] = dataarray['k2DhaT']
+        dataarray['KmHPADhaT'] = np.log10((np.power(10,dataarray['k2DhaT']) + np.power(10,dataarray['k3DhaT']))/np.power(10,dataarray['k1DhaT']))
+        dataarray['KmPDODhaT'] = np.log10((np.power(10,dataarray['k2DhaT']) + np.power(10,dataarray['k3DhaT']))/np.power(10,dataarray['k4DhaT']))
+        dataarray = dataarray[PLOT_PARAMETERS]
         try:
             # data_array = pd.DataFrame(np.array([data[:, i] for i in range(len(ALL_PARAMETERS))]).T, columns=ALL_PARAMETERS)
-            axes = scatter_matrix(dataarray.loc[np.invert(diverging),:], alpha=0.2, figsize=(len(ALL_PARAMETERS), len(ALL_PARAMETERS)),
+            axes = scatter_matrix(dataarray.loc[np.invert(diverging),:], alpha=0.2, figsize=(len(PLOT_PARAMETERS), len(PLOT_PARAMETERS)),
                                   diagonal='kde')
             for i in range(np.shape(axes)[0]):
                 for j in range(np.shape(axes)[1]):
@@ -170,8 +188,8 @@ def plot_corr_scatter(data, directory_plot, nchains):
                     xlab_curr = axes[i, j].get_xlabel()
                     ylab_curr = axes[i, j].get_ylabel()
                     if i > j:
-                        axes[i, j].scatter(dataarray.loc[diverging,ALL_PARAMETERS[j]],
-                                           dataarray.loc[diverging,ALL_PARAMETERS[i]], s=1,alpha=0.5)
+                        axes[i, j].scatter(dataarray.loc[diverging,PLOT_PARAMETERS[j]],
+                                           dataarray.loc[diverging,PLOT_PARAMETERS[i]], s=1,alpha=0.5)
                     axes[i, j].set_xlabel(VARS_ALL_EXP_TO_TEX[xlab_curr])
                     axes[i, j].set_ylabel(VARS_ALL_EXP_TO_TEX[ylab_curr])
                     axes[i, j].xaxis.label.set_rotation(-25)

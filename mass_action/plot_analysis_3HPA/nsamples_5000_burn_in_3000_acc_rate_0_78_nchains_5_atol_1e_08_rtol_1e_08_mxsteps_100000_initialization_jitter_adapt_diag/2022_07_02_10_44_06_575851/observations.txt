@@ -1,0 +1,1 @@
+Takes 1.6 days. Seems to require 1e4 to converge.

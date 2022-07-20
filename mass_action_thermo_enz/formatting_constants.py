@@ -13,7 +13,15 @@ MODEL_PARAMS_TO_TEX = {'PermCellGlycerol':r'$P_G$',
                        'k3DhaT': r'$k_{3,\mathrm{DhaT}}$',
                        'KeqDhaT': r'$K_{eq}^{\mathrm{DhaT}}$',
                        'kcatfMetab': r'$V_{\mathrm{max,Metab}}^{f}$',
-                       'KmMetabG': r'$K_{\mathrm{M,Metab}}^{G}$'}
+                       'KmMetabG': r'$K_{\mathrm{M,Metab}}^{G}$',
+                       'kcatfDhaB': r'$k_{\mathrm{cat,DhaB}}^{f}$',
+                       'KmGlycerolDhaB': r'$K_{\mathrm{M,DhaB}}^{\mathrm{Glycerol}}$',
+                       'kcatrDhaB': r'$k_{\mathrm{cat,DhaB}}^{r}$',
+                       'KmHPADhaB': r'$K_{\mathrm{M,DhaB}}^{\mathrm{HPA}}$',
+                       'kcatfDhaT': r'$k_{\mathrm{cat,DhaT}}^{f}$',
+                       'KmHPADhaT': r'$K_{\mathrm{M,DhaT}}^{\mathrm{HPA}}$',
+                       'kcatrDhaT': r'$k_{\mathrm{cat,DhaT}}^{r}$',
+                       'KmPDODhaT': r'$K_{\mathrm{M,DhaT}}^{\mathrm{PDO}}$'}
 
 ENZ_INIT_TO_TEX = {'DHAB_INIT_50': r"$[\mathrm{DhaB}]_1(0)$",
                      'DHAB_INIT_60': r"$[\mathrm{DhaB}]_2(0)$",

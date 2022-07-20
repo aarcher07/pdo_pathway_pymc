@@ -1,5 +1,6 @@
 from constants import DCW_CONSTANTS
 
+
 # teX names for parameters
 MODEL_PARAMS_TO_TEX = {'PermCellGlycerol':r'$P_G$',
                        'PermCellPDO':r'$P_P$',
@@ -13,9 +14,7 @@ MODEL_PARAMS_TO_TEX = {'PermCellGlycerol':r'$P_G$',
                        'k3DhaT': r'$k_{3,\mathrm{DhaT}}$',
                        'k4DhaT': r'$k_{4,\mathrm{DhaT}}$',
                        'VmaxfMetab': r'$V_{\mathrm{max,Metab}}^{f}$',
-                       'KmMetabG': r'$K_{\mathrm{M,Metab}}^{G}$',
-                       'DHAB_INIT': r'$[\mathrm{DhaB}](0)$',
-                       'DHAT_INIT' : r'$[\mathrm{DhaB}](0)$'}
+                       'KmMetabG': r'$K_{\mathrm{M,Metab}}^{G}$'}
 
 G_EXT_INIT_TO_TEX = {'G_EXT_INIT_50': r"$G_1(0)$",
                      'G_EXT_INIT_60': r"$G_2(0)$",

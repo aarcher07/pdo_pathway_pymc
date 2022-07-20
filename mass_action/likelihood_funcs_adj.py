@@ -20,6 +20,7 @@ def likelihood_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
     # initialize
     loglik = 0
     param_vals_copy = param_vals.copy()
+    # print(param_vals_copy.shape)
 
     # gly_init_val = param_vals[N_MODEL_PARAMETERS:(N_MODEL_PARAMETERS+4)]
     # for i,((lower,upper),gly_init) in enumerate(zip(LOG_UNIF_G_EXT_INIT_PRIOR_PARAMETERS.values(),gly_init_val)):
@@ -56,17 +57,17 @@ def likelihood_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
 
         try:
             solver.solve_forward(t0=0, tvals=tvals, y0=y0, y_out=yout)
-            jj=0
-            for i,var in enumerate(VARIABLE_NAMES):
-                if i in DATA_INDEX:
-                    plt.plot(tvals / HRS_TO_SECS, yout.view(problem.state_dtype)[var])
-                    plt.scatter(tvals/HRS_TO_SECS, DATA_SAMPLES[gly_cond][:,jj])
-                    jj+=1
-                plt.show()
-            print(-0.5*(((DATA_SAMPLES[gly_cond]-yout[:,[7,9,10]])/np.array([15,15,0.1]))**2).sum())
+            # jj=0
+            # for i,var in enumerate(VARIABLE_NAMES):
+            #     if i in DATA_INDEX:
+            #         plt.plot(tvals / HRS_TO_SECS, yout.view(problem.state_dtype)[var])
+            #         plt.scatter(tvals/HRS_TO_SECS, DATA_SAMPLES[gly_cond][:,jj])
+            #         jj+=1
+            #     plt.show()
+            # print(-0.5*(((DATA_SAMPLES[gly_cond]-yout[:,[7,9,10]])/np.array([15,15,0.1]))**2).sum())
             loglik += -0.5*(((DATA_SAMPLES[gly_cond]-yout[:,[7,9,10]])/np.array([15,15,0.1]))**2).sum()
         except sunode.solver.SolverError:
-            loglik += -np.inf
+            loglik += np.nan
         # print(loglik)
     return loglik
 
@@ -151,7 +152,7 @@ def likelihood_derivative_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)
             grad_out = -np.matmul(sens0, lambda_out - grads[0, :]) + grad_out
         except sunode.solver.SolverError:
         #     print(1)
-            grad_out[:] += -np.inf
+            grad_out[:] += np.nan
 
         for j, param in enumerate(DEV_PARAMETERS_LIST):
             if param == 'G_EXT_INIT':

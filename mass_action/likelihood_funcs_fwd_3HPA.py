@@ -69,7 +69,7 @@ def likelihood_fwd(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
             loglik += -0.5*(((DATA_SAMPLES[gly_cond]-yout[::TIME_SPACING,DATA_INDEX])/np.array([15,15,0.1]))**2).sum()\
                       - 0.5*cyto_hpa_max**2
         except sunode.solver.SolverError:
-            loglik += -np.inf
+            loglik += np.nan
     return loglik
 
 
@@ -140,7 +140,7 @@ def likelihood_derivative_fwd(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)
             #         jj+=1
             #     plt.show()
         except sunode.solver.SolverError:
-            sens_out[:] += -np.inf
+            sens_out[:] += np.nan
         # We can convert the solution to an xarray Dataset
         lik_dev = (DATA_SAMPLES[gly_cond] - yout[::TIME_SPACING, DATA_INDEX]) / (np.array([15, 15, 0.1]) ** 2)
 

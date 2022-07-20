@@ -54,18 +54,20 @@ def likelihood_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
         solver.set_params_dict(params_dict)
 
         yout, grad_out, lambda_out = solver.make_output_buffers(tvals)
+        try:
+            solver.solve_forward(t0=0, tvals=tvals, y0=y0, y_out=yout)
 
-        solver.solve_forward(t0=0, tvals=tvals, y0=y0, y_out=yout)
-
-        # jj=0
-        # for i,var in enumerate(VARIABLE_NAMES):
-        #     if i in DATA_INDEX:
-        #         plt.plot(tvals / HRS_TO_SECS, yout.view(problem.state_dtype)[var])
-        #         plt.scatter(tvals/HRS_TO_SECS, DATA_SAMPLES[gly_cond][:,jj])
-        #         jj+=1
-        #     plt.show()
-        yout[np.abs(yout) < 1e-3] = 1e-3
-        loglik +=  -0.5*((np.log(DATA_SAMPLES[gly_cond]/yout[:, DATA_INDEX]) / np.array([5e-2, 5e-2, 5e-2]))**2).sum()
+            # jj=0
+            # for i,var in enumerate(VARIABLE_NAMES):
+            #     if i in DATA_INDEX:
+            #         plt.plot(tvals / HRS_TO_SECS, yout.view(problem.state_dtype)[var])
+            #         plt.scatter(tvals/HRS_TO_SECS, DATA_SAMPLES[gly_cond][:,jj])
+            #         jj+=1
+            #     plt.show()
+            yout[np.abs(yout) < 1e-3] = 1e-3
+            loglik +=  -0.5*((np.log(DATA_SAMPLES[gly_cond]/yout[:, DATA_INDEX]) / np.array([5e-2, 5e-2, 5e-2]))**2).sum()
+        except sunode.solver.SolverError:
+            loglik += np.nan
     print(loglik)
     return loglik
 

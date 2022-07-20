@@ -62,7 +62,9 @@ def likelihood_fwd(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
             #         jj+=1
             #     plt.show()
 
-            loglik += -0.5*(((DATA_SAMPLES[gly_cond]-yout[:,[7,9,10]])/np.array([15,15,0.1]))**2).sum()
+            cyto_hpa_arg_max = np.argmax(yout[:, VARIABLE_NAMES.index('H_CYTO')])
+            loglik += -0.5 * (((DATA_SAMPLES[gly_cond] - yout[:, DATA_INDEX]) / np.array(
+                [15, 15, 0.1])) ** 2).sum() - 0.5 * cyto_hpa_arg_max ** 2
         except sunode.solver.SolverError:
             loglik += -np.inf
     return loglik
@@ -95,13 +97,13 @@ def likelihood_derivative_fwd(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)
 
         y0 = np.zeros((), dtype=problem.state_dtype)
 
-        y0['G_CYTO'] = 10 ** param_sample[PARAMETER_LIST.index('G_EXT_INIT')]
+        y0['G_CYTO'] = 10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')]
         y0['H_CYTO'] = 0
         y0['P_CYTO'] = INIT_CONDS_GLY_PDO_DCW[gly_cond][1]
-        y0['G_EXT'] = 10 ** param_sample[PARAMETER_LIST.index('G_EXT_INIT')]
+        y0['G_EXT'] = 10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')]
         y0['H_EXT'] = 0
         y0['P_EXT'] = INIT_CONDS_GLY_PDO_DCW[gly_cond][1]
-        y0['dcw'] = 10 ** param_sample[PARAMETER_LIST.index('A')]
+        y0['dcw'] =  10**param_sample[PARAMETER_LIST.index('A')]
 
         params_dict = {param_name: param_val for param_val, param_name in zip(param_sample, PARAMETER_LIST)}
         # # We can also specify the parameters by name:
@@ -138,7 +140,7 @@ def likelihood_derivative_fwd(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)
         lik_dev_zeros = np.zeros_like(sens_out[:, 0, :])
         lik_dev_zeros[::TIME_SPACING, DATA_INDEX] = lik_dev
         cyto_hpa_arg_max = np.argmax(yout[:, VARIABLE_NAMES.index('H_CYTO')])
-        lik_dev_zeros[cyto_hpa_arg_max, VARIABLE_NAMES.index('H_CYTO')] = np.max(
+        lik_dev_zeros[cyto_hpa_arg_max, VARIABLE_NAMES.index('H_CYTO')] = -np.max(
             yout[:, VARIABLE_NAMES.index('H_CYTO')])
 
         # compute gradient

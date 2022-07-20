@@ -16,7 +16,7 @@ from prior_constants import NORM_PRIOR_STD_RT_SINGLE_EXP,NORM_PRIOR_MEAN_SINGLE_
     LOG_UNIF_G_EXT_INIT_PRIOR_PARAMETERS
 from constants import PERMEABILITY_PARAMETERS, KINETIC_PARAMETERS, ENZYME_CONCENTRATIONS, \
     GLYCEROL_EXTERNAL_EXPERIMENTAL, ALL_PARAMETERS, PARAMETER_LIST, TIME_SAMPLES_EXPANDED, VARIABLE_NAMES, HRS_TO_SECS, \
-    TIME_SPACING, DATA_INDEX, N_MODEL_PARAMETERS
+    TIME_SPACING, DATA_INDEX, N_MODEL_PARAMETERS, PLOT_PARAMETERS
 import numpy as np
 from os.path import dirname, abspath
 from rhs_funcs import RHS, lib, problem, solver
@@ -139,9 +139,51 @@ def plot_corr(data, directory_plot, nchains, thres=5e-2):
     for chain_ind in range(nchains):
         dataarray = data.posterior.to_dataframe().loc[[chain_ind]]
         dataarray = dataarray[ALL_PARAMETERS]
+        dataarray['k4DhaB'] = dataarray['k1DhaB'] + dataarray['k3DhaB'] - dataarray['KeqDhaB'] - dataarray['k2DhaB']
+        dataarray['k8DhaT'] = dataarray['k1DhaT'] + dataarray['k3DhaT'] + dataarray['k5DhaT'] + dataarray['k7DhaT'] \
+                              - dataarray['KeqDhaT'] - dataarray['k2DhaT'] - dataarray['k4DhaT'] - dataarray['k6DhaT']
+        dataarray['k8DhaD'] = dataarray['k1DhaD'] + dataarray['k3DhaD'] + dataarray['k5DhaD'] + dataarray['k7DhaD'] \
+                              - dataarray['KeqDhaD'] - dataarray['k2DhaD'] - dataarray['k4DhaD'] - dataarray['k6DhaD']
+        dataarray['kcatfDhaB'] = dataarray['k3DhaB']
+        dataarray['kcatrDhaB'] = dataarray['k2DhaB']
+        dataarray['KmGlycerolDhaB'] = np.log10(
+            (np.power(10, dataarray['k2DhaB']) + np.power(10, dataarray['k3DhaB'])) / np.power(10, dataarray['k1DhaB']))
+        dataarray['KmHPADhaB'] = np.log10(
+            (np.power(10, dataarray['k2DhaB']) + np.power(10, dataarray['k3DhaB'])) / np.power(10, dataarray['k4DhaB']))
+
+        dataarray['kcatfDhaT'] = np.log10(np.power(10, dataarray['k5DhaT']) * np.power(10, dataarray['k7DhaT']) / (
+                    np.power(10, dataarray['k5DhaT']) + np.power(10, dataarray['k7DhaT'])))
+        dataarray['KmNADHDhaT'] = np.log10(np.power(10, dataarray['k5DhaT']) * np.power(10, dataarray['k7DhaT']) / (
+                    np.power(10, dataarray['k1DhaT']) * (
+                        np.power(10, dataarray['k5DhaT']) + np.power(10, dataarray['k7DhaT']))))
+        dataarray['KmHPADhaT'] = np.log10(
+            (np.power(10, dataarray['k4DhaT']) + np.power(10, dataarray['k5DhaT'])) * np.power(10,
+                                                                                               dataarray['k7DhaT']) / (
+                        np.power(10, dataarray['k3DhaT']) * (
+                            np.power(10, dataarray['k5DhaT']) + np.power(10, dataarray['k7DhaT']))))
+
+        dataarray['kcatrDhaT'] = np.log10(np.power(10, dataarray['k2DhaT']) * np.power(10, dataarray['k4DhaT']) / (
+                    np.power(10, dataarray['k2DhaT']) + np.power(10, dataarray['k4DhaT'])))
+        dataarray['KmPDODhaT'] = np.log10(
+            (np.power(10, dataarray['k4DhaT']) + np.power(10, dataarray['k5DhaT'])) * np.power(10,
+                                                                                               dataarray['k2DhaT']) / (
+                        np.power(10, dataarray['k6DhaT']) * (
+                            np.power(10, dataarray['k2DhaT']) + np.power(10, dataarray['k4DhaT']))))
+        dataarray['KmNADDhaT'] = np.log10(np.power(10, dataarray['k2DhaT']) * np.power(10, dataarray['k4DhaT']) / (
+                    np.power(10, dataarray['k8DhaT']) * (
+                        np.power(10, dataarray['k2DhaT']) + np.power(10, dataarray['k4DhaT']))))
+
+
+        dataarray['kcatfDhaD'] = np.log10(np.power(10,dataarray['k5DhaD'])*np.power(10,dataarray['k7DhaD'])/(np.power(10,dataarray['k5DhaD']) + np.power(10,dataarray['k7DhaD'])))
+        dataarray['KmNADDhaD'] = np.log10(np.power(10,dataarray['k5DhaD'])*np.power(10,dataarray['k7DhaD'])/(np.power(10,dataarray['k1DhaD']) * (np.power(10,dataarray['k5DhaD']) + np.power(10,dataarray['k7DhaD']))))
+        dataarray['KmGlycerolDhaD'] = np.log10((np.power(10,dataarray['k4DhaD']) + np.power(10,dataarray['k5DhaD']))*np.power(10,dataarray['k7DhaD'])/(np.power(10,dataarray['k3DhaD']) * (np.power(10,dataarray['k5DhaD']) + np.power(10,dataarray['k7DhaD']))))
+
+        dataarray['kcatrDhaD'] = np.log10(np.power(10,dataarray['k2DhaD'])*np.power(10,dataarray['k4DhaD'])/(np.power(10,dataarray['k2DhaD']) + np.power(10,dataarray['k4DhaD'])))
+        dataarray['KmDHADhaD'] = np.log10((np.power(10,dataarray['k4DhaD']) + np.power(10,dataarray['k5DhaD']))*np.power(10,dataarray['k2DhaD'])/(np.power(10,dataarray['k6DhaD']) * (np.power(10,dataarray['k2DhaD']) + np.power(10,dataarray['k4DhaD']))))
+        dataarray['KmNADHDhaD'] = np.log10(np.power(10,dataarray['k2DhaD'])*np.power(10,dataarray['k4DhaD'])/(np.power(10,dataarray['k8DhaD']) * (np.power(10,dataarray['k2DhaD']) + np.power(10,dataarray['k4DhaD']))))
 
         fig, ax = plt.subplots()
-        data_corr = np.corrcoef(dataarray.to_numpy().T)
+        data_corr = np.corrcoef(dataarray[PLOT_PARAMETERS].to_numpy().T)
         # matrix = data_corr
 
         for i in range(data_corr.shape[0]):
@@ -154,11 +196,11 @@ def plot_corr(data, directory_plot, nchains, thres=5e-2):
         mask_mat = np.ones_like(data_corr)
         mask_mat = np.triu(mask_mat,k=0)
         ax = sns.heatmap(data_corr, mask = mask_mat, annot=True, cmap="YlGnBu", vmin=-1, vmax=1, annot_kws={"size":15},fmt='.1g')
-        xticks = [(i + 0.5) for i in range(len(ALL_PARAMETERS))]
-        yticks = [(i + 0.5) for i in range(len(ALL_PARAMETERS))]
-        plt.xticks(xticks, [VARS_ALL_EXP_TO_TEX[key] for key in ALL_PARAMETERS], fontsize=15,
+        xticks = [(i + 0.5) for i in range(len(PLOT_PARAMETERS))]
+        yticks = [(i + 0.5) for i in range(len(PLOT_PARAMETERS))]
+        plt.xticks(xticks, [VARS_ALL_EXP_TO_TEX[key] for key in PLOT_PARAMETERS], fontsize=15,
                    rotation = -25)
-        plt.yticks(yticks, [VARS_ALL_EXP_TO_TEX[key] for key in ALL_PARAMETERS], fontsize=15,
+        plt.yticks(yticks, [VARS_ALL_EXP_TO_TEX[key] for key in PLOT_PARAMETERS], fontsize=15,
                    rotation = 45, ha="right")
         plt.title('Correlation Matrix of Posterior Samples', fontsize=20)
         cbar = ax.collections[0].colorbar
@@ -172,9 +214,36 @@ def plot_corr_scatter(data, directory_plot, nchains):
         diverging = data.sample_stats.diverging[chain_ind].values
         dataarray = data.posterior.to_dataframe().loc[[chain_ind]]
         dataarray = dataarray[ALL_PARAMETERS]
+        dataarray['k4DhaB'] = dataarray['k1DhaB'] + dataarray['k3DhaB'] -dataarray['KeqDhaB'] - dataarray['k2DhaB']
+        dataarray['k8DhaT'] =dataarray['k1DhaT'] + dataarray['k3DhaT'] + dataarray['k5DhaT'] + dataarray['k7DhaT'] \
+                             - dataarray['KeqDhaT'] - dataarray['k2DhaT'] - dataarray['k4DhaT'] - dataarray['k6DhaT']
+        dataarray['k8DhaD'] = dataarray['k1DhaD'] + dataarray['k3DhaD'] + dataarray['k5DhaD'] + dataarray['k7DhaD'] \
+                              - dataarray['KeqDhaD'] - dataarray['k2DhaD'] - dataarray['k4DhaD'] - dataarray['k6DhaD']
+        dataarray['kcatfDhaB'] = dataarray['k3DhaB']
+        dataarray['kcatrDhaB'] = dataarray['k2DhaB']
+        dataarray['KmGlycerolDhaB'] = np.log10((np.power(10,dataarray['k2DhaB']) + np.power(10,dataarray['k3DhaB']))/np.power(10,dataarray['k1DhaB']))
+        dataarray['KmHPADhaB'] = np.log10((np.power(10,dataarray['k2DhaB']) + np.power(10,dataarray['k3DhaB']))/np.power(10,dataarray['k4DhaB']))
+
+        dataarray['kcatfDhaT'] = np.log10(np.power(10,dataarray['k5DhaT'])*np.power(10,dataarray['k7DhaT'])/(np.power(10,dataarray['k5DhaT']) + np.power(10,dataarray['k7DhaT'])))
+        dataarray['KmNADHDhaT'] = np.log10(np.power(10,dataarray['k5DhaT'])*np.power(10,dataarray['k7DhaT'])/(np.power(10,dataarray['k1DhaT']) * (np.power(10,dataarray['k5DhaT']) + np.power(10,dataarray['k7DhaT']))))
+        dataarray['KmHPADhaT'] = np.log10((np.power(10,dataarray['k4DhaT']) + np.power(10,dataarray['k5DhaT']))*np.power(10,dataarray['k7DhaT'])/(np.power(10,dataarray['k3DhaT']) * (np.power(10,dataarray['k5DhaT']) + np.power(10,dataarray['k7DhaT']))))
+
+        dataarray['kcatrDhaT'] = np.log10(np.power(10,dataarray['k2DhaT'])*np.power(10,dataarray['k4DhaT'])/(np.power(10,dataarray['k2DhaT']) + np.power(10,dataarray['k4DhaT'])))
+        dataarray['KmPDODhaT'] = np.log10((np.power(10,dataarray['k4DhaT']) + np.power(10,dataarray['k5DhaT']))*np.power(10,dataarray['k2DhaT'])/(np.power(10,dataarray['k6DhaT']) * (np.power(10,dataarray['k2DhaT']) + np.power(10,dataarray['k4DhaT']))))
+        dataarray['KmNADDhaT'] = np.log10(np.power(10,dataarray['k2DhaT'])*np.power(10,dataarray['k4DhaT'])/(np.power(10,dataarray['k8DhaT']) * (np.power(10,dataarray['k2DhaT']) + np.power(10,dataarray['k4DhaT']))))
+
+        dataarray['kcatfDhaD'] = np.log10(np.power(10,dataarray['k5DhaD'])*np.power(10,dataarray['k7DhaD'])/(np.power(10,dataarray['k5DhaD']) + np.power(10,dataarray['k7DhaD'])))
+        dataarray['KmNADDhaD'] = np.log10(np.power(10,dataarray['k5DhaD'])*np.power(10,dataarray['k7DhaD'])/(np.power(10,dataarray['k1DhaD']) * (np.power(10,dataarray['k5DhaD']) + np.power(10,dataarray['k7DhaD']))))
+        dataarray['KmGlycerolDhaD'] = np.log10((np.power(10,dataarray['k4DhaD']) + np.power(10,dataarray['k5DhaD']))*np.power(10,dataarray['k7DhaD'])/(np.power(10,dataarray['k3DhaD']) * (np.power(10,dataarray['k5DhaD']) + np.power(10,dataarray['k7DhaD']))))
+
+        dataarray['kcatrDhaD'] = np.log10(np.power(10,dataarray['k2DhaD'])*np.power(10,dataarray['k4DhaD'])/(np.power(10,dataarray['k2DhaD']) + np.power(10,dataarray['k4DhaD'])))
+        dataarray['KmDHADhaD'] = np.log10((np.power(10,dataarray['k4DhaD']) + np.power(10,dataarray['k5DhaD']))*np.power(10,dataarray['k2DhaD'])/(np.power(10,dataarray['k6DhaD']) * (np.power(10,dataarray['k2DhaD']) + np.power(10,dataarray['k4DhaD']))))
+        dataarray['KmNADHDhaD'] = np.log10(np.power(10,dataarray['k2DhaD'])*np.power(10,dataarray['k4DhaD'])/(np.power(10,dataarray['k8DhaD']) * (np.power(10,dataarray['k2DhaD']) + np.power(10,dataarray['k4DhaD']))))
+
+        dataarray = dataarray[PLOT_PARAMETERS]
         try:
             # data_array = pd.DataFrame(np.array([data[:, i] for i in range(len(ALL_PARAMETERS))]).T, columns=ALL_PARAMETERS)
-            axes = scatter_matrix(dataarray.loc[np.invert(diverging),:], alpha=0.2, figsize=(len(ALL_PARAMETERS), len(ALL_PARAMETERS)),
+            axes = scatter_matrix(dataarray.loc[np.invert(diverging),:], alpha=0.2, figsize=(len(PLOT_PARAMETERS), len(PLOT_PARAMETERS)),
                                   diagonal='kde')
             for i in range(np.shape(axes)[0]):
                 for j in range(np.shape(axes)[1]):
@@ -183,8 +252,8 @@ def plot_corr_scatter(data, directory_plot, nchains):
                     xlab_curr = axes[i, j].get_xlabel()
                     ylab_curr = axes[i, j].get_ylabel()
                     if i > j:
-                        axes[i, j].scatter(dataarray.loc[diverging,ALL_PARAMETERS[j]],
-                                           dataarray.loc[diverging,ALL_PARAMETERS[i]], s=1,alpha=0.5)
+                        axes[i, j].scatter(dataarray.loc[diverging,PLOT_PARAMETERS[j]],
+                                           dataarray.loc[diverging,PLOT_PARAMETERS[i]], s=1,alpha=0.5)
                     axes[i, j].set_xlabel(VARS_ALL_EXP_TO_TEX[xlab_curr])
                     axes[i, j].set_ylabel(VARS_ALL_EXP_TO_TEX[ylab_curr])
                     axes[i, j].xaxis.label.set_rotation(-25)
@@ -221,7 +290,7 @@ def scatter_hist(x, y, ax, ax_histx, ax_histy):
     ax_histx.hist(x, bins=bins, density=True)
     ax_histy.hist(y, bins=bins, orientation='horizontal', density=True)
 
-def joint_Keq_distribution(KeqDhaB_chains,KeqDhaT_chains, plot_location, nchains):
+def joint_Keq_distribution(KeqDhaB_chains,KeqDhaT_chains, plot_location, nchains, plot_appendage):
 
     xlab = r'$\log_{10}(K_{\text{eq}}^{\text{DhaT}})$'
     ylab = r'$\log_{10}(K_{\text{eq}}^{\text{DhaB}})$'
@@ -285,5 +354,5 @@ def joint_Keq_distribution(KeqDhaB_chains,KeqDhaT_chains, plot_location, nchains
         ax_histy.tick_params(axis="y", labelsize=15, rotation=0)
         ax_histx.set_title('Joint Distribution of the reaction\n equilibrium constants', fontsize=15)
         # plt.show()
-        plt.savefig(plot_location + '/K_Eq_Distribution_' + str(chain_ind), bbox_inches="tight")
+        plt.savefig(plot_location + '/K_Eq_Distribution_' + str(chain_ind) + '_' + plot_appendage, bbox_inches="tight")
         plt.close()

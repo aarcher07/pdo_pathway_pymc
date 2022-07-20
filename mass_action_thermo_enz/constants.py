@@ -60,7 +60,9 @@ DCW_PARAMETERS_EXPERIMENTAL = ['L_50','k_50','A_50',
                                'L_80','k_80','A_80']
 
 ALL_PARAMETERS = [*PERMEABILITY_PARAMETERS, *KINETIC_PARAMETERS, *ENZYME_CONCENTRATIONS]
-
+PLOT_PARAMETERS = [*PERMEABILITY_PARAMETERS, 'kcatfDhaB', 'KmGlycerolDhaB', 'kcatrDhaB', 'KmHPADhaB', 'KeqDhaB',
+                    'kcatfDhaT', 'KmHPADhaT', 'kcatrDhaT', 'KmPDODhaT', 'KeqDhaT', 'kcatfMetab', 'KmMetabG',
+                   *ENZYME_CONCENTRATIONS ]
 DATA_INDEX = [VARIABLE_NAMES.index('G_EXT'), VARIABLE_NAMES.index('P_EXT'), VARIABLE_NAMES.index('dcw')]
 TIME_SAMPLES_EXPANDED = {}
 TIME_SPACING = 15 # TODO: CHANGE TO 15 for _HPA.py and 5 _HPA_2.py

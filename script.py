@@ -81,12 +81,17 @@ solver.set_params_dict({
     'delta': 0.4,
     'hares0': 1e0
 })
-tvals_expanded = np.linspace(0, 10, 21)
+tvals_expanded = tvals #np.linspace(0, 10, 21)
 yout, grad_out, lambda_out = solver.make_output_buffers(tvals_expanded)
-lib.CVodeSetMaxNumSteps(solver._ode, 10000)
+# lib.CVodeSStolerances(solver._ode, 1e-8, 1e-8)
+# lib.CVodeSStolerancesB(solver._ode, solver._odeB, 1e-10, 1e-10)
+# lib.CVodeQuadSStolerancesB(solver._ode, solver._odeB, 1e-10, 1e-10)
+# lib.CVodeSetMaxNumSteps(solver._ode, 10000)
+# lib.CVodeSetMaxNumStepsB(solver._ode, solver._odeB, 10000)
+
 solver.solve_forward(t0=0, tvals=tvals, y0=y0, y_out=yout)
-grads = np.zeros_like(yout)
-grads[::10,:] = 1
+grads = np.ones_like(yout)
+# grads[::10,:] = 1
 solver.solve_backward(t0=tvals_expanded[-1], tend=tvals_expanded[0], tvals=tvals_expanded[1:-1],
                       grads=grads, grad_out=grad_out, lamda_out=lambda_out)
 grad_out_adj = -np.matmul(sens0, lambda_out  -grads[0, :]) + grad_out

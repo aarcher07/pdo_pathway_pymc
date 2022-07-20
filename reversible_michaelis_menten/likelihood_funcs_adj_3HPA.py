@@ -58,7 +58,8 @@ def likelihood_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
             #         plt.scatter(tvals/HRS_TO_SECS, DATA_SAMPLES[gly_cond][:,jj])
             #         jj+=1
             #     plt.show()
-            loglik += -0.5*(((DATA_SAMPLES[gly_cond]-yout[:,[7,9,10]])/np.array([15,15,0.1]))**2).sum()
+            cyto_hpa_arg_max = np.argmax(yout[:, VARIABLE_NAMES.index('H_CYTO')])
+            loglik += -0.5*(((DATA_SAMPLES[gly_cond]-yout[:,DATA_INDEX])/np.array([15,15,0.1]))**2).sum() - 0.5*cyto_hpa_arg_max**2
         except sunode.solver.SolverError:
             loglik += -np.inf
     return loglik
@@ -112,10 +113,10 @@ def likelihood_derivative_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)
         #             10 ** param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
         # sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_EXT')] = np.log(10) * (
         #             10 ** param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
-        sens0[PARAMETER_LIST.index('DHAB_INIT'), VARIABLE_NAMES.index('DHAB')] = np.log(10) * (
-                    10 ** param_sample[PARAMETER_LIST.index('DHAB_INIT')])
-        sens0[PARAMETER_LIST.index('DHAT_INIT'), VARIABLE_NAMES.index('DHAT')] = np.log(10) * (
-                    10 ** param_sample[PARAMETER_LIST.index('DHAT_INIT')])
+        # sens0[PARAMETER_LIST.index('DHAB_INIT'), VARIABLE_NAMES.index('DHAB')] = np.log(10) * (
+        #             10 ** param_sample[PARAMETER_LIST.index('DHAB_INIT')])
+        # sens0[PARAMETER_LIST.index('DHAT_INIT'), VARIABLE_NAMES.index('DHAT')] = np.log(10) * (
+        #             10 ** param_sample[PARAMETER_LIST.index('DHAT_INIT')])
 
         try:
             solver.solve_forward(t0=0, tvals=tvals, y0=y0, y_out=yout)
@@ -125,7 +126,7 @@ def likelihood_derivative_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)
             grads[::TIME_SPACING, DATA_INDEX] = lik_dev
 
             cyto_hpa_arg_max = np.argmax(yout[:, VARIABLE_NAMES.index('H_CYTO')])
-            grads[cyto_hpa_arg_max, VARIABLE_NAMES.index('H_CYTO')] = np.max(yout[:, VARIABLE_NAMES.index('H_CYTO')])
+            grads[cyto_hpa_arg_max, VARIABLE_NAMES.index('H_CYTO')] = -np.max(yout[:, VARIABLE_NAMES.index('H_CYTO')])
 
             # backsolve
             solver.solve_backward(t0=tvals[-1], tend=tvals[0], tvals=tvals[1:-1],
