@@ -76,18 +76,20 @@ PARAMETER_LIST = [*MODEL_PARAMETERS, *DCW_PARAMETERS]
 DEV_PARAMETER_LIST = [*MODEL_PARAMETERS]
 
 VARIABLE_NAMES = ['G_MCP', 'H_MCP', 'P_MCP', 'HCoA_MCP', 'HPhosph_MCP',
+                  'NADH_MCP', 'NAD_MCP',
 
                   'PduCDE', 'PduCDE_C',
                   'PduQ', 'PduQ_NADH', 'PduQ_NADH_HPA', 'PduQ_NAD',
                   'PduP', 'PduP_NAD', 'PduP_NAD_HPA', 'PduP_NADH',
                   'PduL', 'PduL_C',
 
-                  'NADH_MCP', 'NAD_MCP',
 
                   'G_CYTO', 'H_CYTO', 'P_CYTO', 'HCoA_CYTO', 'HPhosph_CYTO', 'Hate_CYTO',
                   'PduW', 'PduW_C',
 
-                  'G_EXT', 'H_EXT', 'P_EXT', 'Hate_EXT', 'HCoA_EXT', 'HPhosph_EXT', 'Hate_EXT', 'OD']
+                  'G_EXT', 'H_EXT', 'P_EXT', 'HCoA_EXT', 'HPhosph_EXT', 'Hate_EXT', 'OD']
+
+
 
 DATA_INDEX = [VARIABLE_NAMES.index('G_EXT'), VARIABLE_NAMES.index('H_EXT'), VARIABLE_NAMES.index('P_EXT'),
               VARIABLE_NAMES.index('OD')]
