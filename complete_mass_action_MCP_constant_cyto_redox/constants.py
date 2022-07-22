@@ -28,8 +28,8 @@ PERMEABILITY_CELL_PARAMETERS = ['PermCellGlycerol',
                                 'PermCell3HPA',
                                 'PermCellPDO',
                                 'PermCellHCoA',
-                                'PermCellHPhosph',
-                                'PermCellHate']
+                                'PermCellHPhosph']
+                                #'PermCellHate']
 
 PERMEABILITY_MCP_PARAMETERS = ['PermMCPGlycerol',
                                'PermMCP3HPA',
@@ -43,12 +43,12 @@ KINETIC_PARAMETERS = ['k1PduCDE', 'k2PduCDE', 'k3PduCDE', 'KeqPduCDE',
                       'k1PduQ', 'k2PduQ', 'k3PduQ', 'k4PduQ', 'k5PduQ', 'k6PduQ', 'k7PduQ', 'KeqPduQ',
                       'k1PduP', 'k2PduP', 'k3PduP', 'k4PduP', 'k5PduP', 'k6PduP', 'k7PduP', 'KeqPduP',
                       'k1PduL', 'k2PduL', 'k3PduL', 'KeqPduL',
-                      'k1PduW', 'k2PduW', 'k3PduW', 'KeqPduLW',
+                      # 'k1PduW', 'k2PduW', 'k3PduW', 'KeqPduLW',
                       'VmaxfGlpK', 'KmGlpK']
 
 MCP_PARAMETERS = ['nMCPs', 'AJ_radius']
 
-THERMO_PARAMETERS = ['KeqPduCDE', 'KeqPduQ', 'KeqPduP', 'KeqPduL', 'KeqPduLW']
+THERMO_PARAMETERS = ['KeqPduCDE', 'KeqPduQ', 'KeqPduP', 'KeqPduL']# 'KeqPduLW']
 
 COFACTOR_PARAMETERS = ['NADH_NAD_TOTAL_CYTO', 'NADH_NAD_RATIO_CYTO',
                        'NADH_NAD_TOTAL_MCP', 'NADH_NAD_RATIO_MCP']
@@ -57,8 +57,8 @@ COFACTOR_PARAMETERS = ['NADH_NAD_TOTAL_CYTO', 'NADH_NAD_RATIO_CYTO',
 ENZYME_CONCENTRATIONS = ['nPduCDE',
                          'nPduQ',
                          'nPduP',
-                         'nPduL',
-                         'nPduW']
+                         'nPduL']
+                         # 'nPduW']
 
 MODEL_PARAMETERS = [*PERMEABILITY_CELL_PARAMETERS,
                     *PERMEABILITY_MCP_PARAMETERS,
@@ -84,17 +84,17 @@ VARIABLE_NAMES = ['G_MCP', 'H_MCP', 'P_MCP', 'HCoA_MCP', 'HPhosph_MCP',
                   'PduL', 'PduL_C',
 
 
-                  'G_CYTO', 'H_CYTO', 'P_CYTO', 'HCoA_CYTO', 'HPhosph_CYTO', 'Hate_CYTO',
-                  'PduW', 'PduW_C',
+                  'G_CYTO', 'H_CYTO', 'P_CYTO', 'HCoA_CYTO', 'HPhosph_CYTO', #'Hate_CYTO',
+                  # 'PduW', 'PduW_C',
 
-                  'G_EXT', 'H_EXT', 'P_EXT', 'HCoA_EXT', 'HPhosph_EXT', 'Hate_EXT', 'OD']
+                  'G_EXT', 'H_EXT', 'P_EXT', 'HCoA_EXT', 'HPhosph_EXT', 'OD']#'Hate_EXT', 'OD']
 
 
 
 DATA_INDEX = [VARIABLE_NAMES.index('G_EXT'), VARIABLE_NAMES.index('H_EXT'), VARIABLE_NAMES.index('P_EXT'),
               VARIABLE_NAMES.index('OD')]
 
-TIME_SPACING = 15  # TODO: CHANGE TO 15 for _HPA.py and 5 _HPA_2.py
+TIME_SPACING = 10  # TODO: CHANGE TO 15 for _HPA.py and 5 _HPA_2.py
 TIME_SAMPLES_EXPANDED = [np.linspace(TIME_SAMPLES[i], TIME_SAMPLES[i + 1], num=TIME_SPACING, endpoint=False) for i in
                          range(len(TIME_SAMPLES) - 1)]
 TIME_SAMPLES_EXPANDED = list(np.concatenate(TIME_SAMPLES_EXPANDED))

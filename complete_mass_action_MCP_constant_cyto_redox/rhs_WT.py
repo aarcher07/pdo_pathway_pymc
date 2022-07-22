@@ -7,9 +7,6 @@ mpl.rcParams['text.latex.preamble'] = [r'\usepackage{amsmath}']  # for \text com
 import numpy as np
 from constants import *
 
-lib = sunode._cvodes.lib
-
-
 def RHS_WT(t, x, params):
     """
     Computes the spatial derivative of the system at time point, t
@@ -38,7 +35,7 @@ def RHS_WT(t, x, params):
     PermCellPDO = 10 ** params.PermCellPDO
     PermCellHCoA = 10 ** params.PermCellHCoA
     PermCellHPhosph = 10 ** params.PermCellHPhosph
-    PermCellHate = 10 ** params.PermCellHate
+    # PermCellHate = 10 ** params.PermCellHate
 
     PermMCPGlycerol = 10 ** vars(params)['PermMCPGlycerol']  # todo to all variables
     PermMCP3HPA = 10 ** params.PermMCP3HPA
@@ -78,10 +75,10 @@ def RHS_WT(t, x, params):
     k3PduL = 10 ** params.k3PduL
     k4PduL = 10 ** (params.k1PduL + params.k3PduL - params.KeqPduL - params.k2PduL)
 
-    k1PduW = 10 ** params.k1PduW
-    k2PduW = 10 ** params.k2PduW
-    k3PduW = 10 ** params.k3PduW
-    k4PduW = 10 ** (params.k1PduW + params.k3PduW - (params.KeqPduLW - params.KeqPduL) - params.k2PduW)
+    # k1PduW = 10 ** params.k1PduW
+    # k2PduW = 10 ** params.k2PduW
+    # k3PduW = 10 ** params.k3PduW
+    # k4PduW = 10 ** (params.k1PduW + params.k3PduW - (params.KeqPduLW - params.KeqPduL) - params.k2PduW)
 
     VmaxfGlpK = 10 ** params.VmaxfGlpK  # TODO: CHANGE
     KmGlpK = 10 ** params.KmGlpK
@@ -185,16 +182,16 @@ def RHS_WT(t, x, params):
                      - nMCPs * mcp_surface_area_cell_volume * PermMCPHCoA * (x.HCoA_CYTO - x.HCoA_MCP)
 
     d['HPhosph_CYTO'] = - cell_area_cell_volume * PermCellHPhosph * (x.HPhosph_CYTO - x.HPhosph_EXT) \
-                        - nMCPs * mcp_surface_area_cell_volume * PermMCPHPhosph * (x.HPhosph_CYTO - x.HPhosph_MCP) \
-                        - k1PduW * x.HPhosph_CYTO * x.PduW + k2PduW * x.PduW_C
+                        - nMCPs * mcp_surface_area_cell_volume * PermMCPHPhosph * (x.HPhosph_CYTO - x.HPhosph_MCP)
+                        # - k1PduW * x.HPhosph_CYTO * x.PduW + k2PduW * x.PduW_C
 
-    d['Hate_CYTO'] = - cell_area_cell_volume * PermCellHate * (x.Hate_CYTO - x.Hate_EXT) \
-                     + k3PduW * x.PduW_C - k4PduW * x.Hate_CYTO * x.PduW
+    # d['Hate_CYTO'] = - cell_area_cell_volume * PermCellHate * (x.Hate_CYTO - x.Hate_EXT) \
+    #                  + k3PduW * x.PduW_C - k4PduW * x.Hate_CYTO * x.PduW
 
-    d['PduW'] = - k1PduW * x.HPhosph_CYTO * x.PduW + k2PduW * x.PduW_C + k3PduW * x.PduW_C \
-                - k4PduW * x.Hate_CYTO * x.PduW
-
-    d['PduW_C'] = -d['PduW']
+    # d['PduW'] = - k1PduW * x.HPhosph_CYTO * x.PduW + k2PduW * x.PduW_C + k3PduW * x.PduW_C \
+    #             - k4PduW * x.Hate_CYTO * x.PduW
+    #
+    # d['PduW_C'] = -d['PduW']
 
     ###############################################################################################################
     ######################################### external volume equations ############################################
@@ -205,12 +202,12 @@ def RHS_WT(t, x, params):
     d['P_EXT'] = ncells * cell_area_external_volume * PermCellPDO * (x.P_CYTO - x.P_EXT)
     d['HCoA_EXT'] = ncells * cell_area_external_volume * PermCellHCoA * (x.HCoA_CYTO - x.HCoA_EXT)
     d['HPhosph_EXT'] = ncells * cell_area_external_volume * PermCellHPhosph * (x.HPhosph_CYTO - x.HPhosph_EXT)
-    d['Hate_EXT'] = ncells * cell_area_external_volume * PermCellHate * (x.Hate_CYTO - x.Hate_EXT)
+    # d['Hate_EXT'] = ncells * cell_area_external_volume * PermCellHate * (x.Hate_CYTO - x.Hate_EXT)
     d['OD'] = k * (1 - x.OD / L) * x.OD
     return d
 
 
-problem = sunode.symode.SympyProblem(
+problem_WT = sunode.symode.SympyProblem(
     params={param: () for param in PARAMETER_LIST},
 
     states={var: () for var in VARIABLE_NAMES},
@@ -220,5 +217,3 @@ problem = sunode.symode.SympyProblem(
     derivative_params=[(param,) for param in DEV_PARAMETER_LIST]
 )
 
-# The solver generates uses numba and sympy to generate optimized C functions
-solver = sunode.solver.AdjointSolver(problem, solver='BDF')

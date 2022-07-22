@@ -31,7 +31,7 @@ param_sample = np.array([*CELL_PERMEABILITY_MEAN.values(),
                                    + MCP_RADIUS*(10**(GEOMETRY_PARAMETER_MEAN['nMCPs']/2.)))/2),
                          *COFACTOR_NUMBER_PARAMETER_MEAN.values(),
                          *PDU_WT_ENZ_NUMBERS_PARAMETER_MEAN.values(),
-                         *list(OD_PRIOR_PARAMETERS_MEAN['WT-L'].values())
+                         *list(OD_PRIOR_PARAMETER_MEAN['WT-L'].values())
                          ])
 lik_dev_params = np.zeros(len(DEV_PARAMETER_LIST))
 time_tot = 0
@@ -53,7 +53,7 @@ y0['PduCDE'] = 10**param_sample[PARAMETER_LIST.index('nPduCDE')]/(Avogadro * MCP
 y0['PduP'] = 10**param_sample[PARAMETER_LIST.index('nPduP')]/(Avogadro * MCP_VOLUME)
 y0['PduQ'] = 10**param_sample[PARAMETER_LIST.index('nPduQ')]/(Avogadro * MCP_VOLUME)
 y0['PduL'] = 10**param_sample[PARAMETER_LIST.index('nPduL')]/(Avogadro * MCP_VOLUME)
-y0['PduW'] = 10**param_sample[PARAMETER_LIST.index('nPduW')]/(Avogadro * MCP_VOLUME)
+# y0['PduW'] = 10**param_sample[PARAMETER_LIST.index('nPduW')]/(Avogadro * MCP_VOLUME)
 y0['OD'] = 10**param_sample[PARAMETER_LIST.index('A')]
 params_dict = { param_name : param_val for param_val,param_name in zip(param_sample, PARAMETER_LIST)}
 # # We can also specify the parameters by name:
@@ -66,7 +66,7 @@ sens0[PARAMETER_LIST.index('nPduCDE'), VARIABLE_NAMES.index('PduCDE')] = np.log(
 sens0[PARAMETER_LIST.index('nPduP'), VARIABLE_NAMES.index('PduP')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('nPduP')])/(Avogadro * MCP_VOLUME)
 sens0[PARAMETER_LIST.index('nPduQ'), VARIABLE_NAMES.index('PduQ')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('nPduQ')])/(Avogadro * MCP_VOLUME)
 sens0[PARAMETER_LIST.index('nPduL'), VARIABLE_NAMES.index('PduL')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('nPduL')])/(Avogadro * MCP_VOLUME)
-sens0[PARAMETER_LIST.index('nPduW'), VARIABLE_NAMES.index('PduW')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('nPduW')])/(Avogadro * MCP_VOLUME)
+# sens0[PARAMETER_LIST.index('nPduW'), VARIABLE_NAMES.index('PduW')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('nPduW')])/(Avogadro * MCP_VOLUME)
 sens0[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP'), VARIABLE_NAMES.index('NADH_MCP')] = np.log(10)*(10**(param_sample[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP')] + param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')]))/(10**param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')] + 1)
 sens0[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP'), VARIABLE_NAMES.index('NADH_MCP')] = np.log(10)*(10**(param_sample[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP')] + param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')]))/(10**param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')] + 1)**2
 sens0[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP'), VARIABLE_NAMES.index('NAD_MCP')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP')])/(10**param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')] + 1)
@@ -79,15 +79,15 @@ solver.solve_forward(t0=0, tvals=tvals, y0=y0, y_out=yout)
 time_end = time.time()
 time_total += (time_end-time_start)/60
 
-# jj = 0
-# for i,var in enumerate(VARIABLE_NAMES):
-#     if i in DATA_INDEX:
-#         print(i)
-#         plt.plot(TIME_SAMPLES_EXPANDED, yout.view(problem.state_dtype)[var])
-#         plt.scatter(TIME_SAMPLES_EXPANDED[::TIME_SPACING], TIME_SERIES_MEAN['WT-L'].iloc[:,jj])
-#         plt.title(var)
-#         plt.show()
-#         jj+=1
+jj = 0
+for i,var in enumerate(VARIABLE_NAMES):
+    if i in DATA_INDEX:
+        # print(i)
+        plt.plot(TIME_SAMPLES_EXPANDED, yout.view(problem.state_dtype)[var])
+        plt.scatter(TIME_SAMPLES_EXPANDED[::TIME_SPACING], TIME_SERIES_MEAN['WT-L'].iloc[:,jj])
+        plt.title(var)
+        plt.show()
+        jj+=1
 
 grads = np.zeros_like(yout)
 lik_dev = (TIME_SERIES_MEAN['WT-L'] - yout[::TIME_SPACING, DATA_INDEX])/(TIME_SERIES_STD['WT-L'])**2

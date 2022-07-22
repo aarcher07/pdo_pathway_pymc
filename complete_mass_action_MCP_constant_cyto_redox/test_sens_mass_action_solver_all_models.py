@@ -18,8 +18,8 @@ from scipy.constants import Avogadro
 
 solver = sunode.solver.AdjointSolver(problem, solver='BDF')
 lib.CVodeSStolerances(solver._ode, 1e-8, 1e-8)
-lib.CVodeSStolerancesB(solver._ode, solver._odeB, 1e-6, 1e-6)
-lib.CVodeQuadSStolerancesB(solver._ode, solver._odeB, 1e-6, 1e-6)
+lib.CVodeSStolerancesB(solver._ode, solver._odeB, 1e-4, 1e-4)
+lib.CVodeQuadSStolerancesB(solver._ode, solver._odeB, 1e-4, 1e-4)
 lib.CVodeSetMaxNumSteps(solver._ode, 1000000)
 
 tvals = TIME_SAMPLES_EXPANDED*HRS_TO_SECS
@@ -44,7 +44,7 @@ y0['PduCDE'] = 10**param_sample[PARAMETER_LIST.index('nPduCDE')]/(Avogadro * MCP
 y0['PduP'] = 10**param_sample[PARAMETER_LIST.index('nPduP')]/(Avogadro * MCP_VOLUME)
 y0['PduQ'] = 10**param_sample[PARAMETER_LIST.index('nPduQ')]/(Avogadro * MCP_VOLUME)
 y0['PduL'] = 10**param_sample[PARAMETER_LIST.index('nPduL')]/(Avogadro * MCP_VOLUME)
-y0['PduW'] = 10**param_sample[PARAMETER_LIST.index('nPduW')]/(Avogadro * MCP_VOLUME)
+# y0['PduW'] = 10**param_sample[PARAMETER_LIST.index('nPduW')]/(Avogadro * MCP_VOLUME)
 
 sens0 = np.zeros((len(DEV_PARAMETER_LIST),len(VARIABLE_NAMES)))
 # initial sensitivities
@@ -52,7 +52,7 @@ sens0[PARAMETER_LIST.index('nPduCDE'), VARIABLE_NAMES.index('PduCDE')] = np.log(
 sens0[PARAMETER_LIST.index('nPduP'), VARIABLE_NAMES.index('PduP')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('nPduP')])/(Avogadro * MCP_VOLUME)
 sens0[PARAMETER_LIST.index('nPduQ'), VARIABLE_NAMES.index('PduQ')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('nPduQ')])/(Avogadro * MCP_VOLUME)
 sens0[PARAMETER_LIST.index('nPduL'), VARIABLE_NAMES.index('PduL')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('nPduL')])/(Avogadro * MCP_VOLUME)
-sens0[PARAMETER_LIST.index('nPduW'), VARIABLE_NAMES.index('PduW')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('nPduW')])/(Avogadro * MCP_VOLUME)
+# sens0[PARAMETER_LIST.index('nPduW'), VARIABLE_NAMES.index('PduW')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('nPduW')])/(Avogadro * MCP_VOLUME)
 sens0[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP'), VARIABLE_NAMES.index('NADH_MCP')] = np.log(10)*(10**(param_sample[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP')] + param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')]))/(10**param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')] + 1)
 sens0[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP'), VARIABLE_NAMES.index('NADH_MCP')] = np.log(10)*(10**(param_sample[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP')] + param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')]))/(10**param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')] + 1)**2
 sens0[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP'), VARIABLE_NAMES.index('NAD_MCP')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP')])/(10**param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')] + 1)
@@ -60,7 +60,7 @@ sens0[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP'), VARIABLE_NAMES.index('NAD_MCP'
 
 
 for exp_cond in ['WT-L', 'dD-L', 'dP-L']:
-    param_samples_copy = np.concatenate((param_sample,list(OD_PRIOR_PARAMETERS_MEAN[exp_cond].values())))
+    param_samples_copy = np.concatenate((param_sample,list(OD_PRIOR_PARAMETER_MEAN[exp_cond].values())))
     params_dict = { param_name : param_val for param_val,param_name in zip(param_samples_copy, PARAMETER_LIST)}
     y0_copy = y0.copy()
     y0_copy['G_EXT'] = TIME_SERIES_MEAN[exp_cond]['glycerol'][0]
@@ -81,6 +81,7 @@ for exp_cond in ['WT-L', 'dD-L', 'dP-L']:
         y0_copy['PduCDE'] = 0
         params_dict_copy['nPduCDE'] = 0
         sens0_copy[PARAMETER_LIST.index('nPduCDE'), VARIABLE_NAMES.index('PduCDE')] = 0
+
     elif exp_cond == 'dP-L':
         y0_copy['PduP'] = 0
         params_dict_copy['nPduP'] = 0
@@ -117,7 +118,7 @@ for exp_cond in ['WT-L', 'dD-L', 'dP-L']:
 
     grad_out = -np.matmul(sens0_copy,lambda_out-grads[0,:]) + grad_out
     lik_dev_params_adj += grad_out
-
+print(time_tot)
 
 ########################################################################################################################
 #################################################### FWD SOLVER ########################################################
@@ -129,7 +130,7 @@ tvals = TIME_SAMPLES*HRS_TO_SECS
 lik_dev_params_fwd = np.zeros(len(DEV_PARAMETER_LIST))
 
 for exp_cond in ['WT-L', 'dD-L', 'dP-L']:
-    param_samples_copy = np.concatenate((param_sample,list(OD_PRIOR_PARAMETERS_MEAN[exp_cond].values())))
+    param_samples_copy = np.concatenate((param_sample,list(OD_PRIOR_PARAMETER_MEAN[exp_cond].values())))
     params_dict = { param_name : param_val for param_val,param_name in zip(param_samples_copy, PARAMETER_LIST)}
     y0_copy = y0.copy()
     y0_copy['G_EXT'] = TIME_SERIES_MEAN[exp_cond]['glycerol'][0]
@@ -168,6 +169,7 @@ for exp_cond in ['WT-L', 'dD-L', 'dP-L']:
     for j,param in enumerate(DEV_PARAMETER_LIST):
         lik_dev_param = (lik_dev_zeros*sens_out[:,j,:]).sum()
         lik_dev_params_fwd[j] += lik_dev_param
+print(time_tot)
 
 ########################################################################################################################
 #################################################### COMPARISON ########################################################

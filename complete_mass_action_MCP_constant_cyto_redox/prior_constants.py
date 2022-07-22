@@ -21,16 +21,16 @@ CELL_PERMEABILITY_PARAMETER_RANGES = {'PermCellGlycerol': np.log10([1e-6, 1e-2])
                                       'PermCell3HPA': np.log10([1e-6, 1e-2]),
                                       'PermCellHCoA': np.log10([1e-6, 1e-2]),
                                       'PermCellHPhosph': np.log10([1e-6, 1e-2]),
-                                      'PermCellHate': np.log10([1e-6, 1e-2])
+                                      # 'PermCellHate': np.log10([1e-6, 1e-2])
                                       }
 
-MCP_PERMEABILITY_PARAMETER_RANGES = {'PermMCPGlycerol': np.log10([1e-12, 1e-6]),
-                                     'PermMCPPDO': np.log10([1e-12, 1e-6]),
-                                     'PermMCP3HPA': np.log10([1e-12, 1e-6]),
-                                     'PermMCPHCoA': np.log10([1e-12, 1e-6]),
-                                     'PermMCPHPhosph': np.log10([1e-12, 1e-6]),
-                                     'PermMCPNADH': np.log10([1e-12, 1e-6]),
-                                     'PermMCPNAD': np.log10([1e-12, 1e-6])
+MCP_PERMEABILITY_PARAMETER_RANGES = {'PermMCPGlycerol': np.log10([1e-15, 1e-6]),
+                                     'PermMCPPDO': np.log10([1e-15, 1e-6]),
+                                     'PermMCP3HPA': np.log10([1e-15, 1e-6]),
+                                     'PermMCPHCoA': np.log10([1e-15, 1e-6]),
+                                     'PermMCPHPhosph': np.log10([1e-15, 1e-6]),
+                                     'PermMCPNADH': np.log10([1e-15, 1e-6]),
+                                     'PermMCPNAD': np.log10([1e-15, 1e-6])
                                      }
 
 KINETIC_PARAMETER_RANGES = {'k1PduCDE': np.log10([1e0, 1e4]),
@@ -59,12 +59,12 @@ KINETIC_PARAMETER_RANGES = {'k1PduCDE': np.log10([1e0, 1e4]),
                             'k1PduL': np.log10([1e-2, 1e0]),
                             'k2PduL': np.log10([1e0, 1e2]),
                             'k3PduL': np.log10([1e-2, 1e0]),
-                            'KeqPduL': np.log10([1e-10, 1e0]),
+                            'KeqPduL': np.log10([1e-5, 1e-3]),
 
-                            'k1PduW': np.log10([1e0, 1e4]),
-                            'k2PduW': np.log10([1e-2, 1e2]),
-                            'k3PduW': np.log10([1e0, 1e4]),
-                            'KeqPduLW': np.log10([1e0, 1e3]),
+                            # 'k1PduW': np.log10([1e0, 1e4]),
+                            # 'k2PduW': np.log10([1e-2, 1e2]),
+                            # 'k3PduW': np.log10([1e0, 1e4]),
+                            # 'KeqPduLW': np.log10([1e0, 1e3]),
 
                             'VmaxfGlpK': np.log10([1e0 * 0.1, 1e1 * 10]),
                             'KmGlpK': np.log10([1e-3, 1e-1])
@@ -82,21 +82,21 @@ COFACTOR_NUMBER_PARAMETER_RANGES = {'NADH_NAD_TOTAL_CYTO': np.log10([0.1, 1e1]),
 PDU_WT_ENZ_NUMBERS_PARAMETER_RANGES = {'nPduCDE': np.log10([4e2, 6e2]),
                                        'nPduQ': np.log10([1.5e2, 1.75e2]),
                                        'nPduP': np.log10([1.5e2, 2.5e2]),
-                                       'nPduL': np.log10([2e1, 4e1]),
-                                       'nPduW': np.log10([5e0, 2e1])}
+                                       'nPduL': np.log10([2e1, 4e1])}
+                                       #'nPduW': np.log10([5e0, 2e1])}
 
 dPDU_AJ_ENZ_NUMBER_PARAMETER_RANGES = {'nPduCDE': np.log10([1e2, 3e2]),
                                        'nPduQ': np.log10([1.5e2, 1.75e2]),
                                        'nPduP': np.log10([7.5e1, 1.5e2]),
-                                       'nPduL': np.log10([2e1, 4e1]),
-                                       'nPduW': np.log10([5e0, 2e1])}
+                                       'nPduL': np.log10([2e1, 4e1])}
+                                       # 'nPduW': np.log10([5e0, 2e1])}
 
 
-OD_PRIOR_PARAMETERS_RANGES = {exp_cond: {param_name: [mean - 4 * std, mean + 4 * std] for param_name, mean, std in
-                                         zip(NORM_OD_MEAN_PRIOR_TRANS_PARAMETERS.columns,
+OD_PRIOR_PARAMETER_RANGES = {exp_cond: {param_name: [mean - 4 * std, mean + 4 * std] for param_name, mean, std in
+                                        zip(NORM_OD_MEAN_PRIOR_TRANS_PARAMETERS.columns,
                                              NORM_OD_MEAN_PRIOR_TRANS_PARAMETERS.loc[exp_cond, :],
                                              NORM_OD_STD_PRIOR_TRANS_PARAMETERS.loc[exp_cond, :])}
-                              for exp_cond in NORM_OD_MEAN_PRIOR_TRANS_PARAMETERS.index}
+                             for exp_cond in NORM_OD_MEAN_PRIOR_TRANS_PARAMETERS.index}
 
 
 LOG_UNIF_PRIOR_ALL_EXP = np.array([*list(CELL_PERMEABILITY_PARAMETER_RANGES.values()),
@@ -106,7 +106,7 @@ LOG_UNIF_PRIOR_ALL_EXP = np.array([*list(CELL_PERMEABILITY_PARAMETER_RANGES.valu
                                    *list(PDU_WT_ENZ_NUMBERS_PARAMETER_RANGES.values()),
                                    *list(dPDU_AJ_ENZ_NUMBER_PARAMETER_RANGES.values()),
                                    *list(GEOMETRY_PARAMETER_RANGES.values()),
-                                   *[ranges for pr_dict in OD_PRIOR_PARAMETERS_RANGES.values() for ranges in
+                                   *[ranges for pr_dict in OD_PRIOR_PARAMETER_RANGES.values() for ranges in
                                      pr_dict.values()]
                                    ])
 
@@ -121,7 +121,7 @@ MCP_PERMEABILITY_STD = {param_name: (MCP_PERMEABILITY_PARAMETER_RANGES[param_nam
                         for param_name in MCP_PERMEABILITY_PARAMETER_RANGES.keys()}
 
 KINETIC_PARAMETER_MEAN = {key: np.mean(val) for (key, val) in KINETIC_PARAMETER_RANGES.items()}
-KINETIC_PARAMETERS_STD = {param_name: (KINETIC_PARAMETER_RANGES[param_name][1]
+KINETIC_PARAMETER_STD = {param_name: (KINETIC_PARAMETER_RANGES[param_name][1]
                                        - np.mean(KINETIC_PARAMETER_RANGES[param_name])) / 2
                           for param_name in KINETIC_PARAMETER_RANGES.keys()}
 
@@ -147,12 +147,12 @@ GEOMETRY_PARAMETER_STD = {param_name: (GEOMETRY_PARAMETER_RANGES[param_name][1]
                           for param_name in GEOMETRY_PARAMETER_RANGES.keys()}
 
 # DCW model distribution parameters
-OD_PRIOR_PARAMETERS_MEAN = {exp_cond: {param_name: mean for param_name, mean in
-                                       zip(NORM_OD_MEAN_PRIOR_TRANS_PARAMETERS.columns,
+OD_PRIOR_PARAMETER_MEAN = {exp_cond: {param_name: mean for param_name, mean in
+                                      zip(NORM_OD_MEAN_PRIOR_TRANS_PARAMETERS.columns,
                                            NORM_OD_MEAN_PRIOR_TRANS_PARAMETERS.loc[exp_cond, :])}
-                            for exp_cond in NORM_OD_MEAN_PRIOR_TRANS_PARAMETERS.index}
+                           for exp_cond in NORM_OD_MEAN_PRIOR_TRANS_PARAMETERS.index}
 
-OD_PRIOR_PARAMETERS_STD = {exp_cond: {param_name: mean for param_name, mean in
-                                      zip(NORM_OD_STD_PRIOR_TRANS_PARAMETERS.columns,
+OD_PRIOR_PARAMETER_STD = {exp_cond: {param_name: mean for param_name, mean in
+                                     zip(NORM_OD_STD_PRIOR_TRANS_PARAMETERS.columns,
                                           NORM_OD_STD_PRIOR_TRANS_PARAMETERS.loc[exp_cond, :])}
-                           for exp_cond in NORM_OD_STD_PRIOR_TRANS_PARAMETERS.index}
+                          for exp_cond in NORM_OD_STD_PRIOR_TRANS_PARAMETERS.index}
