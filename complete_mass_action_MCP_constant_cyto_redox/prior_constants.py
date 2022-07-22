@@ -74,9 +74,9 @@ GEOMETRY_PARAMETER_RANGES = {'nMCPs': np.log10([3, 30])}
 
 
 COFACTOR_NUMBER_PARAMETER_RANGES = {'NADH_NAD_TOTAL_CYTO': np.log10([0.1, 1e1]),
-                                    'NADH_NAD_RATIO_CYTO': np.log10([1e-2, 1e-3]),
+                                    'NADH_NAD_RATIO_CYTO': np.log10([1e-4, 1e-2]),
                                     'NADH_NAD_TOTAL_MCP': np.log10([0.1, 1e1]),
-                                    'NADH_NAD_RATIO_MCP': np.log10([1e-2, 1e-3]),
+                                    'NADH_NAD_RATIO_MCP': np.log10([1e-4, 1e-2]),
                                     }
 
 PDU_WT_ENZ_NUMBERS_PARAMETER_RANGES = {'nPduCDE': np.log10([4e2, 6e2]),

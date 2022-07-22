@@ -16,6 +16,7 @@ from pathlib import Path
 from likelihood_funcs_adj import likelihood_adj
 from pymc_funcs import LogLike
 import numpy as np
+ROOT_PATH = dirname(abspath(__file__))
 
 def sample(nsamples, burn_in, nchains, acc_rate=0.8, fwd_rtol=1e-8, fwd_atol=1e-8, bck_rtol=1e-4, bck_atol=1e-4,
            mxsteps=int(1e5), init = 'jitter+adapt_diag', initvals = None, random_seed = None):
@@ -52,32 +53,33 @@ def sample(nsamples, burn_in, nchains, acc_rate=0.8, fwd_rtol=1e-8, fwd_atol=1e-
                                               upper = COFACTOR_NUMBER_PARAMETER_RANGES[param_name][1])
                           for param_name in COFACTOR_PARAMETERS]
 
-        enzyme_init_WT = [pm.TruncatedNormal(param_name, mu = PDU_WT_ENZ_NUMBERS_PARAMETER_MEAN[param_name],
+        enzyme_init_WT = [pm.TruncatedNormal(param_name + '_WT', mu = PDU_WT_ENZ_NUMBERS_PARAMETER_MEAN[param_name],
                                           sigma = PDU_WT_ENZ_NUMBERS_PARAMETER_STD[param_name],
-                                          lower = PDU_WT_ENZ_NUMBERS_PARAMETER_RANGES + np.log10(0.25),
-                                          upper = PDU_WT_ENZ_NUMBERS_PARAMETER_RANGES + np.log10(1.5))
+                                          lower = PDU_WT_ENZ_NUMBERS_PARAMETER_RANGES[param_name][0] + np.log10(0.25),
+                                          upper = PDU_WT_ENZ_NUMBERS_PARAMETER_RANGES[param_name][1] + np.log10(1.5))
                        for param_name in ENZYME_CONCENTRATIONS]
-        enzyme_init_dAJ = [pm.TruncatedNormal(param_name, mu = dPDU_AJ_ENZ_NUMBER_PARAMETER_MEAN[param_name],
+
+        enzyme_init_dAJ = [pm.TruncatedNormal(param_name + '_dAJ', mu = dPDU_AJ_ENZ_NUMBER_PARAMETER_MEAN[param_name],
                                              sigma = dPDU_AJ_ENZ_NUMBER_PARAMETER_STD[param_name],
                                              lower = PDU_WT_ENZ_NUMBERS_PARAMETER_RANGES[param_name][0] + np.log10(0.25),
                                              upper = PDU_WT_ENZ_NUMBERS_PARAMETER_RANGES[param_name][1] + np.log10(1.5))
-                          for param_name in ENZYME_CONCENTRATIONS]
+                           for param_name in ENZYME_CONCENTRATIONS]
 
         variables = [*permeability_cell_params, *permeability_mcp_params, *kinetic_params, *mcp_geometry_params,
                      *cofactor_params, *enzyme_init_WT, *enzyme_init_dAJ]
 
         # convert m and c to a tensor vector
         theta = at.as_tensor_variable(variables)
-        pm.Deterministic('k4PduCDE', variables[MODEL_PARAMETERS.index('k1PduCDE')]
-                         + variables[MODEL_PARAMETERS.index('k3PduCDE')] - variables[MODEL_PARAMETERS.index('KeqPduCDE')]
-                         - variables[MODEL_PARAMETERS.index('k2PduCDE')])
+        k4PduCDE = pm.Deterministic('k4PduCDE', variables[MODEL_PARAMETERS.index('k1PduCDE')]
+                                    + variables[MODEL_PARAMETERS.index('k3PduCDE')] - variables[MODEL_PARAMETERS.index('KeqPduCDE')]
+                                    - variables[MODEL_PARAMETERS.index('k2PduCDE')])
 
         pm.Deterministic('kcat_PduCDE_f', variables[MODEL_PARAMETERS.index('k3PduCDE')])
         pm.Deterministic('kcat_PduCDE_Glycerol', np.log10((np.power(10, variables[MODEL_PARAMETERS.index('k2PduCDE')])
                                                            + np.power(10,variables[MODEL_PARAMETERS.index('k3PduCDE')]))/np.power(10,variables[MODEL_PARAMETERS.index('k1PduCDE')])))
         pm.Deterministic('kcat_PduCDE_r', variables[MODEL_PARAMETERS.index('k2PduCDE')] )
         pm.Deterministic('kcat_PduCDE_HPA', np.log10((np.power(10, variables[MODEL_PARAMETERS.index('k2PduCDE')])
-                                                      + np.power(10,variables[MODEL_PARAMETERS.index('k3PduCDE')]))/np.power(10,variables[MODEL_PARAMETERS.index('k4PduCDE')])))
+                                                      + np.power(10,variables[MODEL_PARAMETERS.index('k3PduCDE')]))/np.power(10,k4PduCDE)))
 
 
         # use a Potential to "call" the Op and include it in the logp computation
@@ -110,14 +112,16 @@ if __name__ == '__main__':
 
     print(sys.argv)
 
-    idata_nuts = sample(nsamples, burn_in, nchains, acc_rate=acc_rate, atol=atol, rtol = rtol, mxsteps=mxsteps,
-                        init=init, initvals=start_val, random_seed=random_seed)
+    idata_nuts = sample(nsamples, burn_in, nchains, acc_rate=acc_rate, fwd_rtol=fwd_rtol, fwd_atol=fwd_atol,
+                        bck_rtol=bck_rtol, bck_atol=bck_atol, mxsteps=mxsteps, init=init, initvals=start_val,
+                        random_seed=random_seed)
 
     # save samples
     PARAMETER_SAMP_PATH = ROOT_PATH + '/samples'
     directory_name = 'nsamples_' + str(nsamples) + '_burn_in_' + str(burn_in) + '_acc_rate_' + str(acc_rate) + \
-                     '_nchains_' + str(nchains) + '_atol_' + str(atol) + '_rtol_' + str(rtol) + '_mxsteps_' + \
-                     str(mxsteps) + '_initialization_' + init
+                     '_nchains_' + str(nchains) + '_fwd_atol_' + str(fwd_rtol) + '_fwd_rtol_' + str(fwd_rtol) \
+                     + '_bck_atol_' + str(bck_rtol) + '_bck_rtol_' + str(fwd_rtol) + '_mxsteps_' + str(mxsteps) +\
+                     '_initialization_' + init
     directory_name = directory_name.replace('.','_').replace('-','_').replace('+','_')
 
     date_string = datetime.now().strftime("%Y_%m_%d_%H_%M_%S_%f") + '.nc'
