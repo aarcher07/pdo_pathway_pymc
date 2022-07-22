@@ -17,6 +17,8 @@ from likelihood_funcs_adj import likelihood_adj
 from pymc_funcs import LogLike
 import numpy as np
 ROOT_PATH = dirname(abspath(__file__))
+from datetime import datetime
+import os
 
 def sample(nsamples, burn_in, nchains, acc_rate=0.8, fwd_rtol=1e-8, fwd_atol=1e-8, bck_rtol=1e-4, bck_atol=1e-4,
            mxsteps=int(1e5), init = 'jitter+adapt_diag', initvals = None, random_seed = None):
@@ -123,7 +125,6 @@ if __name__ == '__main__':
                      + '_bck_atol_' + str(bck_rtol) + '_bck_rtol_' + str(fwd_rtol) + '_mxsteps_' + str(mxsteps) +\
                      '_initialization_' + init
     directory_name = directory_name.replace('.','_').replace('-','_').replace('+','_')
-
     date_string = datetime.now().strftime("%Y_%m_%d_%H_%M_%S_%f") + '.nc'
     file_name = date_string
     sample_file_location = os.path.join(PARAMETER_SAMP_PATH, directory_name)
