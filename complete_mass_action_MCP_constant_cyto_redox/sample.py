@@ -7,10 +7,11 @@ from prior_constants import CELL_PERMEABILITY_MEAN, CELL_PERMEABILITY_STD, MCP_P
 import pymc as pm
 import arviz as az
 from constants import PERMEABILITY_CELL_PARAMETERS, PERMEABILITY_MCP_PARAMETERS, KINETIC_PARAMETERS, MCP_PARAMETERS, \
-    COFACTOR_PARAMETERS, ENZYME_CONCENTRATIONS, THERMO_PARAMETERS, MCP_RADIUS
+    COFACTOR_PARAMETERS, ENZYME_CONCENTRATIONS, THERMO_PARAMETERS, MCP_RADIUS, MODEL_PARAMETERS
 import time
 from os.path import dirname, abspath
 import sys
+import aesara.tensor as at
 from pathlib import Path
 from likelihood_funcs_adj import likelihood_adj
 from pymc_funcs import LogLike
@@ -42,9 +43,8 @@ def sample(nsamples, burn_in, nchains, acc_rate=0.8, fwd_rtol=1e-8, fwd_atol=1e-
                           for param_name in KINETIC_PARAMETERS]
         nmcps = pm.Uniform('nMCPs', lower=GEOMETRY_PARAMETER_RANGES['nMCPs'][0], upper=GEOMETRY_PARAMETER_RANGES['nMCPs'][1])
 
-        mcp_geometry_params = [nmcps,
-                              pm.Uniform('AJ_radius', lower=np.log10(MCP_RADIUS*(10**(nmcps/3.))),
-                                         upper=np.log10(MCP_RADIUS*(10**(nmcps/2.))))]
+        mcp_geometry_params = [nmcps, pm.Uniform('AJ_radius', lower=np.log10(MCP_RADIUS*(10**(nmcps/3.))),
+                                                 upper=np.log10(MCP_RADIUS*(10**(nmcps/2.))))]
 
         cofactor_params = [pm.TruncatedNormal(param_name, mu = COFACTOR_NUMBER_PARAMETER_MEAN[param_name],
                                              sigma = COFACTOR_NUMBER_PARAMETER_STD[param_name],
@@ -68,6 +68,18 @@ def sample(nsamples, burn_in, nchains, acc_rate=0.8, fwd_rtol=1e-8, fwd_atol=1e-
 
         # convert m and c to a tensor vector
         theta = at.as_tensor_variable(variables)
+        pm.Deterministic('k4PduCDE', variables[MODEL_PARAMETERS.index('k1PduCDE')]
+                         + variables[MODEL_PARAMETERS.index('k3PduCDE')] - variables[MODEL_PARAMETERS.index('KeqPduCDE')]
+                         - variables[MODEL_PARAMETERS.index('k2PduCDE')])
+
+        pm.Deterministic('kcat_PduCDE_f', variables[MODEL_PARAMETERS.index('k3PduCDE')])
+        pm.Deterministic('kcat_PduCDE_Glycerol', np.log10((np.power(10, variables[MODEL_PARAMETERS.index('k2PduCDE')])
+                                                           + np.power(10,variables[MODEL_PARAMETERS.index('k3PduCDE')]))/np.power(10,variables[MODEL_PARAMETERS.index('k1PduCDE')])))
+        pm.Deterministic('kcat_PduCDE_r', variables[MODEL_PARAMETERS.index('k2PduCDE')] )
+        pm.Deterministic('kcat_PduCDE_HPA', np.log10((np.power(10, variables[MODEL_PARAMETERS.index('k2PduCDE')])
+                                                      + np.power(10,variables[MODEL_PARAMETERS.index('k3PduCDE')]))/np.power(10,variables[MODEL_PARAMETERS.index('k4PduCDE')])))
+
+
         # use a Potential to "call" the Op and include it in the logp computation
         pm.Potential("likelihood", logl(theta))
         idata_nuts = pm.sample(draws=int(nsamples), init=init, cores=nchains, chains=nchains, tune=int(burn_in),
@@ -81,10 +93,12 @@ if __name__ == '__main__':
     burn_in = int(float(sys.argv[2]))
     nchains = int(float(sys.argv[3]))
     acc_rate = float(sys.argv[4])
-    atol = float(sys.argv[5])
-    rtol = float(sys.argv[6])
-    mxsteps = int(float(sys.argv[7]))
-    init = sys.argv[8]
+    fwd_rtol = float(sys.argv[5])
+    fwd_atol = float(sys.argv[6])
+    bck_rtol = float(sys.argv[7])
+    bck_atol = float(sys.argv[8])
+    mxsteps = int(float(sys.argv[9]))
+    init = sys.argv[10]
 
     seed = int(time.time() * 1e6)
     seed = ((seed & 0xff000000) >> 24) + ((seed & 0x00ff0000) >> 8) + ((seed & 0x0000ff00) << 8) + (
@@ -93,19 +107,14 @@ if __name__ == '__main__':
     random_seed = list(random_seed.astype(int))
     print('seed: ' + str(random_seed))
     start_val = None
-    # start_val =  {'PermCellGlycerol': -3.2387621755443825, 'PermCellPDO': -4.023320346770019,
-    #              'PermCell3HPA': -4.899986741128067, 'k1DhaB': -0.6036725290144016, 'k2DhaB': -0.48615514794602044,
-    #              'k3DhaB': 1.1564894912795705, 'k4DhaB': 1.5738758332657916, 'k1DhaT': 1.804214813153589,
-    #              'k2DhaT': -0.5618853036728277, 'k3DhaT': 0.6856456564770114, 'k4DhaT': 1.1298098325985182,
-    #              'VmaxfMetab': 0.2257880715104006, 'KmMetabG': 2.72562301357831, 'DHAB_INIT': -0.511548640059402,
-    #              'DHAT_INIT': 0.28071248963437223}
+
     print(sys.argv)
 
     idata_nuts = sample(nsamples, burn_in, nchains, acc_rate=acc_rate, atol=atol, rtol = rtol, mxsteps=mxsteps,
                         init=init, initvals=start_val, random_seed=random_seed)
 
     # save samples
-    PARAMETER_SAMP_PATH = ROOT_PATH + '/samples'  #TODO : change to _3HPA
+    PARAMETER_SAMP_PATH = ROOT_PATH + '/samples'
     directory_name = 'nsamples_' + str(nsamples) + '_burn_in_' + str(burn_in) + '_acc_rate_' + str(acc_rate) + \
                      '_nchains_' + str(nchains) + '_atol_' + str(atol) + '_rtol_' + str(rtol) + '_mxsteps_' + \
                      str(mxsteps) + '_initialization_' + init
