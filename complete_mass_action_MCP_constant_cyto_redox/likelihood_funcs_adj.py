@@ -16,6 +16,11 @@ solver_delta_AJ = sunode.solver.AdjointSolver(problem_delta_AJ, solver='BDF')
 solver_WT = sunode.solver.AdjointSolver(problem_WT, solver='BDF')
 
 def likelihood_adj(params, fwd_rtol = 1e-8, fwd_atol=1e-8, mxsteps=int(1e4)):
+    lib.CVodeSStolerances(solver_delta_AJ._ode, fwd_rtol, fwd_atol)
+    lib.CVodeSetMaxNumSteps(solver_delta_AJ._ode, mxsteps)
+    lib.CVodeSStolerances(solver_WT._ode, fwd_rtol, fwd_atol)
+    lib.CVodeSetMaxNumSteps(solver_WT._ode, mxsteps)
+
     tvals = TIME_SAMPLES_EXPANDED*HRS_TO_SECS
 
     non_enz_model_params = params[:-8]
@@ -33,8 +38,6 @@ def likelihood_adj(params, fwd_rtol = 1e-8, fwd_atol=1e-8, mxsteps=int(1e4)):
             solver = solver_delta_AJ
             y0 = np.zeros((), dtype=problem_delta_AJ.state_dtype)
 
-        lib.CVodeSStolerances(solver._ode, fwd_rtol, fwd_atol)
-        lib.CVodeSetMaxNumSteps(solver._ode, mxsteps)
         for var in VARIABLE_NAMES:
             y0[var] = 0
 
@@ -104,6 +107,15 @@ def likelihood_adj(params, fwd_rtol = 1e-8, fwd_atol=1e-8, mxsteps=int(1e4)):
 
 def likelihood_derivative_adj(params, fwd_rtol = 1e-8, fwd_atol=1e-8,
                               bck_rtol = 1e-6, bck_atol = 1e-6, mxsteps=int(1e4)):
+    lib.CVodeSStolerances(solver_delta_AJ._ode, fwd_rtol, fwd_atol)
+    lib.CVodeSStolerancesB(solver_delta_AJ._ode, solver_delta_AJ._odeB, bck_rtol, bck_atol)
+    lib.CVodeQuadSStolerancesB(solver_delta_AJ._ode, solver_delta_AJ._odeB, bck_rtol, bck_atol)
+    lib.CVodeSetMaxNumSteps(solver_delta_AJ._ode, mxsteps)
+
+    lib.CVodeSStolerances(solver_WT._ode, fwd_rtol, fwd_atol)
+    lib.CVodeSStolerancesB(solver_WT._ode, solver_WT._odeB, bck_rtol, bck_atol)
+    lib.CVodeQuadSStolerancesB(solver_WT._ode, solver_WT._odeB, bck_rtol, bck_atol)
+    lib.CVodeSetMaxNumSteps(solver_WT._ode, mxsteps)
 
     tvals = TIME_SAMPLES_EXPANDED*HRS_TO_SECS
 
@@ -124,10 +136,6 @@ def likelihood_derivative_adj(params, fwd_rtol = 1e-8, fwd_atol=1e-8,
             solver = solver_delta_AJ
             y0 = np.zeros((), dtype=problem_delta_AJ.state_dtype)
 
-        lib.CVodeSStolerances(solver._ode, fwd_rtol, fwd_atol)
-        lib.CVodeSStolerancesB(solver._ode, solver._odeB, bck_rtol, bck_atol)
-        lib.CVodeQuadSStolerancesB(solver._ode, solver._odeB, bck_rtol, bck_atol)
-        lib.CVodeSetMaxNumSteps(solver._ode, mxsteps)
 
         # initialize initial conditions
         for var in VARIABLE_NAMES:
