@@ -65,10 +65,10 @@ def RHS_WT(t, x, params):
     k3PduP = 10 ** params.k3PduP
     k4PduP = 10 ** params.k4PduP
     k5PduP = 10 ** params.k5PduP
-    k6PduP = 10 ** params.k6PduP
-    k7PduP = 10 ** params.k7PduP
-    k8PduP = 10 ** (params.k1PduP + params.k3PduP + params.k5PduP + params.k7PduP - params.KeqPduP
-                    - params.k2PduP - params.k4PduP - params.k6PduP)
+    k6PduP =  10 ** params.k6PduP
+    k7PduP =  10 ** params.k7PduP
+    k8PduP =  10 ** (params.k1PduP + params.k3PduP + params.k5PduP + params.k7PduP - params.KeqPduP
+                     - params.k2PduP - params.k4PduP - params.k6PduP)
 
     k1PduL = 10 ** params.k1PduL
     k2PduL = 10 ** params.k2PduL
@@ -88,6 +88,7 @@ def RHS_WT(t, x, params):
     NADH_NAD_TOTAL_CYTO = 10 ** params.NADH_NAD_TOTAL_CYTO
     NADH_NAD_RATIO_CYTO = 10 ** params.NADH_NAD_RATIO_CYTO
 
+
     L = 10 ** params.L
     k = 10 ** params.k
 
@@ -104,19 +105,20 @@ def RHS_WT(t, x, params):
     ################################################ MCP equations #################################################
     ################################################################################################################
 
-    d['G_MCP'] = mcp_surface_area_mcp_volume * PermMCPGlycerol * (x.G_CYTO - x.G_MCP) \
-                 - k1PduCDE * x.G_MCP * x.PduCDE + k2PduCDE * x.PduCDE_C
+    d['G_MCP'] =  mcp_surface_area_mcp_volume * PermMCPGlycerol * (x.G_CYTO - x.G_MCP) \
+                  - k1PduCDE * x.G_MCP * x.PduCDE + k2PduCDE * x.PduCDE_C
 
-    d['H_MCP'] = mcp_surface_area_mcp_volume * PermMCP3HPA * (x.H_CYTO - x.H_MCP) \
+    d['H_MCP'] = mcp_surface_area_mcp_volume * PermMCP3HPA * (x.H_CYTO - x.H_MCP)  \
+                 - k3PduQ * x.H_MCP * x.PduQ_NADH + k4PduQ * x.PduQ_NADH_HPA\
                  + k3PduCDE * x.PduCDE_C - k4PduCDE * x.H_MCP * x.PduCDE \
-                 - k3PduQ * x.H_MCP * x.PduQ_NADH + k4PduQ * x.PduQ_NADH_HPA \
-                 - k3PduP * x.H_MCP * x.PduP_NAD + k4PduQ * x.PduP_NAD_HPA
+                 - k3PduP * x.H_MCP * x.PduP_NAD + k4PduP * x.PduP_NAD_HPA
 
-    d['P_MCP'] = mcp_surface_area_mcp_volume * PermMCPPDO * (x.P_CYTO - x.P_MCP) \
-                 - k6PduQ * x.P_MCP * x.PduQ_NAD + k5PduP * x.PduQ_NADH_HPA
+    d['P_MCP'] = mcp_surface_area_mcp_volume * PermMCPPDO * (x.P_CYTO - x.P_MCP)\
+                 - k6PduQ * x.P_MCP * x.PduQ_NAD + k5PduQ * x.PduQ_NADH_HPA \
+
 
     d['HCoA_MCP'] = mcp_surface_area_mcp_volume * PermMCPHCoA * (x.HCoA_CYTO - x.HCoA_MCP) \
-                    - k6PduP * x.HCoA_MCP * x.PduP_NADH + k5PduQ * x.PduP_NAD_HPA \
+                    - k6PduP * x.HCoA_MCP * x.PduP_NADH + k5PduP * x.PduP_NAD_HPA \
                     - k1PduL * x.HCoA_MCP * x.PduL + k2PduL * x.PduL_C
 
     d['HPhosph_MCP'] = mcp_surface_area_mcp_volume * PermMCPHPhosph * (x.HPhosph_CYTO - x.HPhosph_MCP) \
@@ -127,7 +129,7 @@ def RHS_WT(t, x, params):
                    - k1PduP * x.NAD_MCP * x.PduP + k2PduP * x.PduP_NAD
 
     d['NADH_MCP'] = mcp_surface_area_mcp_volume * PermMCPNADH * (NADH_CYTO - x.NADH_MCP) \
-                    - k1PduQ * x.NADH_MCP * x.PduQ + k2PduQ * x.PduQ_NADH \
+                    - k1PduQ * x.NADH_MCP * x.PduQ + k2PduQ * x.PduQ_NADH\
                     + k7PduP * x.PduP_NADH - k8PduP * x.NADH_MCP * x.PduP
 
     d['PduCDE'] = - k1PduCDE * x.G_MCP * x.PduCDE + k2PduCDE * x.PduCDE_C + k3PduCDE * x.PduCDE_C \
@@ -150,17 +152,17 @@ def RHS_WT(t, x, params):
     d['PduP'] = - k1PduP * x.NAD_MCP * x.PduP + k2PduP * x.PduP_NAD + k7PduP * x.PduP_NADH \
                 - k8PduP * x.NADH_MCP * x.PduP
 
-    d['PduP_NAD'] = k1PduP * x.NAD_MCP * x.PduP - k2PduP * x.PduP_NAD \
-                    - k3PduP * x.PduP_NAD * x.H_MCP + k4PduP * x.PduP_NAD_HPA
+    d['PduP_NAD'] =k1PduP * x.NAD_MCP * x.PduP - k2PduP * x.PduP_NAD \
+                   - k3PduP * x.PduP_NAD * x.H_MCP + k4PduP * x.PduP_NAD_HPA
 
     d['PduP_NAD_HPA'] = -k4PduP * x.PduP_NAD_HPA + k3PduP * x.PduP_NAD * x.H_MCP \
-                        - k5PduP * x.PduP_NAD_HPA + k6PduP * x.PduP_NADH * x.HCoA_MCP
+                       - k5PduP * x.PduP_NAD_HPA + k6PduP * x.PduP_NADH * x.HCoA_MCP
 
     d['PduP_NADH'] = k5PduP * x.PduP_NAD_HPA - k6PduP * x.PduP_NADH * x.HCoA_MCP \
-                     - k7PduP * x.PduP_NADH + k8PduP * x.PduP * x.NADH_MCP
+                    - k7PduP * x.PduP_NADH + k8PduP * x.PduP * x.NADH_MCP
 
     d['PduL'] = - k1PduL * x.HCoA_MCP * x.PduL + k2PduL * x.PduL_C + k3PduL * x.PduL_C \
-                - k4PduL * x.HPhosph_MCP * x.PduL
+               - k4PduL * x.HPhosph_MCP * x.PduL
 
     d['PduL_C'] = -d['PduL']
 

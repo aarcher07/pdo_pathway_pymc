@@ -121,8 +121,8 @@ if __name__ == '__main__':
     # save samples
     PARAMETER_SAMP_PATH = ROOT_PATH + '/samples'
     directory_name = 'nsamples_' + str(nsamples) + '_burn_in_' + str(burn_in) + '_acc_rate_' + str(acc_rate) + \
-                     '_nchains_' + str(nchains) + '_fwd_atol_' + str(fwd_rtol) + '_fwd_rtol_' + str(fwd_rtol) \
-                     + '_bck_atol_' + str(bck_rtol) + '_bck_rtol_' + str(fwd_rtol) + '_mxsteps_' + str(mxsteps) +\
+                     '_nchains_' + str(nchains) + '_fwd_rtol_' + str(fwd_rtol) + '_fwd_atol_' + str(fwd_rtol) \
+                     + '_bck_rtol_' + str(bck_rtol) + '_bck_atol_' + str(bck_atol) + '_mxsteps_' + str(mxsteps) +\
                      '_initialization_' + init
     directory_name = directory_name.replace('.','_').replace('-','_').replace('+','_')
     date_string = datetime.now().strftime("%Y_%m_%d_%H_%M_%S_%f") + '.nc'

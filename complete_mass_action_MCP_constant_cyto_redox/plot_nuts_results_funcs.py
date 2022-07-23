@@ -5,8 +5,7 @@ import arviz as az
 import matplotlib.pyplot as plt
 import os
 import seaborn as sns
-
-import sunode
+from scipy.constants import Avogadro
 from exp_data import *
 import pymc as pm
 mpl.rcParams['text.usetex'] = True
@@ -20,13 +19,16 @@ from rhs_WT import RHS_WT, problem_WT
 from rhs_delta_AJ import RHS_delta_AJ, problem_delta_AJ
 ROOT_PATH = dirname(abspath(__file__))
 from pandas.plotting import scatter_matrix
+import sunode
+
 solver_delta_AJ = sunode.solver.AdjointSolver(problem_delta_AJ, solver='BDF')
 solver_WT = sunode.solver.AdjointSolver(problem_WT, solver='BDF')
+lib = sunode._cvodes.lib
 
 def plot_trace(samples, plot_file_location):
     n_display = 10
-    for i in range(int(np.ceil(len(ALL_PARAMETERS)/n_display))):
-        az.plot_trace(samples, var_names=ALL_PARAMETERS[(n_display*i):(n_display*(i+1))], compact=True)
+    for i in range(int(np.ceil(len(DEV_PARAMETER_LIST)/n_display))):
+        az.plot_trace(samples, var_names=DEV_PARAMETER_LIST[(n_display*i):(n_display*(i+1))], compact=True)
         plt.savefig(os.path.join(plot_file_location,"trace_plot_" + str(i) + ".jpg"))
         plt.close()
 
@@ -55,9 +57,8 @@ def plot_loglik_overlay(loglik, plot_file_location, nchains):
 
 def plot_time_series_distribution(samples, plot_file_location, nchains, fwd_atol, fwd_rtol, mxsteps):
     lib.CVodeSStolerances(solver_delta_AJ._ode, fwd_rtol, fwd_atol)
-    lib.CVodeSetMaxNumSteps(solver_delta_AJ._ode, mxsteps)
-    lib.CVodeSStolerances(solver_WT._ode, fwd_rtol, fwd_atol)
-    lib.CVodeSetMaxNumSteps(solver_WT._ode, mxsteps)
+    lib.CVodeSetMaxNumSteps(solver_delta_AJ._ode, int(mxsteps))
+
     c = ['r', 'y', 'b', 'g', 'k']
     legend_names = ['chain ' + str(i)  for i in range(min(5, nchains))]
 
@@ -65,12 +66,14 @@ def plot_time_series_distribution(samples, plot_file_location, nchains, fwd_atol
 
         # set initial condition depending on each experiment
         if exp_cond in ['WT-L', 'dD-L', 'dP-L']:
+            param_list = [*DEV_PARAMETER_LIST[:-4], *[param + '_WT' for param in DEV_PARAMETER_LIST[-4:]]]
             solver = solver_WT
             problem = problem_WT
         elif exp_cond == 'dAJ-L':
+            param_list = [*DEV_PARAMETER_LIST[:-4], *[param + '_dAJ' for param in DEV_PARAMETER_LIST[-4:]]]
             solver = solver_delta_AJ
             problem = problem_delta_AJ
-
+        print(param_list)
         # set initial conditions
         y0 = np.zeros((), dtype=problem.state_dtype)
         for var in VARIABLE_NAMES:
@@ -88,19 +91,19 @@ def plot_time_series_distribution(samples, plot_file_location, nchains, fwd_atol
         fig, ax = plt.subplots(4, min(5, nchains), figsize=(15,15)) #min(5, nchains))
         for chain_ind in range(min(5, nchains)):
             dataarray = samples.posterior.to_dataframe().loc[[chain_ind]]
-            dataarray = dataarray[DEV_PARAMETER_LIST]
+            dataarray = dataarray[param_list]
             for jj in range(4):
                 ax[jj, chain_ind].scatter(TIME_SAMPLES, TIME_SERIES_MEAN[exp_cond].iloc[:,jj])
 
             for j in range(0,dataarray.shape[0],int(dataarray.shape[0]/500)):
                 params = dataarray.iloc[j,:].to_numpy()
-                non_enz_model_params = params[:-8]
-                enz_params_WT = params[-8:-4]
-                enz_params_dAJ = params[-4:]
+                non_enz_model_params = params[:-4]
+                enz_params = params[-4:]
+                param_samples_copy = np.concatenate(
+                    (non_enz_model_params, enz_params, list(OD_PRIOR_PARAMETER_MEAN[exp_cond].values())))
 
                 # alter initial conditions
                 if exp_cond in ['WT-L', 'dD-L', 'dP-L']:
-                    param_samples_copy = np.concatenate((non_enz_model_params,enz_params_WT,list(OD_PRIOR_PARAMETER_MEAN[exp_cond].values())))
                     y0['NADH_MCP'] = (10**(param_samples_copy[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP')]
                                            + param_samples_copy[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')]))/(10**param_samples_copy[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')] + 1)
                     y0['NAD_MCP'] = 10**param_samples_copy[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP')]/(10**param_samples_copy[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')] + 1)
@@ -110,9 +113,6 @@ def plot_time_series_distribution(samples, plot_file_location, nchains, fwd_atol
                     y0['PduL'] = 10**param_samples_copy[PARAMETER_LIST.index('nPduL')]/(Avogadro * MCP_VOLUME)
                     y0['OD'] = 10**param_samples_copy[PARAMETER_LIST.index('A')]
                 elif exp_cond == 'dAJ-L':
-                    param_samples_copy = np.concatenate((non_enz_model_params,
-                                                         enz_params_dAJ,
-                                                         list(OD_PRIOR_PARAMETER_MEAN[exp_cond].values())))
                     POLAR_VOLUME = (4./3.)*np.pi*((10**param_samples_copy[PARAMETER_LIST.index('AJ_radius')])**3)
                     y0['NADH_MCP'] = (10**(param_samples_copy[PARAMETER_LIST.index('NADH_NAD_TOTAL_CYTO')]
                                            + param_samples_copy[PARAMETER_LIST.index('NADH_NAD_RATIO_CYTO')]))/(10**param_samples_copy[PARAMETER_LIST.index('NADH_NAD_RATIO_CYTO')] + 1)
@@ -240,10 +240,11 @@ def scatter_hist(x, y, ax, ax_histx, ax_histy):
     ax_histx.hist(x, bins=bins, density=True)
     ax_histy.hist(y, bins=bins, orientation='horizontal', density=True)
 
-def joint_Keq_distribution(KeqDhaB_chains,KeqDhaT_chains, plot_location, nchains):
+def joint_Keq_distribution(Keq_enz_1_chains, Keq_enz_2_chains, Keq_enz_name_1, Keq_enz_name_2,
+                           plot_location, nchains):
 
-    xlab = r'$\log_{10}(K_{\text{eq}}^{\text{DhaT}})$'
-    ylab = r'$\log_{10}(K_{\text{eq}}^{\text{DhaB}})$'
+    xlab = r'$\log_{10}(' + MODEL_PARAMS_TO_TEX[Keq_enz_name_1][1:-1] + ')$'
+    ylab = r'$\log_{10}(' + MODEL_PARAMS_TO_TEX[Keq_enz_name_2][1:-1] + ')$'
     # # definitions for the axes
     left, width = 0.1, 0.65
     bottom, height = 0.1, 0.65
@@ -253,19 +254,21 @@ def joint_Keq_distribution(KeqDhaB_chains,KeqDhaT_chains, plot_location, nchains
     rect_histx = [left, bottom + height + spacing, width, 0.2]
     rect_histy = [left + width + spacing, bottom, 0.2, height]
     for chain_ind in range(nchains):
-        KeqDhaB = KeqDhaB_chains[chain_ind]
-        KeqDhaT = KeqDhaT_chains[chain_ind]
+        Keq_enz_1 = Keq_enz_1_chains[chain_ind]
+        Keq_enz_2 = Keq_enz_2_chains[chain_ind]
 
         # start with a square Figure
         fig = plt.figure(figsize=(8, 8))
 
         ax = fig.add_axes(rect_scatter)
-        dhaT_fill_between = np.arange(2, 5.1, 0.1)
-        dhaB_fill_between = np.arange(7, 8.1, 0.1)
+        enz_1_fill_between = np.arange(KINETIC_PARAMETER_RANGES[Keq_enz_name_1][0],
+                                       KINETIC_PARAMETER_RANGES[Keq_enz_name_1][1] + 0.1, 0.1)
+        enz_2_fill_between = np.arange(KINETIC_PARAMETER_RANGES[Keq_enz_name_2][0],
+                                       KINETIC_PARAMETER_RANGES[Keq_enz_name_2][0] + 0.1, 0.1)
 
 
-        # print([min([min(np.log10(KeqDhaT)) - 1, min(dhaT_fill_between)]) - 1,
-        #              max([max(np.log10(KeqDhaT))+ 1, max(dhaT_fill_between)]) + 1 ])
+        # print([min([min(np.log10(KeqDhaT)) - 1, min(enz_1_fill_between)]) - 1,
+        #              max([max(np.log10(KeqDhaT))+ 1, max(enz_1_fill_between)]) + 1 ])
 
         # plt.show()
 
@@ -276,23 +279,23 @@ def joint_Keq_distribution(KeqDhaB_chains,KeqDhaT_chains, plot_location, nchains
         ax_histy.set_xlabel('Probability', fontsize=15)
         #
         # # use the previously defined function
-        scatter_hist(np.log10(KeqDhaT), np.log10(KeqDhaB), ax, ax_histx, ax_histy)
-        sns.kdeplot(x=np.log10(KeqDhaT), y=np.log10(KeqDhaB), fill=True,
+        scatter_hist(np.log10(Keq_enz_1), np.log10(Keq_enz_2), ax, ax_histx, ax_histy)
+        sns.kdeplot(x=np.log10(Keq_enz_1), y=np.log10(Keq_enz_2), fill=True,
                     alpha=0.5, color='blue', ax=ax)
-        ax.fill_between(dhaT_fill_between, dhaB_fill_between[0], dhaB_fill_between[-1], facecolor='yellow', alpha=0.3,
+        ax.fill_between(enz_1_fill_between, enz_2_fill_between[0], enz_2_fill_between[-1], facecolor='yellow', alpha=0.3,
                         label ="Thermodynamically\n Feasible")
-        ax.set_xlim([min([min(np.log10(KeqDhaT)) - 1, min(dhaT_fill_between)]) - 1,
-                     max([max(np.log10(KeqDhaT))+ 1, max(dhaT_fill_between)]) + 1 ])
-        ax.set_ylim([min([min(np.log10(KeqDhaB)) - 1, min(dhaB_fill_between)]) - 1,
-                     max([max(np.log10(KeqDhaB))+ 1, max(dhaB_fill_between)]) + 1])
+        ax.set_xlim([min([min(np.log10(Keq_enz_1)) - 1, min(enz_1_fill_between)]) - 1,
+                     max([max(np.log10(Keq_enz_1)) + 1, max(enz_1_fill_between)]) + 1])
+        ax.set_ylim([min([min(np.log10(Keq_enz_2)) - 1, min(enz_2_fill_between)]) - 1,
+                     max([max(np.log10(Keq_enz_2)) + 1, max(enz_2_fill_between)]) + 1])
 
-        probdhaT = ax_histx.get_ylim()
-        probdhaB = ax_histy.get_xlim()
-        y_fill_between = np.arange(probdhaB[0], probdhaB[1], 0.05)
-        ax_histx.fill_between(dhaT_fill_between, probdhaT[0], probdhaT[1],
+        prob_enz_1 = ax_histx.get_ylim()
+        prob_enz_2 = ax_histy.get_xlim()
+        y_fill_between = np.arange(prob_enz_2[0], prob_enz_2[1], 0.05)
+        ax_histx.fill_between(enz_1_fill_between, prob_enz_1[0], prob_enz_1[1],
                               facecolor='yellow', alpha=0.3)
-        ax_histy.fill_between(y_fill_between, dhaB_fill_between[0], dhaB_fill_between[-1],
-                               facecolor='yellow', alpha=0.3)
+        ax_histy.fill_between(y_fill_between, enz_2_fill_between[0], enz_2_fill_between[-1],
+                              facecolor='yellow', alpha=0.3)
         ax.set_xlabel(xlab, fontsize=10)
         ax.set_ylabel(ylab, fontsize=10)
         ax.legend(fontsize=15)
@@ -304,5 +307,5 @@ def joint_Keq_distribution(KeqDhaB_chains,KeqDhaT_chains, plot_location, nchains
         ax_histy.tick_params(axis="y", labelsize=15, rotation=0)
         ax_histx.set_title('Joint Distribution of the reaction\n equilibrium constants', fontsize=15)
         # plt.show()
-        plt.savefig(plot_location + '/K_Eq_Distribution_' + str(chain_ind), bbox_inches="tight")
+        plt.savefig(plot_location + '/K_Eq_Distribution_' + Keq_enz_name_1 + '_' + Keq_enz_name_2 + '_' +  str(chain_ind), bbox_inches="tight")
         plt.close()

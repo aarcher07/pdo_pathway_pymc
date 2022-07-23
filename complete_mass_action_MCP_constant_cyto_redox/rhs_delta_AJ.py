@@ -105,13 +105,13 @@ def RHS_delta_AJ(t, x, params):
     d['H_MCP'] = polar_surface_area_polar_volume * PermPolar * (x.H_CYTO - x.H_MCP) \
                  + k3PduCDE * x.PduCDE_C - k4PduCDE * x.H_MCP * x.PduCDE \
                  - k3PduQ * x.H_MCP * x.PduQ_NADH + k4PduQ * x.PduQ_NADH_HPA \
-                 - k3PduP * x.H_MCP * x.PduP_NAD + k4PduQ * x.PduP_NAD_HPA
+                 - k3PduP * x.H_MCP * x.PduP_NAD + k4PduP * x.PduP_NAD_HPA
 
     d['P_MCP'] = polar_surface_area_polar_volume * PermPolar * (x.P_CYTO - x.P_MCP) \
-                 - k6PduQ * x.P_MCP * x.PduQ_NAD + k5PduP * x.PduQ_NADH_HPA
+                 - k6PduQ * x.P_MCP * x.PduQ_NAD + k5PduQ * x.PduQ_NADH_HPA
 
     d['HCoA_MCP'] = polar_surface_area_polar_volume * PermPolar * (x.HCoA_CYTO - x.HCoA_MCP) \
-                    - k6PduP * x.HCoA_MCP * x.PduP_NADH + k5PduQ * x.PduP_NAD_HPA \
+                    - k6PduP * x.HCoA_MCP * x.PduP_NADH + k5PduP * x.PduP_NAD_HPA \
                     - k1PduL * x.HCoA_MCP * x.PduL + k2PduL * x.PduL_C
 
     d['HPhosph_MCP'] = polar_surface_area_polar_volume * PermPolar * (x.HPhosph_CYTO - x.HPhosph_MCP) \

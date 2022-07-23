@@ -6,17 +6,18 @@ import pickle
 from exp_data_13pd import *
 from prior_constants import *
 import time
-from rhs_WT import RHS_WT, lib, problem
+from rhs_WT import RHS_WT, problem_WT
 from scipy.constants import Avogadro
 # The solver generates uses numba and sympy to generate optimized C functions
-
+import sunode
+lib = sunode._cvodes.lib
 
 
 ########################################################################################################################
 #################################################### ADJOINT SOLVER ####################################################
 ########################################################################################################################
 
-solver = sunode.solver.AdjointSolver(problem, solver='BDF')
+solver = sunode.solver.AdjointSolver(problem_WT, solver='BDF')
 lib.CVodeSStolerances(solver._ode, 1e-8, 1e-8)
 lib.CVodeSStolerancesB(solver._ode, solver._odeB, 1e-6, 1e-6)
 lib.CVodeQuadSStolerancesB(solver._ode, solver._odeB, 1e-6, 1e-6)
@@ -35,13 +36,14 @@ param_sample = np.array([*CELL_PERMEABILITY_MEAN.values(),
                          ])
 lik_dev_params = np.zeros(len(DEV_PARAMETER_LIST))
 time_tot = 0
-y0 = np.zeros((), dtype=problem.state_dtype)
+
+y0 = np.zeros((), dtype=problem_WT.state_dtype)
 for var in VARIABLE_NAMES:
     y0[var] = 0
-y0['G_EXT'] = TIME_SERIES_MEAN['WT-L']['glycerol'][0]
+y0['G_EXT'] =  TIME_SERIES_MEAN['WT-L']['glycerol'][0]
 y0['G_CYTO'] = TIME_SERIES_MEAN['WT-L']['glycerol'][0]
 y0['G_MCP'] = TIME_SERIES_MEAN['WT-L']['glycerol'][0]
-y0['H_EXT'] = TIME_SERIES_MEAN['WT-L']['3-HPA'][0]
+y0['H_EXT'] =  TIME_SERIES_MEAN['WT-L']['3-HPA'][0]
 y0['H_CYTO'] = TIME_SERIES_MEAN['WT-L']['3-HPA'][0]
 y0['H_MCP'] = TIME_SERIES_MEAN['WT-L']['3-HPA'][0]
 y0['P_EXT'] = TIME_SERIES_MEAN['WT-L']['13PD'][0]
@@ -55,6 +57,7 @@ y0['PduQ'] = 10**param_sample[PARAMETER_LIST.index('nPduQ')]/(Avogadro * MCP_VOL
 y0['PduL'] = 10**param_sample[PARAMETER_LIST.index('nPduL')]/(Avogadro * MCP_VOLUME)
 # y0['PduW'] = 10**param_sample[PARAMETER_LIST.index('nPduW')]/(Avogadro * MCP_VOLUME)
 y0['OD'] = 10**param_sample[PARAMETER_LIST.index('A')]
+print(y0)
 params_dict = { param_name : param_val for param_val,param_name in zip(param_sample, PARAMETER_LIST)}
 # # We can also specify the parameters by name:
 solver.set_params_dict(params_dict)
@@ -79,15 +82,46 @@ solver.solve_forward(t0=0, tvals=tvals, y0=y0, y_out=yout)
 time_end = time.time()
 time_total += (time_end-time_start)/60
 
+print( EXTERNAL_VOLUME*(yout.view(problem_WT.state_dtype)['G_EXT'] + yout.view(problem_WT.state_dtype)['H_EXT']
+                        + yout.view(problem_WT.state_dtype)['P_EXT'] +
+                        + yout.view(problem_WT.state_dtype)['HCoA_EXT'] + yout.view(problem_WT.state_dtype)['HPhosph_EXT'])
+
+       + OD_TO_CELL_COUNT*(yout.view(problem_WT.state_dtype)['G_CYTO'] + yout.view(problem_WT.state_dtype)['H_CYTO']
+                            + yout.view(problem_WT.state_dtype)['P_CYTO'] +
+                            + yout.view(problem_WT.state_dtype)['HCoA_CYTO'] + yout.view(problem_WT.state_dtype)['HPhosph_CYTO'])
+
+       + (10**param_sample[PARAMETER_LIST.index('nMCPs')]) * OD_TO_CELL_COUNT *(yout.view(problem_WT.state_dtype)['G_MCP']
+                                                                                + yout.view(problem_WT.state_dtype)['H_MCP']
+                                                                                + yout.view(problem_WT.state_dtype)['P_MCP']
+                                                                                + yout.view(problem_WT.state_dtype)['HCoA_MCP']
+                                                                                + yout.view(problem_WT.state_dtype)['HPhosph_MCP']
+                                                                                + yout.view(problem_WT.state_dtype)['PduCDE_C']
+                                                                                + yout.view(problem_WT.state_dtype)[
+                                                                                    'PduL_C']
+                                                                                + yout.view(problem_WT.state_dtype)[
+                                                                                    'PduQ_NADH_HPA']
+                                                                                + yout.view(problem_WT.state_dtype)['PduP_NAD_HPA']))
+
+
+print(yout.view(problem_WT.state_dtype)['PduCDE'] + yout.view(problem_WT.state_dtype)['PduCDE_C'])
+print(yout.view(problem_WT.state_dtype)['PduQ'] + yout.view(problem_WT.state_dtype)['PduQ_NADH']
+      + yout.view(problem_WT.state_dtype)['PduQ_NADH_HPA'] + yout.view(problem_WT.state_dtype)['PduQ_NAD'])
+print(yout.view(problem_WT.state_dtype)['PduP'] + yout.view(problem_WT.state_dtype)['PduP_NAD']
+      + yout.view(problem_WT.state_dtype)['PduP_NAD_HPA'] + yout.view(problem_WT.state_dtype)['PduP_NADH'])
+print(yout.view(problem_WT.state_dtype)['PduL'] + yout.view(problem_WT.state_dtype)['PduL_C'])
+
 jj = 0
+
+
 for i,var in enumerate(VARIABLE_NAMES):
+    plt.plot(TIME_SAMPLES_EXPANDED, yout.view(problem_WT.state_dtype)[var])
+
     if i in DATA_INDEX:
         # print(i)
-        plt.plot(TIME_SAMPLES_EXPANDED, yout.view(problem.state_dtype)[var])
         plt.scatter(TIME_SAMPLES_EXPANDED[::TIME_SPACING], TIME_SERIES_MEAN['WT-L'].iloc[:,jj])
-        plt.title(var)
-        plt.show()
-        jj+=1
+        jj += 1
+    plt.title(var)
+    plt.show()
 
 grads = np.zeros_like(yout)
 lik_dev = (TIME_SERIES_MEAN['WT-L'] - yout[::TIME_SPACING, DATA_INDEX])/(TIME_SERIES_STD['WT-L'])**2
@@ -107,7 +141,7 @@ grad_out = -np.matmul(sens0,lambda_out-grads[0,:]) + grad_out
 #################################################### FWD SOLVER ########################################################
 ########################################################################################################################
 
-solver = sunode.solver.Solver(problem, solver='BDF', sens_mode='simultaneous')
+solver = sunode.solver.Solver(problem_WT, solver='BDF', sens_mode='simultaneous')
 lib.CVodeSStolerances(solver._ode, 1e-8, 1e-8)
 lib.CVodeSetMaxNumSteps(solver._ode, 10000)
 tvals = TIME_SAMPLES*HRS_TO_SECS
@@ -139,25 +173,25 @@ print(lik_dev_params)
 print(grad_diff)
 print(grad_diff/np.abs(grad_out))
 # mass balance check
-# print( EXTERNAL_VOLUME*(yout.view(problem.state_dtype)['G_EXT'] + yout.view(problem.state_dtype)['H_EXT']
-#                         + yout.view(problem.state_dtype)['P_EXT'] +
-#                         + yout.view(problem.state_dtype)['HCoA_EXT'] + yout.view(problem.state_dtype)['HPhosph_EXT']
-#                         + yout.view(problem.state_dtype)['Hate_EXT'])
+# print( EXTERNAL_VOLUME*(yout.view(problem_WT.state_dtype)['G_EXT'] + yout.view(problem_WT.state_dtype)['H_EXT']
+#                         + yout.view(problem_WT.state_dtype)['P_EXT'] +
+#                         + yout.view(problem_WT.state_dtype)['HCoA_EXT'] + yout.view(problem_WT.state_dtype)['HPhosph_EXT']
+#                         + yout.view(problem_WT.state_dtype)['Hate_EXT'])
 #
-#        + OD_TO_CELL_COUNT*(yout.view(problem.state_dtype)['G_CYTO'] + yout.view(problem.state_dtype)['H_CYTO']
-#                             + yout.view(problem.state_dtype)['P_CYTO'] +
-#                             + yout.view(problem.state_dtype)['HCoA_CYTO'] + yout.view(problem.state_dtype)['HPhosph_CYTO']
-#                             + yout.view(problem.state_dtype)['Hate_CYTO']   + yout.view(problem.state_dtype)['PduW_C'])
+#        + OD_TO_CELL_COUNT*(yout.view(problem_WT.state_dtype)['G_CYTO'] + yout.view(problem_WT.state_dtype)['H_CYTO']
+#                             + yout.view(problem_WT.state_dtype)['P_CYTO'] +
+#                             + yout.view(problem_WT.state_dtype)['HCoA_CYTO'] + yout.view(problem_WT.state_dtype)['HPhosph_CYTO']
+#                             + yout.view(problem_WT.state_dtype)['Hate_CYTO']   + yout.view(problem_WT.state_dtype)['PduW_C'])
 #
-#        + (10**param_sample[PARAMETER_LIST.index('nMCPs')]) * OD_TO_CELL_COUNT *(yout.view(problem.state_dtype)['G_MCP']
-#                                                                                 + yout.view(problem.state_dtype)['H_MCP']
-#                                                                                 + yout.view(problem.state_dtype)['P_MCP']
-#                                                                                 + yout.view(problem.state_dtype)['HCoA_MCP']
-#                                                                                 + yout.view(problem.state_dtype)['HPhosph_MCP']
-#                                                                                 + yout.view(problem.state_dtype)['PduCDE_C']
-#                                                                                 + yout.view(problem.state_dtype)[
+#        + (10**param_sample[PARAMETER_LIST.index('nMCPs')]) * OD_TO_CELL_COUNT *(yout.view(problem_WT.state_dtype)['G_MCP']
+#                                                                                 + yout.view(problem_WT.state_dtype)['H_MCP']
+#                                                                                 + yout.view(problem_WT.state_dtype)['P_MCP']
+#                                                                                 + yout.view(problem_WT.state_dtype)['HCoA_MCP']
+#                                                                                 + yout.view(problem_WT.state_dtype)['HPhosph_MCP']
+#                                                                                 + yout.view(problem_WT.state_dtype)['PduCDE_C']
+#                                                                                 + yout.view(problem_WT.state_dtype)[
 #                                                                                     'PduL_C']
-#                                                                                 + yout.view(problem.state_dtype)[
+#                                                                                 + yout.view(problem_WT.state_dtype)[
 #                                                                                     'PduQ_NADH_HPA']
-#                                                                                 + yout.view(problem.state_dtype)['PduP_NAD_HPA']))
+#                                                                                 + yout.view(problem_WT.state_dtype)['PduP_NAD_HPA']))
 
