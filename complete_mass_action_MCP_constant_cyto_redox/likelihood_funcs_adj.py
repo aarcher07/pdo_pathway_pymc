@@ -101,6 +101,7 @@ def likelihood_adj(params, fwd_rtol = 1e-8, fwd_atol=1e-8, mxsteps=int(1e4)):
             lik += ((TIME_SERIES_MEAN[exp_cond] - yout[::TIME_SPACING, DATA_INDEX]/TIME_SERIES_STD[exp_cond])**2).to_numpy().sum()
         except sunode.solver.SolverError:
             lik += np.nan
+    # print(lik)
     return lik
 
 
