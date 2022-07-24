@@ -51,8 +51,8 @@ def sample(nsamples, burn_in, nchains, acc_rate=0.8, fwd_rtol=1e-8, fwd_atol=1e-
 
         cofactor_params = [pm.TruncatedNormal(param_name, mu = COFACTOR_NUMBER_PARAMETER_MEAN[param_name],
                                              sigma = COFACTOR_NUMBER_PARAMETER_STD[param_name],
-                                              lower = COFACTOR_NUMBER_PARAMETER_RANGES[param_name][0]*0.25,
-                                              upper = COFACTOR_NUMBER_PARAMETER_RANGES[param_name][1]*1.75)
+                                              lower = COFACTOR_NUMBER_PARAMETER_RANGES[param_name][0],
+                                              upper = COFACTOR_NUMBER_PARAMETER_RANGES[param_name][1])
                           for param_name in COFACTOR_PARAMETERS]
 
         enzyme_init_WT = [pm.TruncatedNormal(param_name + '_WT', mu = PDU_WT_ENZ_NUMBERS_PARAMETER_MEAN[param_name],
