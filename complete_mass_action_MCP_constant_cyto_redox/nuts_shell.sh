@@ -13,7 +13,7 @@
 #SBATCH --error=err/pdu_constant_cyto__err_%A_%a
 
 nsamples=(1e3)
-burn_in=(2e3 3e3)
+burn_in=(1e4)
 nchains=2
 acc_rate=(0.6 0.78 0.8)
 fwd_rtol=(1e-8)

@@ -24,12 +24,12 @@ from plot_nuts_results_funcs import plot_loglik_individual, plot_loglik_overlay,
 
 nsamples = int(1e3)
 burn_in = int(2e3)
-nchains = 2
+nchains = 1
 acc_rate = 0.6
 fwd_atol = 1e-8
 fwd_rtol = 1e-8
 bck_atol = 1e-4
-bck_rtol = 1e-8
+bck_rtol = 1e-4
 mxsteps = 1e5
 init = 'adapt_diag'
 
@@ -40,7 +40,7 @@ directory_name = 'nsamples_' + str(nsamples) + '_burn_in_' + str(burn_in) + '_ac
                  '_bck_atol_' + str(bck_atol) + '_bck_rtol_' + str(bck_rtol) + '_mxsteps_' + str(int(mxsteps)) \
                  + '_initialization_' + init
 directory_name = directory_name.replace('.','_').replace('-','_').replace('+','_')
-file_name = '2022_07_23_02_11_24_214106.nc'
+file_name = '2022_07_24_13_24_08_585118.nc'
 data_file_location = os.path.join(PARAMETER_SAMP_PATH, directory_name, file_name)
 samples = az.from_netcdf(data_file_location)
 
@@ -56,8 +56,8 @@ Path(plot_file_location).mkdir(parents=True, exist_ok=True)
 # df = az.summary(samples)
 # df.to_csv(os.path.join(plot_file_location,'summary_stats.csv'),sep = ' ')
 # plot_trace(samples, plot_file_location)
-# plot_loglik_individual(samples.sample_stats.lp, plot_file_location, nchains)
-# plot_loglik_overlay(samples.sample_stats.lp, plot_file_location, nchains)
+plot_loglik_individual(samples.sample_stats.lp, plot_file_location, nchains)
+plot_loglik_overlay(samples.sample_stats.lp, plot_file_location, nchains)
 plot_time_series_distribution(samples, plot_file_location, nchains, fwd_atol, fwd_rtol, mxsteps)
 # plot_corr(samples, plot_file_location, nchains)
 # plot_corr_scatter(samples, plot_file_location, nchains)
