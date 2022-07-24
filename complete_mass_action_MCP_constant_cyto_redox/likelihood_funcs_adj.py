@@ -29,7 +29,6 @@ def likelihood_adj(params, fwd_rtol = 1e-8, fwd_atol=1e-8, mxsteps=int(1e4)):
 
     lik = 0
     for exp_cond in ['WT-L', 'dAJ-L', 'dD-L', 'dP-L']:
-
         # set solver
         if exp_cond in ['WT-L', 'dD-L', 'dP-L']:
             solver = solver_WT
@@ -98,10 +97,11 @@ def likelihood_adj(params, fwd_rtol = 1e-8, fwd_atol=1e-8, mxsteps=int(1e4)):
             #         plt.title(var)
             #         plt.show()
             #         jj+=1
-            lik += ((TIME_SERIES_MEAN[exp_cond] - yout[::TIME_SPACING, DATA_INDEX]/TIME_SERIES_STD[exp_cond])**2).to_numpy().sum()
+
+            lik += (((TIME_SERIES_MEAN[exp_cond] - yout[::TIME_SPACING, DATA_INDEX])/TIME_SERIES_STD[exp_cond])**2).to_numpy().sum()
         except sunode.solver.SolverError:
             lik += np.nan
-    # print(lik)
+    print(lik)
     return lik
 
 

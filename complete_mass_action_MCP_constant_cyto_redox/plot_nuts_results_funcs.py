@@ -58,6 +58,9 @@ def plot_loglik_overlay(loglik, plot_file_location, nchains):
 def plot_time_series_distribution(samples, plot_file_location, nchains, fwd_atol, fwd_rtol, mxsteps):
     lib.CVodeSStolerances(solver_delta_AJ._ode, fwd_rtol, fwd_atol)
     lib.CVodeSetMaxNumSteps(solver_delta_AJ._ode, int(mxsteps))
+    lib.CVodeSStolerances(solver_WT._ode, fwd_rtol, fwd_atol)
+    lib.CVodeSetMaxNumSteps(solver_WT._ode, int(mxsteps))
+
 
     c = ['r', 'y', 'b', 'g', 'k']
     legend_names = ['chain ' + str(i)  for i in range(min(5, nchains))]
@@ -73,7 +76,6 @@ def plot_time_series_distribution(samples, plot_file_location, nchains, fwd_atol
             param_list = [*DEV_PARAMETER_LIST[:-4], *[param + '_dAJ' for param in DEV_PARAMETER_LIST[-4:]]]
             solver = solver_delta_AJ
             problem = problem_delta_AJ
-        print(param_list)
         # set initial conditions
         y0 = np.zeros((), dtype=problem.state_dtype)
         for var in VARIABLE_NAMES:
@@ -95,55 +97,59 @@ def plot_time_series_distribution(samples, plot_file_location, nchains, fwd_atol
             for jj in range(4):
                 ax[jj, chain_ind].scatter(TIME_SAMPLES, TIME_SERIES_MEAN[exp_cond].iloc[:,jj])
 
-            for j in range(0,dataarray.shape[0],int(dataarray.shape[0]/500)):
+            for j in [-1]:#range(0,dataarray.shape[0],int(dataarray.shape[0]/500)):
+                y0_copy = y0.copy()
                 params = dataarray.iloc[j,:].to_numpy()
                 non_enz_model_params = params[:-4]
                 enz_params = params[-4:]
                 param_samples_copy = np.concatenate(
                     (non_enz_model_params, enz_params, list(OD_PRIOR_PARAMETER_MEAN[exp_cond].values())))
-
                 # alter initial conditions
                 if exp_cond in ['WT-L', 'dD-L', 'dP-L']:
-                    y0['NADH_MCP'] = (10**(param_samples_copy[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP')]
+                    y0_copy['NADH_MCP'] = (10**(param_samples_copy[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP')]
                                            + param_samples_copy[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')]))/(10**param_samples_copy[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')] + 1)
-                    y0['NAD_MCP'] = 10**param_samples_copy[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP')]/(10**param_samples_copy[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')] + 1)
-                    y0['PduCDE'] = 10**param_samples_copy[PARAMETER_LIST.index('nPduCDE')]/(Avogadro * MCP_VOLUME)
-                    y0['PduP'] = 10**param_samples_copy[PARAMETER_LIST.index('nPduP')]/(Avogadro * MCP_VOLUME)
-                    y0['PduQ'] = 10**param_samples_copy[PARAMETER_LIST.index('nPduQ')]/(Avogadro * MCP_VOLUME)
-                    y0['PduL'] = 10**param_samples_copy[PARAMETER_LIST.index('nPduL')]/(Avogadro * MCP_VOLUME)
-                    y0['OD'] = 10**param_samples_copy[PARAMETER_LIST.index('A')]
+                    y0_copy['NAD_MCP'] = 10**param_samples_copy[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP')]/(10**param_samples_copy[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')] + 1)
+                    y0_copy['PduCDE'] = 10**param_samples_copy[PARAMETER_LIST.index('nPduCDE')]/(Avogadro * MCP_VOLUME)
+                    y0_copy['PduP'] = 10**param_samples_copy[PARAMETER_LIST.index('nPduP')]/(Avogadro * MCP_VOLUME)
+                    y0_copy['PduQ'] = 10**param_samples_copy[PARAMETER_LIST.index('nPduQ')]/(Avogadro * MCP_VOLUME)
+                    y0_copy['PduL'] = 10**param_samples_copy[PARAMETER_LIST.index('nPduL')]/(Avogadro * MCP_VOLUME)
+                    y0_copy['OD'] = 10**param_samples_copy[PARAMETER_LIST.index('A')]
                 elif exp_cond == 'dAJ-L':
                     POLAR_VOLUME = (4./3.)*np.pi*((10**param_samples_copy[PARAMETER_LIST.index('AJ_radius')])**3)
-                    y0['NADH_MCP'] = (10**(param_samples_copy[PARAMETER_LIST.index('NADH_NAD_TOTAL_CYTO')]
+                    y0_copy['NADH_MCP'] = (10**(param_samples_copy[PARAMETER_LIST.index('NADH_NAD_TOTAL_CYTO')]
                                            + param_samples_copy[PARAMETER_LIST.index('NADH_NAD_RATIO_CYTO')]))/(10**param_samples_copy[PARAMETER_LIST.index('NADH_NAD_RATIO_CYTO')] + 1)
-                    y0['NAD_MCP'] = 10**param_samples_copy[PARAMETER_LIST.index('NADH_NAD_TOTAL_CYTO')]/(10**param_samples_copy[PARAMETER_LIST.index('NADH_NAD_RATIO_CYTO')] + 1)
-                    y0['PduCDE'] = param_samples_copy[PARAMETER_LIST.index('nMCPs')]*(10**param_samples_copy[PARAMETER_LIST.index('nPduCDE')])/(Avogadro * POLAR_VOLUME)
-                    y0['PduP'] = param_samples_copy[PARAMETER_LIST.index('nMCPs')]*(10**param_samples_copy[PARAMETER_LIST.index('nPduP')])/(Avogadro * POLAR_VOLUME)
-                    y0['PduQ'] = param_samples_copy[PARAMETER_LIST.index('nMCPs')]*(10**param_samples_copy[PARAMETER_LIST.index('nPduQ')])/(Avogadro * POLAR_VOLUME)
-                    y0['PduL'] = param_samples_copy[PARAMETER_LIST.index('nMCPs')]*(10**param_samples_copy[PARAMETER_LIST.index('nPduL')])/(Avogadro * POLAR_VOLUME)
-                    y0['OD'] = 10**param_samples_copy[PARAMETER_LIST.index('A')]
+                    y0_copy['NAD_MCP'] = 10**param_samples_copy[PARAMETER_LIST.index('NADH_NAD_TOTAL_CYTO')]/(10**param_samples_copy[PARAMETER_LIST.index('NADH_NAD_RATIO_CYTO')] + 1)
+                    y0_copy['PduCDE'] = param_samples_copy[PARAMETER_LIST.index('nMCPs')]*(10**param_samples_copy[PARAMETER_LIST.index('nPduCDE')])/(Avogadro * POLAR_VOLUME)
+                    y0_copy['PduP'] = param_samples_copy[PARAMETER_LIST.index('nMCPs')]*(10**param_samples_copy[PARAMETER_LIST.index('nPduP')])/(Avogadro * POLAR_VOLUME)
+                    y0_copy['PduQ'] = param_samples_copy[PARAMETER_LIST.index('nMCPs')]*(10**param_samples_copy[PARAMETER_LIST.index('nPduQ')])/(Avogadro * POLAR_VOLUME)
+                    y0_copy['PduL'] = param_samples_copy[PARAMETER_LIST.index('nMCPs')]*(10**param_samples_copy[PARAMETER_LIST.index('nPduL')])/(Avogadro * POLAR_VOLUME)
+                    y0_copy['OD'] = 10**param_samples_copy[PARAMETER_LIST.index('A')]
 
                 params_dict = { param_name : param_val for param_val,param_name in zip(param_samples_copy, PARAMETER_LIST)}
                 if exp_cond == 'dD-L':
-                    y0['PduCDE'] = 0
+                    y0_copy['PduCDE'] = 0
                     params_dict['nPduCDE'] = 0
                 elif exp_cond == 'dP-L':
-                    y0['PduP'] = 0
+                    y0_copy['PduP'] = 0
                     params_dict['nPduP'] = 0
-
                 # set solver parameters
                 solver.set_params_dict(params_dict)
                 tvals = TIME_SAMPLES*HRS_TO_SECS
                 yout, _, _ = solver.make_output_buffers(tvals)
 
                 try:
-                    solver.solve_forward(t0=0, tvals=tvals, y0=y0, y_out=yout)
+                    solver.solve_forward(t0=0, tvals=tvals, y0=y0_copy, y_out=yout)
                     jj=0
                     for i, var in enumerate(VARIABLE_NAMES):
                         if i in DATA_INDEX:
                             ax[jj, chain_ind].plot(tvals / HRS_TO_SECS, yout.view(problem.state_dtype)[var], 'r',
                                                   alpha=0.05)
                             jj += 1
+                    # print(TIME_SERIES_MEAN[exp_cond] - yout[:, DATA_INDEX])
+                    # print(TIME_SERIES_STD[exp_cond])
+                    # print(((TIME_SERIES_MEAN[exp_cond] - yout[:, DATA_INDEX])/TIME_SERIES_STD[exp_cond])**2)
+                    #
+                    # print((((TIME_SERIES_MEAN[exp_cond] - yout[:, DATA_INDEX])/TIME_SERIES_STD[exp_cond])**2).to_numpy().sum())
                 except sunode.solver.SolverError:
                     pass
             ax[0, chain_ind].set_title('Glycerol Time Series')
@@ -153,7 +159,8 @@ def plot_time_series_distribution(samples, plot_file_location, nchains, fwd_atol
 
         plt.suptitle('Experimental Condition ' + str(exp_cond))
         fig.tight_layout()
-        plt.savefig(os.path.join(plot_file_location, 'time_series_results_' + str(exp_cond) + '.png'))
+        plt.show()
+        #plt.savefig(os.path.join(plot_file_location, 'time_series_results_' + str(exp_cond) + '.png'))
 
 def plot_corr(data, directory_plot, nchains, thres=5e-2):
     for chain_ind in range(nchains):

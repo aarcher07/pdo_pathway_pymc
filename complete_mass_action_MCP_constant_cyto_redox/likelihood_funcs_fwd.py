@@ -96,7 +96,7 @@ def likelihood_fwd(params, fwd_rtol = 1e-8, fwd_atol=1e-8, mxsteps=int(1e4)):
             #         plt.title(var)
             #         plt.show()
             #         jj+=1
-            lik += ((TIME_SERIES_MEAN[exp_cond] - yout[:, DATA_INDEX]/TIME_SERIES_STD[exp_cond])**2).to_numpy().sum()
+            lik += (((TIME_SERIES_MEAN[exp_cond] - yout[:, DATA_INDEX])/TIME_SERIES_STD[exp_cond])**2).to_numpy().sum()
         except sunode.solver.SolverError:
             lik += np.nan
     return lik
