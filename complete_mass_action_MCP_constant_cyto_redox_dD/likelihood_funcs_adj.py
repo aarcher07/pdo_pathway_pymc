@@ -33,7 +33,7 @@ def likelihood_adj(params, fwd_rtol = 1e-8, fwd_atol=1e-8, mxsteps=int(1e4)):
     enz_params_dAJ = params[-4:]
 
     lik = 0
-    for exp_cond in ['WT-L', 'dAJ-L', 'dD-L', 'dP-L']:
+    for exp_cond in ['WT-L', 'dAJ-L']: #['WT-L', 'dAJ-L', 'dD-L', 'dP-L']:
         # set solver
         if exp_cond in ['WT-L', 'dP-L']:
             solver = solver_WT
@@ -141,7 +141,7 @@ def likelihood_derivative_adj(params, fwd_rtol = 1e-8, fwd_atol=1e-8,
     lik = 0
     lik_dev_params_adj = np.zeros(len(DEV_PARAMETER_LIST) + 4)
 
-    for exp_cond in ['WT-L', 'dAJ-L', 'dD-L', 'dP-L']:
+    for exp_cond in ['WT-L', 'dAJ-L']: #['WT-L', 'dAJ-L', 'dD-L', 'dP-L']:
 
         # set solver
         if exp_cond in ['WT-L', 'dP-L']:
