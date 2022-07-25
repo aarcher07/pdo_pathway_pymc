@@ -26,10 +26,10 @@ init=("adapt_diag")
 len_burn_in=${#burn_in[@]}
 len_acc_rate=${#acc_rate[@]}
 len_nsamples=${#nsamples[@]}
-len_fwd_rtol=${#rtol[@]}
-len_fwd_atol=${#atol[@]}
-len_bck_rtol=${#rtol[@]}
-len_bck_atol=${#atol[@]}
+len_fwd_rtol=${#fwd_rtol[@]}
+len_fwd_atol=${#fwd_atol[@]}
+len_bck_rtol=${#bck_rtol[@]}
+len_bck_atol=${#bck_atol[@]}
 len_init=${#init[@]}
 
 sublen_init_burn_in=$(($len_init * $len_burn_in))
