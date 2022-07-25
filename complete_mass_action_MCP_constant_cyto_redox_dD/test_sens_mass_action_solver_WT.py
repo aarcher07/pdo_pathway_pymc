@@ -59,6 +59,7 @@ y0['PduL'] = 10**param_sample[PARAMETER_LIST.index('nPduL')]/(Avogadro * MCP_VOL
 y0['OD'] = 10**param_sample[PARAMETER_LIST.index('A')]
 print(y0)
 params_dict = { param_name : param_val for param_val,param_name in zip(param_sample, PARAMETER_LIST)}
+
 # # We can also specify the parameters by name:
 solver.set_params_dict(params_dict)
 yout, grad_out, lambda_out = solver.make_output_buffers(tvals)

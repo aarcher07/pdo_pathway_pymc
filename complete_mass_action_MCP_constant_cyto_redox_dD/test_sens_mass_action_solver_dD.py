@@ -6,7 +6,7 @@ import pickle
 from exp_data_13pd import *
 from prior_constants import *
 import time
-from rhs_dAJ import RHS_dAJ, problem_dAJ
+from rhs_dD import RHS_dD, problem_dD
 from scipy.constants import Avogadro
 # The solver generates uses numba and sympy to generate optimized C functions
 
@@ -16,8 +16,8 @@ from scipy.constants import Avogadro
 #################################################### ADJOINT SOLVER ####################################################
 ########################################################################################################################
 lib = sunode._cvodes.lib
-problem=problem_dAJ
-solver = sunode.solver.AdjointSolver(problem_dAJ, solver='BDF')
+problem=problem_dD
+solver = sunode.solver.AdjointSolver(problem_dD, solver='BDF')
 lib.CVodeSStolerances(solver._ode, 1e-8, 1e-8)
 lib.CVodeSStolerancesB(solver._ode, solver._odeB, 1e-4, 1e-4)
 lib.CVodeQuadSStolerancesB(solver._ode, solver._odeB, 1e-4, 1e-4)
@@ -32,7 +32,7 @@ param_sample = np.array([*CELL_PERMEABILITY_MEAN.values(),
                                    + MCP_RADIUS*(10**(GEOMETRY_PARAMETER_MEAN['nMCPs']/2.)))/2),
                          *COFACTOR_NUMBER_PARAMETER_MEAN.values(),
                          *dPDU_AJ_ENZ_NUMBER_PARAMETER_MEAN.values(),
-                         *list(OD_PRIOR_PARAMETER_MEAN['dAJ-L'].values())
+                         *list(OD_PRIOR_PARAMETER_MEAN['dD-L'].values())
                          ])
 POLAR_VOLUME = (4./3.)*np.pi*((10**param_sample[PARAMETER_LIST.index('AJ_radius')])**3)
 lik_dev_params = np.zeros(len(DEV_PARAMETER_LIST))
@@ -40,15 +40,15 @@ time_tot = 0
 y0 = np.zeros((), dtype=problem.state_dtype)
 for var in VARIABLE_NAMES:
     y0[var] = 0
-y0['G_EXT'] = TIME_SERIES_MEAN['dAJ-L']['glycerol'][0]
-y0['G_CYTO'] = TIME_SERIES_MEAN['dAJ-L']['glycerol'][0]
-y0['G_MCP'] = TIME_SERIES_MEAN['dAJ-L']['glycerol'][0]
-y0['H_EXT'] = TIME_SERIES_MEAN['dAJ-L']['3-HPA'][0]
-y0['H_CYTO'] = TIME_SERIES_MEAN['dAJ-L']['3-HPA'][0]
-y0['H_MCP'] = TIME_SERIES_MEAN['dAJ-L']['3-HPA'][0]
-y0['P_EXT'] = TIME_SERIES_MEAN['dAJ-L']['13PD'][0]
-y0['P_CYTO'] = TIME_SERIES_MEAN['dAJ-L']['13PD'][0]
-y0['P_MCP'] = TIME_SERIES_MEAN['dAJ-L']['13PD'][0]
+y0['G_EXT'] = TIME_SERIES_MEAN['dD-L']['glycerol'][0]
+y0['G_CYTO'] = TIME_SERIES_MEAN['dD-L']['glycerol'][0]
+y0['G_MCP'] = TIME_SERIES_MEAN['dD-L']['glycerol'][0]
+y0['H_EXT'] = TIME_SERIES_MEAN['dD-L']['3-HPA'][0]
+y0['H_CYTO'] = TIME_SERIES_MEAN['dD-L']['3-HPA'][0]
+y0['H_MCP'] = TIME_SERIES_MEAN['dD-L']['3-HPA'][0]
+y0['P_EXT'] = TIME_SERIES_MEAN['dD-L']['13PD'][0]
+y0['P_CYTO'] = TIME_SERIES_MEAN['dD-L']['13PD'][0]
+y0['P_MCP'] = TIME_SERIES_MEAN['dD-L']['13PD'][0]
 y0['NADH_MCP'] = (10**(param_sample[PARAMETER_LIST.index('NADH_NAD_TOTAL_CYTO')] + param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_CYTO')]))/(10**param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_CYTO')] + 1)
 y0['NAD_MCP'] = 10**param_sample[PARAMETER_LIST.index('NADH_NAD_TOTAL_CYTO')]/(10**param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_CYTO')] + 1)
 y0['PduCDE'] = param_sample[PARAMETER_LIST.index('nMCPs')]*(10**param_sample[PARAMETER_LIST.index('nPduCDE')])/(Avogadro * POLAR_VOLUME)
@@ -58,13 +58,15 @@ y0['PduL'] = param_sample[PARAMETER_LIST.index('nMCPs')]*(10**param_sample[PARAM
 # y0['PduW'] = 10**param_sample[PARAMETER_LIST.index('nPduW')]/(Avogadro * POLAR_VOLUME)
 y0['OD'] = 10**param_sample[PARAMETER_LIST.index('A')]
 params_dict = { param_name : param_val for param_val,param_name in zip(param_sample, PARAMETER_LIST)}
+y0['PduCDE'] = 0
+params_dict['nPduCDE'] = 0
 # # We can also specify the parameters by name:
 solver.set_params_dict(params_dict)
 yout, grad_out, lambda_out = solver.make_output_buffers(tvals)
 
 # # initial sensitivities
 sens0 = np.zeros((len(DEV_PARAMETER_LIST),len(VARIABLE_NAMES)))
-sens0[PARAMETER_LIST.index('nPduCDE'), VARIABLE_NAMES.index('PduCDE')] = param_sample[PARAMETER_LIST.index('nMCPs')]*np.log(10)*(10**param_sample[PARAMETER_LIST.index('nPduCDE')])/(Avogadro * POLAR_VOLUME)
+sens0[PARAMETER_LIST.index('nPduCDE'), VARIABLE_NAMES.index('PduCDE')] = 0
 sens0[PARAMETER_LIST.index('nPduP'), VARIABLE_NAMES.index('PduP')] = param_sample[PARAMETER_LIST.index('nMCPs')]*np.log(10)*(10**param_sample[PARAMETER_LIST.index('nPduP')])/(Avogadro * POLAR_VOLUME)
 sens0[PARAMETER_LIST.index('nPduQ'), VARIABLE_NAMES.index('PduQ')] = param_sample[PARAMETER_LIST.index('nMCPs')]*np.log(10)*(10**param_sample[PARAMETER_LIST.index('nPduQ')])/(Avogadro * POLAR_VOLUME)
 sens0[PARAMETER_LIST.index('nPduL'), VARIABLE_NAMES.index('PduL')] = param_sample[PARAMETER_LIST.index('nMCPs')]*np.log(10)*(10**param_sample[PARAMETER_LIST.index('nPduL')])/(Avogadro * POLAR_VOLUME)
@@ -95,8 +97,8 @@ time_total += (time_end-time_start)/60
 jj = 0
 for i,var in enumerate(VARIABLE_NAMES):
     if i in DATA_INDEX:
-        plt.plot(TIME_SAMPLES_EXPANDED, yout.view(problem_dAJ.state_dtype)[var])
-        plt.scatter(TIME_SAMPLES_EXPANDED[::TIME_SPACING], TIME_SERIES_MEAN['dAJ-L'].iloc[:,jj])
+        plt.plot(TIME_SAMPLES_EXPANDED, yout.view(problem_dD.state_dtype)[var])
+        plt.scatter(TIME_SAMPLES_EXPANDED[::TIME_SPACING], TIME_SERIES_MEAN['dD-L'].iloc[:,jj])
         jj += 1
         plt.title(var)
         plt.show()
@@ -129,7 +131,7 @@ print( EXTERNAL_VOLUME*(yout.view(problem.state_dtype)['G_EXT'] + yout.view(prob
                                                                                 + yout.view(problem.state_dtype)['PduP_NAD_HPA']))
 
 grads = np.zeros_like(yout)
-lik_dev = (TIME_SERIES_MEAN['dAJ-L'] - yout[::TIME_SPACING, DATA_INDEX])/(TIME_SERIES_STD['dAJ-L'])**2
+lik_dev = (TIME_SERIES_MEAN['dD-L'] - yout[::TIME_SPACING, DATA_INDEX])/(TIME_SERIES_STD['dD-L'])**2
 grads[::TIME_SPACING, DATA_INDEX] = lik_dev
 
 # backsolve
@@ -162,7 +164,7 @@ time_end = time.time()
 time_tot += (time_end-time_start)/60
 print(time_tot)
 
-lik_dev = (TIME_SERIES_MEAN['dAJ-L'] - yout[:, DATA_INDEX])/(TIME_SERIES_STD['dAJ-L'])**2
+lik_dev = (TIME_SERIES_MEAN['dD-L'] - yout[:, DATA_INDEX])/(TIME_SERIES_STD['dD-L'])**2
 lik_dev_zeros = np.zeros_like(sens_out[:,0,:])
 lik_dev_zeros[:,DATA_INDEX] = lik_dev
 for j,param in enumerate(DEV_PARAMETER_LIST):
