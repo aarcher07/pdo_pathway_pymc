@@ -34,6 +34,10 @@ param_sample = np.array([*CELL_PERMEABILITY_MEAN.values(),
                          *dPDU_AJ_ENZ_NUMBER_PARAMETER_MEAN.values(),
                          *list(OD_PRIOR_PARAMETER_MEAN['dAJ-L'].values())
                          ])
+
+param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_CYTO')] = 1/20
+param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')] = 1/20
+
 POLAR_VOLUME = (4./3.)*np.pi*((10**param_sample[PARAMETER_LIST.index('AJ_radius')])**3)
 lik_dev_params = np.zeros(len(DEV_PARAMETER_LIST))
 time_tot = 0
@@ -51,10 +55,10 @@ y0['P_CYTO'] = TIME_SERIES_MEAN['dAJ-L']['13PD'][0]
 y0['P_MCP'] = TIME_SERIES_MEAN['dAJ-L']['13PD'][0]
 y0['NADH_MCP'] = (10**(param_sample[PARAMETER_LIST.index('NADH_NAD_TOTAL_CYTO')] + param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_CYTO')]))/(10**param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_CYTO')] + 1)
 y0['NAD_MCP'] = 10**param_sample[PARAMETER_LIST.index('NADH_NAD_TOTAL_CYTO')]/(10**param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_CYTO')] + 1)
-y0['PduCDE'] = param_sample[PARAMETER_LIST.index('nMCPs')]*(10**param_sample[PARAMETER_LIST.index('nPduCDE')])/(Avogadro * POLAR_VOLUME)
-y0['PduP'] = param_sample[PARAMETER_LIST.index('nMCPs')]*(10**param_sample[PARAMETER_LIST.index('nPduP')])/(Avogadro * POLAR_VOLUME)
-y0['PduQ'] = param_sample[PARAMETER_LIST.index('nMCPs')]*(10**param_sample[PARAMETER_LIST.index('nPduQ')])/(Avogadro * POLAR_VOLUME)
-y0['PduL'] = param_sample[PARAMETER_LIST.index('nMCPs')]*(10**param_sample[PARAMETER_LIST.index('nPduL')])/(Avogadro * POLAR_VOLUME)
+y0['PduCDE'] = (10**(param_sample[PARAMETER_LIST.index('nPduCDE')] + param_sample[PARAMETER_LIST.index('nMCPs')]))/(Avogadro * POLAR_VOLUME)
+y0['PduP'] = (10**(param_sample[PARAMETER_LIST.index('nPduP')] + param_sample[PARAMETER_LIST.index('nMCPs')]))/(Avogadro * POLAR_VOLUME)
+y0['PduQ'] = (10**(param_sample[PARAMETER_LIST.index('nPduQ')] + param_sample[PARAMETER_LIST.index('nMCPs')]))/(Avogadro * POLAR_VOLUME)
+y0['PduL'] = (10**(param_sample[PARAMETER_LIST.index('nPduL')] + param_sample[PARAMETER_LIST.index('nMCPs')]))/(Avogadro * POLAR_VOLUME)
 # y0['PduW'] = 10**param_sample[PARAMETER_LIST.index('nPduW')]/(Avogadro * POLAR_VOLUME)
 y0['OD'] = 10**param_sample[PARAMETER_LIST.index('A')]
 params_dict = { param_name : param_val for param_val,param_name in zip(param_sample, PARAMETER_LIST)}
@@ -64,27 +68,26 @@ yout, grad_out, lambda_out = solver.make_output_buffers(tvals)
 
 # # initial sensitivities
 sens0 = np.zeros((len(DEV_PARAMETER_LIST),len(VARIABLE_NAMES)))
-sens0[PARAMETER_LIST.index('nPduCDE'), VARIABLE_NAMES.index('PduCDE')] = param_sample[PARAMETER_LIST.index('nMCPs')]*np.log(10)*(10**param_sample[PARAMETER_LIST.index('nPduCDE')])/(Avogadro * POLAR_VOLUME)
-sens0[PARAMETER_LIST.index('nPduP'), VARIABLE_NAMES.index('PduP')] = param_sample[PARAMETER_LIST.index('nMCPs')]*np.log(10)*(10**param_sample[PARAMETER_LIST.index('nPduP')])/(Avogadro * POLAR_VOLUME)
-sens0[PARAMETER_LIST.index('nPduQ'), VARIABLE_NAMES.index('PduQ')] = param_sample[PARAMETER_LIST.index('nMCPs')]*np.log(10)*(10**param_sample[PARAMETER_LIST.index('nPduQ')])/(Avogadro * POLAR_VOLUME)
-sens0[PARAMETER_LIST.index('nPduL'), VARIABLE_NAMES.index('PduL')] = param_sample[PARAMETER_LIST.index('nMCPs')]*np.log(10)*(10**param_sample[PARAMETER_LIST.index('nPduL')])/(Avogadro * POLAR_VOLUME)
+sens0[PARAMETER_LIST.index('nPduCDE'), VARIABLE_NAMES.index('PduCDE')] = np.log(10)*(10**(param_sample[PARAMETER_LIST.index('nPduCDE')] + param_sample[PARAMETER_LIST.index('nMCPs')]))/(Avogadro * POLAR_VOLUME)
+sens0[PARAMETER_LIST.index('nPduP'), VARIABLE_NAMES.index('PduP')] = np.log(10)*(10**(param_sample[PARAMETER_LIST.index('nPduP')]+param_sample[PARAMETER_LIST.index('nMCPs')]))/(Avogadro * POLAR_VOLUME)
+sens0[PARAMETER_LIST.index('nPduQ'), VARIABLE_NAMES.index('PduQ')] = np.log(10)*(10**(param_sample[PARAMETER_LIST.index('nPduQ')]+param_sample[PARAMETER_LIST.index('nMCPs')]))/(Avogadro * POLAR_VOLUME)
+sens0[PARAMETER_LIST.index('nPduL'), VARIABLE_NAMES.index('PduL')] = np.log(10)*(10**(param_sample[PARAMETER_LIST.index('nPduL')]+param_sample[PARAMETER_LIST.index('nMCPs')]))/(Avogadro * POLAR_VOLUME)
 # sens0[PARAMETER_LIST.index('nPduW'), VARIABLE_NAMES.index('PduW')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('nPduW')])/(Avogadro * POLAR_VOLUME)
 
-sens0[PARAMETER_LIST.index('AJ_radius'), VARIABLE_NAMES.index('PduCDE')] = -3*np.log(10)*param_sample[PARAMETER_LIST.index('nMCPs')]*(10**param_sample[PARAMETER_LIST.index('nPduCDE')])/(Avogadro * POLAR_VOLUME)
-sens0[PARAMETER_LIST.index('AJ_radius'), VARIABLE_NAMES.index('PduP')] = -3*np.log(10)*param_sample[PARAMETER_LIST.index('nMCPs')]*(10**param_sample[PARAMETER_LIST.index('nPduP')])/(Avogadro * POLAR_VOLUME)
-sens0[PARAMETER_LIST.index('AJ_radius'), VARIABLE_NAMES.index('PduQ')] = -3*np.log(10)*param_sample[PARAMETER_LIST.index('nMCPs')]*(10**param_sample[PARAMETER_LIST.index('nPduQ')])/(Avogadro * POLAR_VOLUME)
-sens0[PARAMETER_LIST.index('AJ_radius'), VARIABLE_NAMES.index('PduL')] = -3*np.log(10)*param_sample[PARAMETER_LIST.index('nMCPs')]*(10**param_sample[PARAMETER_LIST.index('nPduL')])/(Avogadro * POLAR_VOLUME)
+sens0[PARAMETER_LIST.index('AJ_radius'), VARIABLE_NAMES.index('PduCDE')] = -3*np.log(10)*(10**(param_sample[PARAMETER_LIST.index('nPduCDE')] + param_sample[PARAMETER_LIST.index('nMCPs')]))/(Avogadro * POLAR_VOLUME)
+sens0[PARAMETER_LIST.index('AJ_radius'), VARIABLE_NAMES.index('PduP')] = -3*np.log(10)*(10**(param_sample[PARAMETER_LIST.index('nPduP')] + param_sample[PARAMETER_LIST.index('nMCPs')]))/(Avogadro * POLAR_VOLUME)
+sens0[PARAMETER_LIST.index('AJ_radius'), VARIABLE_NAMES.index('PduQ')] = -3*np.log(10)*(10**(param_sample[PARAMETER_LIST.index('nPduQ')] + param_sample[PARAMETER_LIST.index('nMCPs')]))/(Avogadro * POLAR_VOLUME)
+sens0[PARAMETER_LIST.index('AJ_radius'), VARIABLE_NAMES.index('PduL')] = -3*np.log(10)*(10**(param_sample[PARAMETER_LIST.index('nPduL')] + param_sample[PARAMETER_LIST.index('nMCPs')]))/(Avogadro * POLAR_VOLUME)
 
-sens0[PARAMETER_LIST.index('nMCPs'), VARIABLE_NAMES.index('PduCDE')] = (10**param_sample[PARAMETER_LIST.index('nPduCDE')])/(Avogadro * POLAR_VOLUME)
-sens0[PARAMETER_LIST.index('nMCPs'), VARIABLE_NAMES.index('PduP')] = (10**param_sample[PARAMETER_LIST.index('nPduP')])/(Avogadro * POLAR_VOLUME)
-sens0[PARAMETER_LIST.index('nMCPs'), VARIABLE_NAMES.index('PduQ')] = (10**param_sample[PARAMETER_LIST.index('nPduQ')])/(Avogadro * POLAR_VOLUME)
-sens0[PARAMETER_LIST.index('nMCPs'), VARIABLE_NAMES.index('PduL')] = (10**param_sample[PARAMETER_LIST.index('nPduL')])/(Avogadro * POLAR_VOLUME)
+sens0[PARAMETER_LIST.index('nMCPs'), VARIABLE_NAMES.index('PduCDE')] = np.log(10)*(10**(param_sample[PARAMETER_LIST.index('nPduCDE')] + param_sample[PARAMETER_LIST.index('nMCPs')]))/(Avogadro * POLAR_VOLUME)
+sens0[PARAMETER_LIST.index('nMCPs'), VARIABLE_NAMES.index('PduP')] = np.log(10)*(10**(param_sample[PARAMETER_LIST.index('nPduP')] + param_sample[PARAMETER_LIST.index('nMCPs')]))/(Avogadro * POLAR_VOLUME)
+sens0[PARAMETER_LIST.index('nMCPs'), VARIABLE_NAMES.index('PduQ')] = np.log(10)*(10**(param_sample[PARAMETER_LIST.index('nPduQ')] + param_sample[PARAMETER_LIST.index('nMCPs')]))/(Avogadro * POLAR_VOLUME)
+sens0[PARAMETER_LIST.index('nMCPs'), VARIABLE_NAMES.index('PduL')] = np.log(10)*(10**(param_sample[PARAMETER_LIST.index('nPduL')] + param_sample[PARAMETER_LIST.index('nMCPs')]))/(Avogadro * POLAR_VOLUME)
 
-sens0[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP'), VARIABLE_NAMES.index('NADH_MCP')] = np.log(10)*(10**(param_sample[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP')] + param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')]))/(10**param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')] + 1)
-sens0[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP'), VARIABLE_NAMES.index('NADH_MCP')] = np.log(10)*(10**(param_sample[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP')] + param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')]))/(10**param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')] + 1)**2
-sens0[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP'), VARIABLE_NAMES.index('NAD_MCP')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP')])/(10**param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')] + 1)
-sens0[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP'), VARIABLE_NAMES.index('NAD_MCP')] = -np.log(10)*(10**(param_sample[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP')] + param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')]))/(10**param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')] + 1)**2
-
+sens0[PARAMETER_LIST.index('NADH_NAD_TOTAL_CYTO'), VARIABLE_NAMES.index('NADH_MCP')] = np.log(10)*(10**(param_sample[PARAMETER_LIST.index('NADH_NAD_TOTAL_CYTO')] + param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_CYTO')]))/(10**param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_CYTO')] + 1)
+sens0[PARAMETER_LIST.index('NADH_NAD_RATIO_CYTO'), VARIABLE_NAMES.index('NADH_MCP')] = np.log(10)*(10**(param_sample[PARAMETER_LIST.index('NADH_NAD_TOTAL_CYTO')] + param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_CYTO')]))/(10**param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_CYTO')] + 1)**2
+sens0[PARAMETER_LIST.index('NADH_NAD_TOTAL_CYTO'), VARIABLE_NAMES.index('NAD_MCP')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('NADH_NAD_TOTAL_CYTO')])/(10**param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_CYTO')] + 1)
+sens0[PARAMETER_LIST.index('NADH_NAD_RATIO_CYTO'), VARIABLE_NAMES.index('NAD_MCP')] = -np.log(10)*(10**(param_sample[PARAMETER_LIST.index('NADH_NAD_TOTAL_CYTO')] + param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_CYTO')]))/(10**param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_CYTO')] + 1)**2
 solver.solve_forward(t0=0, tvals=tvals, y0=y0, y_out=yout) # first run always takes longer
 time_total = 0
 time_start = time.time()
@@ -94,12 +97,12 @@ time_total += (time_end-time_start)/60
 
 jj = 0
 for i,var in enumerate(VARIABLE_NAMES):
+    plt.plot(TIME_SAMPLES_EXPANDED, yout.view(problem_dAJ.state_dtype)[var])
     if i in DATA_INDEX:
-        plt.plot(TIME_SAMPLES_EXPANDED, yout.view(problem_dAJ.state_dtype)[var])
         plt.scatter(TIME_SAMPLES_EXPANDED[::TIME_SPACING], TIME_SERIES_MEAN['dAJ-L'].iloc[:,jj])
         jj += 1
-        plt.title(var)
-        plt.show()
+    plt.title(var)
+    plt.show()
 
 print(yout.view(problem.state_dtype)['PduCDE'] + yout.view(problem.state_dtype)['PduCDE_C'])
 print(yout.view(problem.state_dtype)['PduQ'] + yout.view(problem.state_dtype)['PduQ_NADH']

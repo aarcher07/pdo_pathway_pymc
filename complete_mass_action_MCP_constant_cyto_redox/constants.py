@@ -12,9 +12,8 @@ CELL_VOLUME = 4 * np.pi / 3 * (CELL_RADIUS) ** 3 + np.pi * (CELL_LENGTH - 2 * CE
 
 HRS_TO_SECS = 60 * 60
 # DCW to CELL CONCENTRATION
-OD_TO_DCW = 0.1  # grams of cell dry weight/L per 1 OD
 OD_TO_CELL_CONCENTRATION = 1e15  # number of cell/m^3 per 1 OD
-EXTERNAL_VOLUME = 0.002  # external volume from experiment
+EXTERNAL_VOLUME = 5e-6  # external volume from experiment
 OD_TO_CELL_COUNT = OD_TO_CELL_CONCENTRATION * EXTERNAL_VOLUME  # number of cells per OD
 
 MCP_RADIUS = 7.e-8  # in metres

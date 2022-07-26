@@ -32,7 +32,7 @@ print('lik fwd: ' + str(lik_fwd))
 print('time fwd: ' +  str((time_end_fwd - time_start_fwd)/60))
 
 time_start_adj = time.time()
-dev_adj = likelihood_derivative_adj(param_sample, bck_rtol=1e-4, bck_atol=1e-4, mxsteps=int(1e5))
+dev_adj = likelihood_derivative_adj(param_sample, bck_rtol=1e-6, bck_atol=1e-6, mxsteps=int(1e5))
 time_end_adj = time.time()
 
 time_start_fwd = time.time()
