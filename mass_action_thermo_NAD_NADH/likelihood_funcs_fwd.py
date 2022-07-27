@@ -11,13 +11,14 @@ from prior_constants import NORM_PRIOR_STD_RT_SINGLE_EXP,NORM_PRIOR_MEAN_SINGLE_
 import time
 from rhs_funcs import RHS, lib, problem
 
+solver_no_sens = sunode.solver.Solver(problem, solver='BDF', sens_mode=None)
+solver = sunode.solver.Solver(problem, solver='BDF', sens_mode='simultaneous')
 
 def likelihood_fwd(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
-    solver = sunode.solver.Solver(problem, solver='BDF', sens_mode=None)
 
-    # set solver parameters
-    lib.CVodeSStolerances(solver._ode, atol, rtol)
-    lib.CVodeSetMaxNumSteps(solver._ode, mxsteps)
+    # set solver_no_sens parameters
+    lib.CVodeSStolerances(solver_no_sens._ode, atol, rtol)
+    lib.CVodeSetMaxNumSteps(solver_no_sens._ode, mxsteps)
 
     # initialize
     loglik = 0
@@ -56,12 +57,12 @@ def likelihood_fwd(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
 
         params_dict = { param_name:param_val for param_val,param_name in zip(param_sample, PARAMETER_LIST)}
         # # We can also specify the parameters by name:
-        solver.set_params_dict(params_dict)
+        solver_no_sens.set_params_dict(params_dict)
 
-        yout = solver.make_output_buffers(tvals)
+        yout = solver_no_sens.make_output_buffers(tvals)
 
         try:
-            solver.solve(t0=0, tvals=tvals, y0=y0, y_out=yout)
+            solver_no_sens.solve(t0=0, tvals=tvals, y0=y0, y_out=yout)
             # jj=0
             # for i,var in enumerate(VARIABLE_NAMES):
             #     if i in DATA_INDEX:
@@ -76,7 +77,6 @@ def likelihood_fwd(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
 
 
 def likelihood_derivative_fwd(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
-    solver = sunode.solver.Solver(problem, solver='BDF', sens_mode='simultaneous')
 
     # set solver parameters
     lib.CVodeSStolerances(solver._ode, atol, rtol)

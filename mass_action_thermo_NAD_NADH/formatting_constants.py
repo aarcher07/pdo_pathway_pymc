@@ -1,9 +1,11 @@
 from constants import DCW_CONSTANTS
 
 # teX names for parameters
-MODEL_PARAMS_TO_TEX = {'PermCellGlycerol':r'$P_G$',
-                       'PermCellPDO':r'$P_P$',
-                       'PermCell3HPA':r'$P_H$',
+MODEL_PARAMS_TO_TEX = {'PermCellGlycerol':r'$P_{\mathrm{G}}$',
+                       'PermCellPDO':r'$P_{\mathrm{P}}$',
+                       'PermCell3HPA':r'$P_{\mathrm{H}}$',
+                       'PermCellDHA': r'$P_{\mathrm{DHA}}$',
+
                        'k1DhaB': r'$k_{1,\mathrm{DhaB}}$',
                        'k2DhaB': r'$k_{2,\mathrm{DhaB}}$',
                        'k3DhaB': r'$k_{3,\mathrm{DhaB}}$',
@@ -16,12 +18,24 @@ MODEL_PARAMS_TO_TEX = {'PermCellGlycerol':r'$P_G$',
                        'k6DhaT': r'$k_{6,\mathrm{DhaT}}$',
                        'k7DhaT': r'$k_{7,\mathrm{DhaT}}$',
                        'KeqDhaT': r'$K_{eq}^{\mathrm{DhaT}}$',
-                       'VmaxfDhaK': r'$V_{\mathrm{max,Metab}}^{f}$',
                        'k1E0': r'$k_{1,\mathrm{E0}}$',
                        'k2E0': r'$k_{2,\mathrm{E0}}$',
                        'k3E0': r'$k_{3,\mathrm{E0}}$',
                        'k4E0': r'$k_{4,\mathrm{E0}}$',
-                       'KmDhaK': r'$K_{\mathrm{M,Metab}}^{G}$'}
+                       'VmaxfDhaK': r'$V_{\mathrm{max,DhaK}}^{f}$',
+                       'KmDhaK': r'$K_{\mathrm{M,DhaK}}^{G}$',
+                       'kcatfDhaB': r'$k_{\mathrm{cat,DhaB}}^{f}$',
+                       'KmGlycerolDhaB': r'$K_{\mathrm{M,DhaB}}^{\mathrm{Glycerol}}$',
+                       'kcatrDhaB': r'$k_{\mathrm{cat,DhaB}}^{r}$',
+                       'KmHPADhaB': r'$K_{\mathrm{M,DhaB}}^{\mathrm{HPA}}$',
+                       'kcatfDhaT': r'$k_{\mathrm{cat,DhaT}}^{f}$',
+                       'KmHPADhaT': r'$K_{\mathrm{M,DhaT}}^{\mathrm{HPA}}$',
+                       'KmNADHDhaT': r'$K_{\mathrm{M,DhaT}}^{\mathrm{NADH}}$',
+                       'kcatrDhaT': r'$k_{\mathrm{cat,DhaT}}^{r}$',
+                       'KmPDODhaT': r'$K_{\mathrm{M,DhaT}}^{\mathrm{PDO}}$',
+                       'KmNADDhaT': r'$K_{\mathrm{M,DhaT}}^{\mathrm{NAD}}$'
+
+                       }
 
 ENZ_INIT_TO_TEX = {'DHAB_INIT': r"$[\mathrm{DhaB}](0)$",
                      'DHAT_INIT': r"$[\mathrm{DhaT}](0)$",

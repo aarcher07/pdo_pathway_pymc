@@ -35,9 +35,9 @@ from plot_nuts_results_funcs import plot_loglik_individual, plot_loglik_overlay,
     plot_time_series_distribution, joint_Keq_distribution, plot_trace
 
 nsamples = int(3e3)
-burn_in = int(3e3)
+burn_in = int(4e3)
 nchains = 2
-acc_rate = 0.8
+acc_rate = 0.75
 atol = 1e-8
 rtol = 1e-8
 mxsteps = 1e5
@@ -49,7 +49,7 @@ directory_name = 'nsamples_' + str(nsamples) + '_burn_in_' + str(burn_in) + '_ac
                  '_nchains_' + str(nchains) + '_atol_' + str(atol) + '_rtol_' + str(rtol) + '_mxsteps_' +\
                  str(int(mxsteps))  + '_initialization_' + init
 directory_name = directory_name.replace('.','_').replace('-','_').replace('+','_')
-file_name = '2022_07_14_01_23_47_569693.nc'
+file_name = '2022_07_17_00_45_42_821248.nc'
 data_file_location = os.path.join(PARAMETER_SAMP_PATH, directory_name, file_name)
 samples = az.from_netcdf(data_file_location)
 
