@@ -79,11 +79,20 @@ PLOT_PARAMETERS = [*PERMEABILITY_PARAMETERS, 'kcatfDhaB', 'KmGlycerolDhaB', 'kca
 DATA_INDEX = [VARIABLE_NAMES.index('G_EXT'), VARIABLE_NAMES.index('P_EXT'), VARIABLE_NAMES.index('dcw')]
 TIME_SAMPLES_EXPANDED = {}
 TIME_SPACING = 15 # TODO: CHANGE TO 15 for _HPA.py and 5 _HPA_2.py
+TIME_SPACING_HPA = 100 # TODO: CHANGE TO 15 for _HPA.py and 5 _HPA_2.py
+
 for exp_cond, time_samps in TIME_SAMPLES.items():
     time_samps_expanded = [np.linspace(time_samps[i],time_samps[i+1],num=TIME_SPACING, endpoint=False) for i in range(len(time_samps)-1)]
     time_samps_expanded = list(np.concatenate(time_samps_expanded))
     time_samps_expanded.append(time_samps[-1])
     TIME_SAMPLES_EXPANDED[exp_cond] = np.array(time_samps_expanded)
+
+TIME_SAMPLES_EXPANDED_HPA = {}
+for exp_cond, time_samps in TIME_SAMPLES.items():
+    time_samps_expanded = [np.linspace(time_samps[i],time_samps[i+1],num=TIME_SPACING_HPA, endpoint=False) for i in range(len(time_samps)-1)]
+    time_samps_expanded = list(np.concatenate(time_samps_expanded))
+    time_samps_expanded.append(time_samps[-1])
+    TIME_SAMPLES_EXPANDED_HPA[exp_cond] = np.array(time_samps_expanded)
 
 N_MODEL_PARAMETERS = len(MODEL_CONSTANTS) + len(INIT_CONSTANTS) - 1
 N_DCW_PARAMETERS = 3

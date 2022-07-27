@@ -70,7 +70,7 @@ def likelihood_adj(param_vals, fwd_rtol = 1e-8, fwd_atol=1e-8, fwd_mxsteps=int(1
             loglik += -0.5*(((DATA_SAMPLES[gly_cond]-yout[:, DATA_INDEX])/np.array([15,15,0.1]))**2).sum()
         except sunode.solver.SolverError:
             loglik += np.nan
-        print(loglik)
+    print(loglik)
     return loglik
 
 

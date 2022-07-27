@@ -11,13 +11,14 @@ from prior_constants import NORM_PRIOR_STD_RT_SINGLE_EXP,NORM_PRIOR_MEAN_SINGLE_
 import time
 from rhs_funcs import RHS, lib, problem
 
+solver_no_sens = sunode.solver.Solver(problem, solver='BDF', sens_mode=None)
+solver = sunode.solver.Solver(problem, solver='BDF', sens_mode='simultaneous')
 
-def likelihood_fwd(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
-    solver = sunode.solver.Solver(problem, solver='BDF', sens_mode=None)
+def likelihood_fwd(param_vals, rtol=1e-8, atol=1e-8, mxsteps=int(1e4)):
 
-    # set solver parameters
-    lib.CVodeSStolerances(solver._ode, atol, rtol)
-    lib.CVodeSetMaxNumSteps(solver._ode, mxsteps)
+    # set solver_no_sens parameters
+    lib.CVodeSStolerances(solver_no_sens._ode, rtol, atol)
+    lib.CVodeSetMaxNumSteps(solver_no_sens._ode, mxsteps)
 
     # initialize
     loglik = 0
@@ -35,7 +36,7 @@ def likelihood_fwd(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
         # param_sample[N_MODEL_PARAMETERS+2] = param_vals_copy[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 1]
         # param_sample[N_MODEL_PARAMETERS+3] = param_vals_copy[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 2]
 
-        tvals = TIME_SAMPLES_EXPANDED[gly_cond]*HRS_TO_SECS
+        tvals = TIME_SAMPLES_EXPANDED_HPA[gly_cond]*HRS_TO_SECS
         y0 = np.zeros((), dtype=problem.state_dtype)
         for var in VARIABLE_NAMES:
             y0[var] = 0
@@ -56,12 +57,12 @@ def likelihood_fwd(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
 
         params_dict = { param_name:param_val for param_val,param_name in zip(param_sample, PARAMETER_LIST)}
         # # We can also specify the parameters by name:
-        solver.set_params_dict(params_dict)
+        solver_no_sens.set_params_dict(params_dict)
 
-        yout = solver.make_output_buffers(tvals)
+        yout = solver_no_sens.make_output_buffers(tvals)
 
         try:
-            solver.solve(t0=0, tvals=tvals, y0=y0, y_out=yout)
+            solver_no_sens.solve(t0=0, tvals=tvals, y0=y0, y_out=yout)
             # jj=0
             # for i,var in enumerate(VARIABLE_NAMES):
             #     if i in DATA_INDEX:
@@ -70,18 +71,17 @@ def likelihood_fwd(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
             #         jj+=1
             #     plt.show()
             cyto_hpa_max = np.max(yout[:, VARIABLE_NAMES.index('H_CYTO')])
-            loglik += -0.5*(((DATA_SAMPLES[gly_cond]-yout[::TIME_SPACING,DATA_INDEX])/np.array([15,15,0.1]))**2).sum()\
+            loglik += -0.5*(((DATA_SAMPLES[gly_cond]-yout[::TIME_SPACING_HPA,DATA_INDEX])/np.array([15,15,0.1]))**2).sum()\
                       - 0.5*cyto_hpa_max**2
         except sunode.solver.SolverError:
             loglik += np.nan
     return loglik
 
 
-def likelihood_derivative_fwd(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
-    solver = sunode.solver.Solver(problem, solver='BDF', sens_mode='simultaneous')
+def likelihood_derivative_fwd(param_vals, rtol=1e-8, atol=1e-8, mxsteps=int(1e4)):
 
     # set solver parameters
-    lib.CVodeSStolerances(solver._ode, atol, rtol)
+    lib.CVodeSStolerances(solver._ode, rtol, atol)
     lib.CVodeSetMaxNumSteps(solver._ode, mxsteps)
 
     # initialize
@@ -100,7 +100,7 @@ def likelihood_derivative_fwd(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)
         # param_sample[N_MODEL_PARAMETERS+2] = param_vals_copy[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 1]
         # param_sample[N_MODEL_PARAMETERS+3] = param_vals_copy[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 2]
 
-        tvals = TIME_SAMPLES_EXPANDED[gly_cond] * HRS_TO_SECS
+        tvals = TIME_SAMPLES_EXPANDED_HPA[gly_cond] * HRS_TO_SECS
 
         y0 = np.zeros((), dtype=problem.state_dtype)
 
@@ -167,10 +167,10 @@ def likelihood_derivative_fwd(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)
         except sunode.solver.SolverError:
             sens_out[:] += np.nan
         # We can convert the solution to an xarray Dataset
-        lik_dev = (DATA_SAMPLES[gly_cond] - yout[::TIME_SPACING, DATA_INDEX]) / (np.array([15, 15, 0.1]) ** 2)
+        lik_dev = (DATA_SAMPLES[gly_cond] - yout[::TIME_SPACING_HPA, DATA_INDEX]) / (np.array([15, 15, 0.1]) ** 2)
 
         lik_dev_zeros = np.zeros_like(sens_out[:, 0, :])
-        lik_dev_zeros[::TIME_SPACING, DATA_INDEX] = lik_dev
+        lik_dev_zeros[::TIME_SPACING_HPA, DATA_INDEX] = lik_dev
         cyto_hpa_arg_max = np.argmax(yout[:, VARIABLE_NAMES.index('H_CYTO')])
         lik_dev_zeros[cyto_hpa_arg_max, VARIABLE_NAMES.index('H_CYTO')] = -np.max(yout[:, VARIABLE_NAMES.index('H_CYTO')])
 
