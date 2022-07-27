@@ -67,7 +67,7 @@ dataarray = samples.posterior.to_dataframe().loc[[0]]
 # plot_trace(samples, plot_file_location)
 # plot_loglik_individual(samples.sample_stats.lp, plot_file_location, nchains)
 # plot_loglik_overlay(samples.sample_stats.lp, plot_file_location, nchains)
-# plot_time_series_distribution(samples, plot_file_location, nchains, atol, rtol, mxsteps)
+# plot_time_series_distribution(samples, plot_file_location, nchains, atol, bck_rtol, mxsteps)
 plot_corr(samples, plot_file_location, nchains)
 plot_corr_scatter(samples, plot_file_location, nchains)
 # KeqDhaB = np.power(10,samples.posterior.KeqDhaB)

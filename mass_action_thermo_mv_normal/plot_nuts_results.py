@@ -34,13 +34,13 @@ from pandas.plotting import scatter_matrix
 from plot_nuts_results_funcs import plot_loglik_individual, plot_loglik_overlay, plot_corr_scatter, plot_corr, \
     plot_time_series_distribution, joint_Keq_distribution, plot_trace
 
-nsamples = int(4e3)
+nsamples = int(3e3)
 burn_in = int(3e3)
-nchains = 5
+nchains = 2
 acc_rate = 0.8
 atol = 1e-8
 rtol = 1e-8
-mxsteps = 1e6
+mxsteps = 1e5
 init = 'jitter+adapt_diag'
 
 # save samples
@@ -49,11 +49,11 @@ directory_name = 'nsamples_' + str(nsamples) + '_burn_in_' + str(burn_in) + '_ac
                  '_nchains_' + str(nchains) + '_atol_' + str(atol) + '_rtol_' + str(rtol) + '_mxsteps_' +\
                  str(int(mxsteps))  + '_initialization_' + init
 directory_name = directory_name.replace('.','_').replace('-','_').replace('+','_')
-file_name = '2022_06_28_09_39_25_948474.nc'
+file_name = '2022_07_04_15_24_56_643933.nc'
 data_file_location = os.path.join(PARAMETER_SAMP_PATH, directory_name, file_name)
 samples = az.from_netcdf(data_file_location)
-print(samples.sample_stats)
-# print(samples.sample_stats.keys)
+
+
 PLOT_SAMP_PATH = ROOT_PATH + '/plot_analysis' #TODO: remove _3HPA
 plot_file_location = os.path.join(PLOT_SAMP_PATH, directory_name, file_name[:-3])
 Path(plot_file_location).mkdir(parents=True, exist_ok=True)
@@ -70,6 +70,6 @@ Path(plot_file_location).mkdir(parents=True, exist_ok=True)
 # plot_time_series_distribution(samples, plot_file_location, nchains, atol, bck_rtol, mxsteps)
 plot_corr(samples, plot_file_location, nchains)
 plot_corr_scatter(samples, plot_file_location, nchains)
-# KeqDhaB = np.power(10,samples.posterior.k1DhaB)*np.power(10,samples.posterior.k3DhaB)/(np.power(10,samples.posterior.k2DhaB)*np.power(10,samples.posterior.k4DhaB))
-# KeqDhaT = np.power(10,samples.posterior.k1DhaT)*np.power(10,samples.posterior.k3DhaT)/(np.power(10,samples.posterior.k2DhaT)*np.power(10,samples.posterior.k4DhaT))
+# KeqDhaB = np.power(10,samples.posterior.KeqDhaB)
+# KeqDhaT = np.power(10,samples.posterior.KeqDhaT)
 # joint_Keq_distribution(KeqDhaB, KeqDhaT, plot_file_location, nchains)

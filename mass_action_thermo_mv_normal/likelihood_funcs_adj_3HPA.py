@@ -12,11 +12,10 @@ from rhs_funcs import RHS, lib, problem
 
 solver = sunode.solver.AdjointSolver(problem, solver='BDF')
 
-def likelihood_adj(param_vals, fwd_rtol = 1e-8, fwd_atol=1e-8, fwd_mxsteps=int(1e4)):
-
+def likelihood_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
     # set solver parameters
-    lib.CVodeSStolerances(solver._ode, fwd_atol, fwd_rtol)
-    lib.CVodeSetMaxNumSteps(solver._ode, fwd_mxsteps)
+    lib.CVodeSStolerances(solver._ode, atol, rtol)
+    lib.CVodeSetMaxNumSteps(solver._ode, mxsteps)
 
     # initialize
     loglik = 0
@@ -36,22 +35,17 @@ def likelihood_adj(param_vals, fwd_rtol = 1e-8, fwd_atol=1e-8, fwd_mxsteps=int(1
 
         tvals = TIME_SAMPLES_EXPANDED[gly_cond]*HRS_TO_SECS
         y0 = np.zeros((), dtype=problem.state_dtype)
-        for var in VARIABLE_NAMES:
-            y0[var] = 0
-        y0['G_CYTO'] = 10 ** param_sample[PARAMETER_LIST.index('G_EXT_INIT')]
+        y0['G_CYTO'] = 10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')]
+        y0['H_CYTO'] = 0
         y0['P_CYTO'] = INIT_CONDS_GLY_PDO_DCW[gly_cond][1]
-        y0['NADH'] = (10 ** (param_sample[PARAMETER_LIST.index('NADH_NAD_TOTAL_INIT')] + param_sample[
-            PARAMETER_LIST.index('NADH_NAD_RATIO_INIT')])) / (
-                                 10 ** param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_INIT')] + 1)
-        y0['NAD'] = 10 ** param_sample[PARAMETER_LIST.index('NADH_NAD_TOTAL_INIT')] / (
-                    10 ** param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_INIT')] + 1)
-        y0['DHAB'] = 10 ** param_sample[PARAMETER_LIST.index('DHAB_INIT')]
-        y0['DHAT'] = 10 ** param_sample[PARAMETER_LIST.index('DHAT_INIT')]
-        y0['DHAD'] = 10 ** param_sample[PARAMETER_LIST.index('DHAD_INIT')]
-        y0['E0'] = 10 ** param_sample[PARAMETER_LIST.index('E0_INIT')]
-        y0['G_EXT'] = 10 ** param_sample[PARAMETER_LIST.index('G_EXT_INIT')]
+        y0['DHAB'] = 10**param_sample[PARAMETER_LIST.index('DHAB_INIT')]
+        y0['DHAB_C'] = 0
+        y0['DHAT'] = 10**param_sample[PARAMETER_LIST.index('DHAT_INIT')]
+        y0['DHAT_C'] = 0
+        y0['G_EXT'] = 10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')]
+        y0['H_EXT'] = 0
         y0['P_EXT'] = INIT_CONDS_GLY_PDO_DCW[gly_cond][1]
-        y0['dcw'] = 10 ** param_sample[PARAMETER_LIST.index('A')]
+        y0['dcw'] =  10**param_sample[PARAMETER_LIST.index('A')]
 
         params_dict = { param_name:param_val for param_val,param_name in zip(param_sample, PARAMETER_LIST)}
         # # We can also specify the parameters by name:
@@ -68,25 +62,22 @@ def likelihood_adj(param_vals, fwd_rtol = 1e-8, fwd_atol=1e-8, fwd_mxsteps=int(1
             #         plt.scatter(tvals/HRS_TO_SECS, DATA_SAMPLES[gly_cond][:,jj])
             #         jj+=1
             #     plt.show()
-            #     plt.show()
             cyto_hpa_max = np.max(yout[:, VARIABLE_NAMES.index('H_CYTO')])
             loglik += -0.5*(((DATA_SAMPLES[gly_cond]-yout[::TIME_SPACING,DATA_INDEX])/np.array([15,15,0.1]))**2).sum() \
                       - 0.5*cyto_hpa_max**2
         except sunode.solver.SolverError:
             loglik += np.nan
+    # print(loglik)
     return loglik
 
 
-def likelihood_derivative_adj(param_vals,  fwd_rtol = 1e-8, fwd_atol=1e-8,
-                              bck_rtol = 1e-4, bck_atol = 1e-4, fwd_mxsteps=int(1e4),
-                                   bck_mxsteps=int(1e4)):
+def likelihood_derivative_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
     # set solver parameters
-    lib.CVodeSStolerances(solver._ode, fwd_rtol, fwd_atol)
-    lib.CVodeSStolerancesB(solver._ode, solver._odeB, bck_rtol, bck_atol)
-    lib.CVodeQuadSStolerancesB(solver._ode, solver._odeB, bck_rtol, bck_atol)
-    lib.CVodeSetMaxNumSteps(solver._ode, fwd_mxsteps)
-    lib.CVodeSetMaxNumStepsB(solver._ode,solver._odeB, bck_mxsteps)
-
+    lib.CVodeSStolerances(solver._ode, atol, rtol)
+    lib.CVodeSStolerancesB(solver._ode, solver._odeB, atol, rtol)
+    lib.CVodeQuadSStolerancesB(solver._ode, solver._odeB, atol, rtol)
+    lib.CVodeSetMaxNumSteps(solver._ode, mxsteps)
+    lib.CVodeSetMaxNumStepsB(solver._ode,solver._odeB, mxsteps)
 
     # initialize
     lik_dev_params = np.zeros(N_MODEL_PARAMETERS)
@@ -108,20 +99,16 @@ def likelihood_derivative_adj(param_vals,  fwd_rtol = 1e-8, fwd_atol=1e-8,
         tvals = TIME_SAMPLES_EXPANDED[gly_cond] * HRS_TO_SECS
 
         y0 = np.zeros((), dtype=problem.state_dtype)
-        for var in VARIABLE_NAMES:
-            y0[var] = 0
+
         y0['G_CYTO'] = 10 ** param_sample[PARAMETER_LIST.index('G_EXT_INIT')]
+        y0['H_CYTO'] = 0
         y0['P_CYTO'] = INIT_CONDS_GLY_PDO_DCW[gly_cond][1]
-        y0['NADH'] = (10 ** (param_sample[PARAMETER_LIST.index('NADH_NAD_TOTAL_INIT')] + param_sample[
-            PARAMETER_LIST.index('NADH_NAD_RATIO_INIT')])) / (
-                                 10 ** param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_INIT')] + 1)
-        y0['NAD'] = 10 ** param_sample[PARAMETER_LIST.index('NADH_NAD_TOTAL_INIT')] / (
-                    10 ** param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_INIT')] + 1)
         y0['DHAB'] = 10 ** param_sample[PARAMETER_LIST.index('DHAB_INIT')]
+        y0['DHAB_C'] = 0
         y0['DHAT'] = 10 ** param_sample[PARAMETER_LIST.index('DHAT_INIT')]
-        y0['DHAD'] = 10 ** param_sample[PARAMETER_LIST.index('DHAD_INIT')]
-        y0['E0'] = 10 ** param_sample[PARAMETER_LIST.index('E0_INIT')]
+        y0['DHAT_C'] = 0
         y0['G_EXT'] = 10 ** param_sample[PARAMETER_LIST.index('G_EXT_INIT')]
+        y0['H_EXT'] = 0
         y0['P_EXT'] = INIT_CONDS_GLY_PDO_DCW[gly_cond][1]
         y0['dcw'] = 10 ** param_sample[PARAMETER_LIST.index('A')]
 
@@ -132,32 +119,14 @@ def likelihood_derivative_adj(param_vals,  fwd_rtol = 1e-8, fwd_atol=1e-8,
 
         # initial sensitivities
         sens0 = np.zeros((len(DEV_PARAMETERS_LIST), len(VARIABLE_NAMES)))
-        # sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_CYTO')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
-        # sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_EXT')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
+        # sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_CYTO')] = np.log(10) * (
+        #             10 ** param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
+        # sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_EXT')] = np.log(10) * (
+        #             10 ** param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
         sens0[PARAMETER_LIST.index('DHAB_INIT'), VARIABLE_NAMES.index('DHAB')] = np.log(10) * (
                     10 ** param_sample[PARAMETER_LIST.index('DHAB_INIT')])
-        sens0[PARAMETER_LIST.index('DHAD_INIT'), VARIABLE_NAMES.index('DHAD')] = np.log(10) * (
-                    10 ** param_sample[PARAMETER_LIST.index('DHAD_INIT')])
-        sens0[PARAMETER_LIST.index('E0_INIT'), VARIABLE_NAMES.index('E0')] = np.log(10) * (
-                    10 ** param_sample[PARAMETER_LIST.index('E0_INIT')])
         sens0[PARAMETER_LIST.index('DHAT_INIT'), VARIABLE_NAMES.index('DHAT')] = np.log(10) * (
                     10 ** param_sample[PARAMETER_LIST.index('DHAT_INIT')])
-        sens0[PARAMETER_LIST.index('NADH_NAD_TOTAL_INIT'), VARIABLE_NAMES.index('NADH')] = np.log(10) * (10 ** (
-                    param_sample[PARAMETER_LIST.index('NADH_NAD_TOTAL_INIT')] + param_sample[
-                PARAMETER_LIST.index('NADH_NAD_RATIO_INIT')])) / (10 ** param_sample[
-            PARAMETER_LIST.index('NADH_NAD_RATIO_INIT')] + 1)
-        sens0[PARAMETER_LIST.index('NADH_NAD_RATIO_INIT'), VARIABLE_NAMES.index('NADH')] = np.log(10) * (10 ** (
-                    param_sample[PARAMETER_LIST.index('NADH_NAD_TOTAL_INIT')] + param_sample[
-                PARAMETER_LIST.index('NADH_NAD_RATIO_INIT')])) / (10 ** param_sample[
-            PARAMETER_LIST.index('NADH_NAD_RATIO_INIT')] + 1) ** 2
-        sens0[PARAMETER_LIST.index('NADH_NAD_TOTAL_INIT'), VARIABLE_NAMES.index('NAD')] = np.log(10) * (
-                    10 ** param_sample[PARAMETER_LIST.index('NADH_NAD_TOTAL_INIT')]) / (10 ** param_sample[
-            PARAMETER_LIST.index('NADH_NAD_RATIO_INIT')] + 1)
-        sens0[PARAMETER_LIST.index('NADH_NAD_RATIO_INIT'), VARIABLE_NAMES.index('NAD')] = -np.log(10) * (10 ** (
-                    param_sample[PARAMETER_LIST.index('NADH_NAD_TOTAL_INIT')] + param_sample[
-                PARAMETER_LIST.index('NADH_NAD_RATIO_INIT')])) / (10 ** param_sample[
-            PARAMETER_LIST.index('NADH_NAD_RATIO_INIT')] + 1) ** 2
-        # sens0[PARAMETER_LIST.index('A'), VARIABLE_NAMES.index('dcw')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('A')])
 
         try:
             solver.solve_forward(t0=0, tvals=tvals, y0=y0, y_out=yout)
@@ -188,5 +157,4 @@ def likelihood_derivative_adj(param_vals,  fwd_rtol = 1e-8, fwd_atol=1e-8,
                 lik_dev_params[N_MODEL_PARAMETERS + 4 + exp_ind * N_DCW_PARAMETERS + jj] += grad_out[j]
             else:
                 lik_dev_params[j] += grad_out[j]
-
     return lik_dev_params

@@ -4,11 +4,13 @@ import matplotlib as mpl
 mpl.rcParams['text.usetex'] = True
 mpl.rcParams['text.latex.preamble'] = [r'\usepackage{amsmath}'] #for \text command
 import numpy as np
-from exp_data import INIT_CONDS_GLY_PDO_DCW, DATA_SAMPLES
 from constants import *
-from prior_constants import NORM_PRIOR_MEAN_SINGLE_EXP, LOG_UNIF_G_EXT_INIT_PRIOR_PARAMETERS
+from prior_constants import NORM_PRIOR_STD_RT_SINGLE_EXP,NORM_PRIOR_MEAN_SINGLE_EXP, NORM_PRIOR_STD_RT_ALL_EXP, \
+    NORM_PRIOR_MEAN_ALL_EXP, LOG_UNIF_PRIOR_ALL_EXP, LOG_UNIF_G_EXT_INIT_PRIOR_PARAMETERS
+from formatting_constants import VARS_ALL_EXP_TO_TEX
 import time
 from rhs_funcs import RHS, lib, problem
+from exp_data import INIT_CONDS_GLY_PDO_DCW, DATA_SAMPLES
 
 solver = sunode.solver.AdjointSolver(problem, solver='BDF')
 
@@ -21,9 +23,9 @@ def likelihood_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
     loglik = 0
     param_vals_copy = param_vals.copy()
 
-    # gly_init_val = param_vals[N_MODEL_PARAMETERS:(N_MODEL_PARAMETERS+4)]
-    # for i,((lower,upper),gly_init) in enumerate(zip(LOG_UNIF_G_EXT_INIT_PRIOR_PARAMETERS.values(),gly_init_val)):
-    #     param_vals_copy[N_MODEL_PARAMETERS + i] = lower + (upper - lower)/(1+np.exp(-gly_init))
+    gly_init_val = param_vals[N_MODEL_PARAMETERS:(N_MODEL_PARAMETERS+4)]
+    for i,((lower,upper),gly_init) in enumerate(zip(LOG_UNIF_G_EXT_INIT_PRIOR_PARAMETERS.values(),gly_init_val)):
+        param_vals_copy[N_MODEL_PARAMETERS + i] = lower + (upper - lower)/(1+np.exp(-gly_init))
 
     for exp_ind, gly_cond in enumerate([50,60,70,80]):
         param_sample = NORM_PRIOR_MEAN_SINGLE_EXP[gly_cond].copy()
@@ -51,10 +53,10 @@ def likelihood_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
         # # We can also specify the parameters by name:
         solver.set_params_dict(params_dict)
 
-        yout, _, _ = solver.make_output_buffers(tvals)
-
+        yout, grad_out, lambda_out = solver.make_output_buffers(tvals)
         try:
             solver.solve_forward(t0=0, tvals=tvals, y0=y0, y_out=yout)
+
             # jj=0
             # for i,var in enumerate(VARIABLE_NAMES):
             #     if i in DATA_INDEX:
@@ -62,7 +64,8 @@ def likelihood_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
             #         plt.scatter(tvals/HRS_TO_SECS, DATA_SAMPLES[gly_cond][:,jj])
             #         jj+=1
             #     plt.show()
-            loglik += -0.5*(((DATA_SAMPLES[gly_cond]-yout[:, DATA_INDEX])/np.array([15,15,0.1]))**2).sum()
+            yout[np.abs(yout) < 1e-3] = 1e-3
+            loglik +=  -0.5*((np.log(DATA_SAMPLES[gly_cond]/yout[:, DATA_INDEX]) / np.array([5e-2, 5e-2, 5e-2]))**2).sum()
         except sunode.solver.SolverError:
             loglik += np.nan
     print(loglik)
@@ -81,11 +84,10 @@ def likelihood_derivative_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)
     lik_dev_params = np.zeros(N_MODEL_PARAMETERS)
     param_vals_copy = param_vals.copy()
 
-    # gly_init_val = param_vals[N_MODEL_PARAMETERS:(N_MODEL_PARAMETERS+4)]
-    # for i,((lower,upper),gly_init) in enumerate(zip(LOG_UNIF_G_EXT_INIT_PRIOR_PARAMETERS.values(),gly_init_val)):
-    #     param_vals_copy[N_MODEL_PARAMETERS + i] = lower + (upper - lower)/(1+np.exp(-gly_init))
+    gly_init_val = param_vals[N_MODEL_PARAMETERS:(N_MODEL_PARAMETERS+4)]
+    for i,((lower,upper),gly_init) in enumerate(zip(LOG_UNIF_G_EXT_INIT_PRIOR_PARAMETERS.values(),gly_init_val)):
+        param_vals_copy[N_MODEL_PARAMETERS + i] = lower + (upper - lower)/(1+np.exp(-gly_init))
     time_tot = 0
-
     for exp_ind, gly_cond in enumerate([50,60,70,80]):
         param_sample = NORM_PRIOR_MEAN_SINGLE_EXP[gly_cond].copy()
         param_sample[:N_MODEL_PARAMETERS] = param_vals_copy[:N_MODEL_PARAMETERS]
@@ -116,7 +118,7 @@ def likelihood_derivative_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)
         yout, grad_out, lambda_out = solver.make_output_buffers(tvals)
 
         # initial sensitivities
-        sens0 = np.zeros((len(DEV_PARAMETERS_LIST), len(VARIABLE_NAMES)))
+        sens0 = np.zeros((len(DEV_PARAMETERS_LIST), 11))
         # sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_CYTO')] = np.log(10) * (
         #             10 ** param_sample[PARAMETER_LIST.index('G_EXT_INIT')])
         # sens0[PARAMETER_LIST.index('G_EXT_INIT'), VARIABLE_NAMES.index('G_EXT')] = np.log(10) * (
@@ -125,30 +127,35 @@ def likelihood_derivative_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)
                     10 ** param_sample[PARAMETER_LIST.index('DHAB_INIT')])
         sens0[PARAMETER_LIST.index('DHAT_INIT'), VARIABLE_NAMES.index('DHAT')] = np.log(10) * (
                     10 ** param_sample[PARAMETER_LIST.index('DHAT_INIT')])
-
+        # sens0[PARAMETER_LIST.index('A'), VARIABLE_NAMES.index('dcw')] = np.log(10) * (
+        #             10 ** param_sample[PARAMETER_LIST.index('A')])
         try:
+
             solver.solve_forward(t0=0, tvals=tvals, y0=y0, y_out=yout)
 
-            # jj=0
-            # for i,var in enumerate(VARIABLE_NAMES):
+            jj = 0
+            # for i, var in enumerate(VARIABLE_NAMES):
             #     if i in DATA_INDEX:
             #         plt.plot(tvals / HRS_TO_SECS, yout.view(problem.state_dtype)[var])
-            #         plt.scatter(tvals[::TIME_SPACING]/HRS_TO_SECS, DATA_SAMPLES[gly_cond][:,jj])
-            #         jj+=1
+            #         plt.scatter(tvals[::10] / HRS_TO_SECS, DATA_SAMPLES[gly_cond][:, jj])
+            #         jj += 1
             #     plt.show()
 
+            # initalize grads
             grads = np.zeros_like(yout)
-            lik_dev = (DATA_SAMPLES[gly_cond] - yout[::TIME_SPACING, DATA_INDEX]) / np.array([15, 15, 0.1]) ** 2
+            yout[np.abs(yout) < 1e-3] = 1e-3
+            lik_dev = (np.log(DATA_SAMPLES[gly_cond]/yout[::TIME_SPACING, DATA_INDEX]) / np.array([5e-2, 5e-2, 5e-2]) ** 2)/yout[::TIME_SPACING, DATA_INDEX]
             grads[::TIME_SPACING, DATA_INDEX] = lik_dev
 
             # backsolve
+            time_start = time.time()
             solver.solve_backward(t0=tvals[-1], tend=tvals[0], tvals=tvals[1:-1],
                                   grads=grads, grad_out=grad_out, lamda_out=lambda_out)
-
+            time_end = time.time()
+            time_tot += (time_end - time_start) / 60
 
             grad_out = -np.matmul(sens0, lambda_out - grads[0, :]) + grad_out
         except sunode.solver.SolverError:
-        #     print(1)
             grad_out[:] += np.nan
 
         for j, param in enumerate(DEV_PARAMETERS_LIST):
