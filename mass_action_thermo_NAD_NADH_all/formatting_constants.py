@@ -48,7 +48,6 @@ MODEL_PARAMS_TO_TEX = {'PermCellGlycerol':r'$P_{\mathrm{G}}$',
                        'kcatrDhaD': r'$k_{\mathrm{cat,DhaD}}^{r}$',
                        'KmNADHDhaD': r'$K_{\mathrm{M,DhaD}}^{\mathrm{NADH}}$',
                        'KmDHADhaD': r'$K_{\mathrm{M,DhaD}}^{\mathrm{DHA}}$'
-
                        }
 
 ENZ_INIT_TO_TEX = {'DHAB_INIT': r"$[\mathrm{DhaB}](0)$",

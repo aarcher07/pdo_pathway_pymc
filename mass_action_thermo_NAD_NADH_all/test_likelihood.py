@@ -2,7 +2,6 @@ import pickle
 from exp_data import *
 from prior_constants import NORM_PRIOR_STD_RT_SINGLE_EXP,NORM_PRIOR_MEAN_SINGLE_EXP, NORM_PRIOR_STD_RT_ALL_EXP, \
     NORM_PRIOR_MEAN_ALL_EXP, LOG_UNIF_PRIOR_ALL_EXP, LOG_UNIF_G_EXT_INIT_PRIOR_PARAMETERS
-import pdo_model_sympy.prior_constants as pdo_pr_constants
 import pickle
 import numpy as np
 import time
@@ -21,26 +20,35 @@ param_sample_copy[:N_MODEL_PARAMETERS] = np.array([-3.41, -3.84, -4.9, -4.3,
                                                    -5.98e-1, 5.41e-1, -6.85e-1, 2.88,
                                                    5.48e-3, -2.49, -1.98, 8.34e-2,
                                                    -8.34e-2, 4.82e-1, 6.73e-1, -9e-2])
+fwd_rtol = 1e-8
 fwd_atol = 1e-8
-bck_rtol = 1e-8
-mxsteps = int(1e5)
+bck_rtol = 1e-4
+bck_atol = 1e-4
+fwd_mxsteps = int(1e5)
+bck_mxsteps = int(1e5)
+
+likelihood_fwd(param_sample_copy[:(N_MODEL_PARAMETERS)], rtol=fwd_rtol, atol=fwd_atol, mxsteps=fwd_mxsteps)
+
 time_start = time.time()
-print(likelihood_fwd(param_sample_copy[:(N_MODEL_PARAMETERS)], atol = atol, rtol=bck_rtol, mxsteps=mxsteps))
+print(likelihood_fwd(param_sample_copy[:(N_MODEL_PARAMETERS)], rtol=fwd_rtol, atol=fwd_atol, mxsteps=fwd_mxsteps))
 time_end = time.time()
 print('fwd : '+ str((time_end - time_start)/60))
 
+likelihood_adj(param_sample_copy[:(N_MODEL_PARAMETERS)], fwd_rtol=fwd_rtol, fwd_atol=fwd_atol, fwd_mxsteps=fwd_mxsteps)
 time_start = time.time()
-print(likelihood_adj(param_sample_copy[:(N_MODEL_PARAMETERS)], fwd_rtol=1e-6, fwd_atol=1e-6, fwd_mxsteps=int(1e5)))
+print(likelihood_adj(param_sample_copy[:(N_MODEL_PARAMETERS)], fwd_rtol=fwd_rtol, fwd_atol=fwd_atol, fwd_mxsteps=fwd_mxsteps))
 time_end = time.time()
 print('adj : '+ str((time_end - time_start)/60))
 
 time_start = time.time()
-lik_fwd = likelihood_derivative_fwd(param_sample_copy[:(N_MODEL_PARAMETERS)], atol = atol, rtol=bck_rtol, mxsteps=mxsteps)
+lik_fwd = likelihood_derivative_fwd(param_sample_copy[:(N_MODEL_PARAMETERS)], rtol = fwd_rtol, atol=fwd_atol, mxsteps=fwd_mxsteps)
 time_end = time.time()
 print('fwd : '+ str((time_end - time_start)/60))
 
 time_start = time.time()
-lik_adj = likelihood_derivative_adj(param_sample_copy[:(N_MODEL_PARAMETERS)], fwd_rtol=1e-6, fwd_atol=1e-6, fwd_mxsteps=int(1e5))
+lik_adj = likelihood_derivative_adj(param_sample_copy[:(N_MODEL_PARAMETERS)], fwd_rtol=fwd_rtol, fwd_atol=fwd_atol,
+                                    bck_rtol=bck_rtol, bck_atol=bck_rtol, bck_mxsteps=bck_mxsteps,
+                                    fwd_mxsteps=fwd_mxsteps)
 time_end = time.time()
 print('adj : '+ str((time_end - time_start)/60))
 
