@@ -72,7 +72,13 @@ DCW_PARAMETERS = ['L', 'k', 'A']
 INIT_PARAMETERS_LIST = [*ENZYME_CONCENTRATIONS, 'A']
 
 PARAMETER_LIST = [*MODEL_PARAMETERS, *DCW_PARAMETERS]
-DEV_PARAMETER_LIST = [*MODEL_PARAMETERS]
+DEV_PARAMETER_LIST = [*PERMEABILITY_CELL_PARAMETERS,
+                    *PERMEABILITY_MCP_PARAMETERS,
+                    *KINETIC_PARAMETERS,
+                    *MCP_PARAMETERS,
+                    *COFACTOR_PARAMETERS,
+                    *ENZYME_CONCENTRATIONS
+                      ]
 
 VARIABLE_NAMES = ['G_MCP', 'H_MCP', 'P_MCP', 'HCoA_MCP', 'HPhosph_MCP',
                   'NADH_MCP', 'NAD_MCP',
@@ -90,7 +96,7 @@ VARIABLE_NAMES = ['G_MCP', 'H_MCP', 'P_MCP', 'HCoA_MCP', 'HPhosph_MCP',
 DATA_INDEX = [VARIABLE_NAMES.index('G_EXT'), VARIABLE_NAMES.index('H_EXT'), VARIABLE_NAMES.index('P_EXT'),
               VARIABLE_NAMES.index('OD')]
 
-TIME_SPACING = 10  # TODO: CHANGE TO 15 for _HPA.py and 5 _HPA_2.py
+TIME_SPACING = 40  # TODO: CHANGE TO 15 for _HPA.py and 5 _HPA_2.py
 TIME_SAMPLES_EXPANDED = [np.linspace(TIME_SAMPLES[i], TIME_SAMPLES[i + 1], num=TIME_SPACING, endpoint=False) for i in
                          range(len(TIME_SAMPLES) - 1)]
 TIME_SAMPLES_EXPANDED = list(np.concatenate(TIME_SAMPLES_EXPANDED))

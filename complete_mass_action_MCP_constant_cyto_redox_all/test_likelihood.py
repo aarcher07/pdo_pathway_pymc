@@ -39,6 +39,7 @@ time_start_fwd = time.time()
 dev_fwd = likelihood_derivative_fwd(param_sample)
 time_end_fwd = time.time()
 
+print(dev_adj)
 print('time adj: ' +  str((time_end_adj - time_start_adj)/60))
 print('time fwd: ' +  str((time_end_fwd - time_start_fwd)/60))
 

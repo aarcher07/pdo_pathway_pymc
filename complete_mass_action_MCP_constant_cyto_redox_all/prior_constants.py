@@ -68,7 +68,7 @@ KINETIC_PARAMETER_RANGES = {'k1PduCDE': np.log10([1e0, 1e4]),
 
                             'VmaxfGlpK': np.log10([1e3 * 0.01, 1e3 * 1]),
                             'KmGlpK': np.log10([1e-3, 1e-1]),
-                            'VmaxfGlpK_dD': np.log10([1e0 * 0.1, 1e1 * 10]),
+                            'VmaxfGlpK_dD': np.log10([1e3 * 0.01, 1e3 * 1]),
                             'KmGlpK_dD': np.log10([1e-3, 1e-1])
                             }
 
