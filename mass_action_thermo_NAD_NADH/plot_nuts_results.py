@@ -23,7 +23,7 @@ import numpy as np
 from datetime import datetime
 from scipy.stats import multivariate_normal
 import pickle
-from likelihood_funcs_adj import likelihood_adj, likelihood_derivative_adj
+from likelihood_funcs_adj_3HPA import likelihood_adj, likelihood_derivative_adj
 from os.path import dirname, abspath
 from exp_data import *
 from rhs_funcs import RHS, lib, problem, solver
@@ -58,18 +58,18 @@ PLOT_SAMP_PATH = ROOT_PATH + '/plot_analysis_3HPA' #TODO: remove _3HPA
 plot_file_location = os.path.join(PLOT_SAMP_PATH, directory_name, file_name[:-3])
 Path(plot_file_location).mkdir(parents=True, exist_ok=True)
 dataarray = samples.posterior.to_dataframe().loc[[0]]
-# print(likelihood_adj(dataarray.iloc[-1,:].to_numpy()))
-# print(dataarray.iloc[-1,:].to_dict())
-# print(dataarray.iloc[-1,:].to_numpy())
+print(likelihood_adj(dataarray.iloc[-1,:].to_numpy()))
+print(dataarray.iloc[-1,:].to_dict())
+print(dataarray.iloc[-1,:].to_numpy())
 
-df = az.summary(samples)
-df.to_csv(os.path.join(plot_file_location,'summary_stats.csv'),sep = ' ')
-plot_trace(samples, plot_file_location)
-plot_loglik_individual(samples.sample_stats.lp, plot_file_location, nchains)
-plot_loglik_overlay(samples.sample_stats.lp, plot_file_location, nchains)
-plot_time_series_distribution(samples, plot_file_location, nchains, atol, rtol, mxsteps)
-plot_corr(samples, plot_file_location, nchains)
-plot_corr_scatter(samples, plot_file_location, nchains)
-KeqDhaB = np.power(10,samples.posterior.KeqDhaB)
-KeqDhaT = np.power(10,samples.posterior.KeqDhaT)
-joint_Keq_distribution(KeqDhaB, KeqDhaT, plot_file_location, nchains)
+# df = az.summary(samples)
+# df.to_csv(os.path.join(plot_file_location,'summary_stats.csv'),sep = ' ')
+# plot_trace(samples, plot_file_location)
+# plot_loglik_individual(samples.sample_stats.lp, plot_file_location, nchains)
+# plot_loglik_overlay(samples.sample_stats.lp, plot_file_location, nchains)
+# plot_time_series_distribution(samples, plot_file_location, nchains, atol, rtol, mxsteps)
+# plot_corr(samples, plot_file_location, nchains)
+# plot_corr_scatter(samples, plot_file_location, nchains)
+# KeqDhaB = np.power(10,samples.posterior.KeqDhaB)
+# KeqDhaT = np.power(10,samples.posterior.KeqDhaT)
+# joint_Keq_distribution(KeqDhaB, KeqDhaT, plot_file_location, nchains)

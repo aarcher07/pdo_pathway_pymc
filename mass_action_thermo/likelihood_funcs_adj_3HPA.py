@@ -12,11 +12,10 @@ from rhs_funcs import RHS, lib, problem
 
 solver = sunode.solver.AdjointSolver(problem, solver='BDF')
 
-def likelihood_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
+def likelihood_adj(param_vals, fwd_rtol = 1e-8, fwd_atol=1e-8, fwd_mxsteps=int(1e4)):
     # set solver parameters
-    lib.CVodeSStolerances(solver._ode, atol, rtol)
-    lib.CVodeSetMaxNumSteps(solver._ode, mxsteps)
-
+    lib.CVodeSStolerances(solver._ode, fwd_rtol, fwd_atol)
+    lib.CVodeSetMaxNumSteps(solver._ode, fwd_mxsteps)
     # initialize
     loglik = 0
     param_vals_copy = param_vals.copy()

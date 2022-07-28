@@ -12,10 +12,9 @@ from rhs_funcs import RHS, lib, problem
 
 solver = sunode.solver.AdjointSolver(problem, solver='BDF')
 
-def likelihood_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
-    # set solver parameters
-    lib.CVodeSStolerances(solver._ode, atol, rtol)
-    lib.CVodeSetMaxNumSteps(solver._ode, mxsteps)
+def likelihood_adj(param_vals, fwd_rtol = 1e-8, fwd_atol=1e-8, fwd_mxsteps=int(1e4)):
+    lib.CVodeSStolerances(solver._ode, fwd_rtol, fwd_atol)
+    lib.CVodeSetMaxNumSteps(solver._ode, fwd_mxsteps)
 
     # initialize
     loglik = 0
@@ -69,14 +68,15 @@ def likelihood_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
     return loglik
 
 
-def likelihood_derivative_adj(param_vals, atol=1e-8, rtol=1e-8, mxsteps=int(1e4)):
+def likelihood_derivative_adj(param_vals,  fwd_rtol = 1e-8, fwd_atol=1e-8,
+                              bck_rtol = 1e-6, bck_atol = 1e-6, fwd_mxsteps=int(1e4),
+                                   bck_mxsteps=int(1e4)):
     # set solver parameters
-    lib.CVodeSStolerances(solver._ode, atol, rtol)
-    lib.CVodeSStolerancesB(solver._ode, solver._odeB, atol, rtol)
-    lib.CVodeQuadSStolerancesB(solver._ode, solver._odeB, atol, rtol)
-    lib.CVodeSetMaxNumSteps(solver._ode, mxsteps)
-    lib.CVodeSetMaxNumStepsB(solver._ode,solver._odeB, mxsteps)
-
+    lib.CVodeSStolerances(solver._ode, fwd_rtol, fwd_atol)
+    lib.CVodeSStolerancesB(solver._ode, solver._odeB, bck_rtol, bck_atol)
+    lib.CVodeQuadSStolerancesB(solver._ode, solver._odeB, bck_rtol, bck_atol)
+    lib.CVodeSetMaxNumSteps(solver._ode, fwd_mxsteps)
+    lib.CVodeSetMaxNumStepsB(solver._ode,solver._odeB, bck_mxsteps)
     # initialize
     lik_dev_params = np.zeros(N_MODEL_PARAMETERS)
     param_vals_copy = param_vals.copy()

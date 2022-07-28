@@ -43,37 +43,41 @@ param_sample_copy[N_MODEL_PARAMETERS + 4*INIT_CONSTANTS.index('DHAB_INIT') : (N_
 param_sample_copy[N_MODEL_PARAMETERS + 4*INIT_CONSTANTS.index('DHAT_INIT') : (N_MODEL_PARAMETERS + 4*INIT_CONSTANTS.index('DHAT_INIT') + 4)] = param_sample[N_MODEL_PARAMETERS + INIT_CONSTANTS.index('DHAT_INIT')]
 param_sample_copy[N_MODEL_PARAMETERS + 4*INIT_CONSTANTS.index('E0_Metab') : (N_MODEL_PARAMETERS + 4*INIT_CONSTANTS.index('E0_Metab') + 4)] = 1
 
+fwd_rtol = 1e-8
+fwd_atol = 1e-8
+bck_rtol = 1e-4
+bck_atol = 1e-4
+fwd_mxsteps = int(1e5)
+bck_mxsteps = int(1e5)
 
-atol = 1e-10
-rtol = 1e-10
-mxsteps = int(1e5)
-print('fwd')
-time_start = time.time()
-print(likelihood_fwd(param_sample_copy,atol = atol, rtol=rtol, mxsteps=mxsteps))
-time_end = time.time()
-print((time_end - time_start)/60)
-
-print('adj')
-time_start = time.time()
-print(likelihood_adj(param_sample_copy,atol = atol, rtol=rtol, mxsteps=mxsteps))
-time_end = time.time()
-print((time_end - time_start)/60)
+likelihood_fwd(param_sample_copy, rtol=fwd_rtol, atol=fwd_atol, mxsteps=fwd_mxsteps)
 
 time_start = time.time()
-lik_fwd = likelihood_derivative_fwd(param_sample_copy,atol = atol, rtol=rtol, mxsteps=mxsteps)
+print(likelihood_fwd(param_sample_copy, rtol=fwd_rtol, atol=fwd_atol, mxsteps=fwd_mxsteps))
 time_end = time.time()
-print("fwd: " + str((time_end - time_start)/60))
+print('fwd : '+ str((time_end - time_start)/60))
+
+likelihood_adj(param_sample_copy, fwd_rtol=fwd_rtol, fwd_atol=fwd_atol, fwd_mxsteps=fwd_mxsteps)
+time_start = time.time()
+print(likelihood_adj(param_sample_copy, fwd_rtol=fwd_rtol, fwd_atol=fwd_atol, fwd_mxsteps=fwd_mxsteps))
+time_end = time.time()
+print('adj : '+ str((time_end - time_start)/60))
 
 time_start = time.time()
-lik_adj = likelihood_derivative_adj(param_sample_copy,atol = atol, rtol=rtol, mxsteps=mxsteps)
+lik_fwd = likelihood_derivative_fwd(param_sample_copy, rtol = fwd_rtol, atol=fwd_atol, mxsteps=fwd_mxsteps)
 time_end = time.time()
-print("adj: " + str((time_end - time_start)/60))
+print('fwd : '+ str((time_end - time_start)/60))
 
-print(lik_fwd)
-print(lik_adj)
+time_start = time.time()
+lik_adj = likelihood_derivative_adj(param_sample_copy, fwd_rtol=fwd_rtol, fwd_atol=fwd_atol,
+                                    bck_rtol=bck_rtol, bck_atol=bck_rtol, bck_mxsteps=bck_mxsteps,
+                                    fwd_mxsteps=fwd_mxsteps)
+time_end = time.time()
+print('adj : '+ str((time_end - time_start)/60))
+
+print('fwd : ' + str(lik_fwd))
+print('adj : ' + str(lik_adj))
 lik_diff = lik_fwd - lik_adj
 lik_rel_diff = np.abs(lik_diff)/np.abs(lik_fwd)
 print(lik_diff)
 print(lik_rel_diff)
-
-

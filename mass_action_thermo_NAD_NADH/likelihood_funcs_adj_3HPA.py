@@ -32,7 +32,7 @@ def likelihood_adj(param_vals, fwd_rtol = 1e-8, fwd_atol=1e-8, fwd_mxsteps=int(1
         # param_sample[N_MODEL_PARAMETERS+2] = param_vals_copy[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 1]
         # param_sample[N_MODEL_PARAMETERS+3] = param_vals_copy[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 2]
 
-        tvals = TIME_SAMPLES_EXPANDED[gly_cond]*HRS_TO_SECS
+        tvals = TIME_SAMPLES_EXPANDED_HPA[gly_cond]*HRS_TO_SECS
         y0 = np.zeros((), dtype=problem.state_dtype)
         for var in VARIABLE_NAMES:
             y0[var] = 0
@@ -60,12 +60,12 @@ def likelihood_adj(param_vals, fwd_rtol = 1e-8, fwd_atol=1e-8, fwd_mxsteps=int(1
             # jj=0
             # for i,var in enumerate(VARIABLE_NAMES):
             #     if i in DATA_INDEX:
-            #         plt.plot(tvals / HRS_TO_SECS, yout.view(problem.state_dtype)[var])
-            #         plt.scatter(tvals/HRS_TO_SECS, DATA_SAMPLES[gly_cond][:,jj])
+            #         plt.plot(tvals/ HRS_TO_SECS, yout.view(problem.state_dtype)[var])
+            #         plt.scatter(tvals[::TIME_SPACING_HPA]/HRS_TO_SECS, DATA_SAMPLES[gly_cond][:,jj])
             #         jj+=1
             #     plt.show()
             cyto_hpa_max = np.max(yout[:, VARIABLE_NAMES.index('H_CYTO')])
-            loglik += -0.5*(((DATA_SAMPLES[gly_cond]-yout[::TIME_SPACING,DATA_INDEX])/np.array([15,15,0.1]))**2).sum() \
+            loglik += -0.5*(((DATA_SAMPLES[gly_cond]-yout[::TIME_SPACING_HPA,DATA_INDEX])/np.array([15,15,0.1]))**2).sum() \
                       - 0.5*cyto_hpa_max**2
         except sunode.solver.SolverError:
             loglik += np.nan
@@ -101,7 +101,7 @@ def likelihood_derivative_adj(param_vals,  fwd_rtol = 1e-8, fwd_atol=1e-8,
         # param_sample[N_MODEL_PARAMETERS+2] = param_vals_copy[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 1]
         # param_sample[N_MODEL_PARAMETERS+3] = param_vals_copy[N_MODEL_PARAMETERS + 4 + exp_ind*N_DCW_PARAMETERS + 2]
 
-        tvals = TIME_SAMPLES_EXPANDED[gly_cond] * HRS_TO_SECS
+        tvals = TIME_SAMPLES_EXPANDED_HPA[gly_cond] * HRS_TO_SECS
 
         y0 = np.zeros((), dtype=problem.state_dtype)
         for var in VARIABLE_NAMES:
@@ -159,8 +159,8 @@ def likelihood_derivative_adj(param_vals,  fwd_rtol = 1e-8, fwd_atol=1e-8,
             solver.solve_forward(t0=0, tvals=tvals, y0=y0, y_out=yout)
 
             grads = np.zeros_like(yout)
-            lik_dev = (DATA_SAMPLES[gly_cond] - yout[::TIME_SPACING, DATA_INDEX]) / np.array([15, 15, 0.1]) ** 2
-            grads[::TIME_SPACING, DATA_INDEX] = lik_dev
+            lik_dev = (DATA_SAMPLES[gly_cond] - yout[::TIME_SPACING_HPA, DATA_INDEX]) / np.array([15, 15, 0.1]) ** 2
+            grads[::TIME_SPACING_HPA, DATA_INDEX] = lik_dev
 
             cyto_hpa_arg_max = np.argmax(yout[:, VARIABLE_NAMES.index('H_CYTO')])
             grads[cyto_hpa_arg_max, VARIABLE_NAMES.index('H_CYTO')] = -np.max(yout[:, VARIABLE_NAMES.index('H_CYTO')])

@@ -22,8 +22,8 @@ param_sample_copy[:N_MODEL_PARAMETERS] = np.array([-3.41, -3.84, -4.9, -4.3,
                                                    -8.34e-2, 4.82e-1, 6.73e-1, -9e-2])
 fwd_rtol = 1e-8
 fwd_atol = 1e-8
-bck_rtol = 1e-4
-bck_atol = 1e-4
+bck_rtol = 1e-6
+bck_atol = 1e-6
 fwd_mxsteps = int(1e5)
 bck_mxsteps = int(1e5)
 

@@ -32,7 +32,8 @@ class LogLike(at.Op):
     itypes = [at.dvector]  # expects a vector of parameter values when called
     otypes = [at.dscalar]  # outputs a single scalar value (the log likelihood)
 
-    def __init__(self, likelihood, atol = 1e-8, rtol = 1e-8, mxsteps = int(1e4)):
+    def __init__(self, likelihood, fwd_rtol = 1e-8, fwd_atol = 1e-8, bck_rtol = 1e-4, bck_atol = 1e-4,
+                 fwd_mxsteps = int(1e4), bck_mxsteps = int(1e4)):
         """
         Initialise the Op with various things that our log-likelihood function
         requires. Below are the things that are needed in this particular
@@ -50,11 +51,16 @@ class LogLike(at.Op):
         """
 
         # add inputs as class attributes
-        self.atol = atol
-        self.rtol = rtol
-        self.mxsteps = mxsteps
-        self.likelihood = lambda params: likelihood(params, atol=self.atol, rtol=self.rtol, mxsteps=self.mxsteps)
-        self.logpgrad = LogLikeGrad(atol=self.atol, rtol=self.rtol, mxsteps=self.mxsteps)
+        self.fwd_rtol = fwd_rtol
+        self.fwd_atol = fwd_atol
+        self.bck_rtol = bck_rtol
+        self.bck_atol = bck_atol
+        self.fwd_mxsteps = fwd_mxsteps
+        self.bck_mxsteps = bck_mxsteps
+        self.likelihood = lambda params: likelihood(params, fwd_rtol=self.fwd_rtol, fwd_atol = self.fwd_atol,
+                                                    fwd_mxsteps=self.fwd_mxsteps)
+        self.logpgrad = LogLikeGrad(fwd_rtol=self.fwd_rtol, fwd_atol = self.fwd_atol, bck_rtol=self.bck_rtol,
+                                    bck_atol = self.bck_atol, fwd_mxsteps=self.fwd_mxsteps, bck_mxsteps=self.bck_mxsteps)
 
     def perform(self, node, inputs, outputs):
         # the method that is used when calling the Op
@@ -79,26 +85,34 @@ class LogLikeGrad(at.Op):
     itypes = [at.dvector]
     otypes = [at.dvector]
 
-    def __init__(self, atol=1e-8, rtol=1e-8, mxsteps = int(1e4)):
+    def __init__(self, fwd_rtol=1e-8, fwd_atol=1e-8, bck_rtol=1e-4, bck_atol=1e-4, fwd_mxsteps= int(1e4),
+                 bck_mxsteps=int(1e4)):
         """
         Initialise with various things that the function requires. Below
         are the things that are needed in this particular example.
         """
-        self.atol = atol
-        self.rtol = rtol
-        self.mxsteps = mxsteps
+        self.fwd_rtol = fwd_rtol
+        self.fwd_atol = fwd_atol
+        self.bck_rtol = bck_rtol
+        self.bck_atol = bck_atol
+        self.fwd_mxsteps = fwd_mxsteps
+        self.bck_mxsteps = bck_mxsteps
+
 
     def perform(self, node, inputs, outputs):
         (params,) = inputs
         # calculate gradients
-        grads = likelihood_derivative_adj(params, atol=self.atol, rtol=self.rtol, mxsteps=self.mxsteps)
+        grads = likelihood_derivative_adj(params, fwd_rtol=self.fwd_rtol, fwd_atol=self.fwd_atol,
+                                          bck_rtol=self.bck_rtol, bck_atol=self.bck_atol, fwd_mxsteps=self.fwd_mxsteps,
+                                          bck_mxsteps=self.bck_mxsteps)
         outputs[0][0] = grads
 
-def sample(nsamples, burn_in, nchains, acc_rate=0.8, atol=1e-8, rtol=1e-8, mxsteps=int(2e4),
-           init = 'jitter+adapt_full', initvals = None, random_seed = None):
+def sample(nsamples, burn_in, nchains, acc_rate=0.8, fwd_atol=1e-8, fwd_rtol=1e-8, bck_atol=1e-4, bck_rtol=1e-4,
+           fwd_mxsteps=int(1e5), bck_mxsteps=int(1e5), init = 'jitter+adapt_full', initvals = None, random_seed = None):
     # use PyMC to sampler from log-likelihood
 
-    logl = LogLike(likelihood_adj,  atol=atol, rtol=rtol, mxsteps=mxsteps)
+    logl = LogLike(likelihood_adj, fwd_rtol=fwd_rtol, fwd_atol=fwd_atol, bck_rtol=bck_rtol, bck_atol=bck_atol,
+                   fwd_mxsteps=fwd_mxsteps, bck_mxsteps=bck_mxsteps)
     with pm.Model():
         permeability_params = [pm.TruncatedNormal(param_name, mu=NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][0],
                                                   sigma= NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][1],
@@ -138,10 +152,14 @@ if __name__ == '__main__':
     burn_in = int(float(sys.argv[2]))
     nchains = int(float(sys.argv[3]))
     acc_rate = float(sys.argv[4])
-    atol = float(sys.argv[5])
-    rtol = float(sys.argv[6])
-    mxsteps = int(float(sys.argv[7]))
-    init = sys.argv[8]
+    fwd_rtol = float(sys.argv[5])
+    fwd_atol = float(sys.argv[6])
+    bck_rtol = float(sys.argv[7])
+    bck_atol = float(sys.argv[8])
+    fwd_mxsteps = int(float(sys.argv[9]))
+    bck_mxsteps = int(float(sys.argv[10]))
+    init = sys.argv[11]
+
 
     seed = int(time.time() * 1e6)
     seed = ((seed & 0xff000000) >> 24) + ((seed & 0x00ff0000) >> 8) + ((seed & 0x0000ff00) << 8) + (
@@ -158,14 +176,17 @@ if __name__ == '__main__':
     #              'DHAT_INIT': 0.28071248963437223}
     print(sys.argv)
 
-    idata_nuts = sample(nsamples, burn_in, nchains, acc_rate=acc_rate, atol=atol, rtol = rtol, mxsteps=mxsteps,
-                        init=init, initvals=start_val, random_seed=random_seed)
+    idata_nuts = sample(nsamples, burn_in, nchains, acc_rate=acc_rate, fwd_rtol=fwd_rtol, fwd_atol=fwd_atol,
+                        bck_rtol=bck_rtol, bck_atol=bck_atol, fwd_mxsteps=fwd_mxsteps, bck_mxsteps=bck_mxsteps,
+                        init=init, initvals=start_val,
+                        random_seed=random_seed)
 
     # save samples
-    PARAMETER_SAMP_PATH = ROOT_PATH + '/samples'  #TODO : change to _3HPA
-    directory_name = 'nsamples_' + str(nsamples) + '_burn_in_' + str(burn_in) + '_acc_rate_' + str(acc_rate) +\
-                     '_nchains_' + str(nchains) + '_atol_' + str(atol) + '_rtol_' + str(rtol) + '_mxsteps_' + \
-                     str(mxsteps) + '_initialization_' + init
+    PARAMETER_SAMP_PATH = ROOT_PATH + '/samples'
+    directory_name = 'nsamples_' + str(nsamples) + '_burn_in_' + str(burn_in) + '_acc_rate_' + str(acc_rate) + \
+                     '_nchains_' + str(nchains) + '_fwd_rtol_' + str(fwd_rtol) + '_fwd_atol_' + str(fwd_atol) \
+                     + '_bck_rtol_' + str(bck_rtol) + '_bck_atol_' + str(bck_atol) + '_fwd_mxsteps_' + str(fwd_mxsteps) \
+                     + '_bck_mxsteps_' + str(bck_mxsteps) + '_initialization_' + init
     directory_name = directory_name.replace('.','_').replace('-','_').replace('+','_')
 
     date_string = datetime.now().strftime("%Y_%m_%d_%H_%M_%S_%f") + '.nc'

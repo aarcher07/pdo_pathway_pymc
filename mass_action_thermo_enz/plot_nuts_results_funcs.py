@@ -175,7 +175,7 @@ def plot_corr(data, directory_plot, nchains, thres=5e-2):
         plt.close()
 
 def plot_corr_scatter(data, directory_plot, nchains):
-    for chain_ind in range(nchains):
+    for chain_ind in range(1,nchains):
         diverging = data.sample_stats.diverging[chain_ind].values
         dataarray = data.posterior.to_dataframe().loc[[chain_ind]]
         dataarray = dataarray[ALL_PARAMETERS]
@@ -190,6 +190,7 @@ def plot_corr_scatter(data, directory_plot, nchains):
         dataarray['KmHPADhaT'] = np.log10((np.power(10,dataarray['k2DhaT']) + np.power(10,dataarray['k3DhaT']))/np.power(10,dataarray['k1DhaT']))
         dataarray['KmPDODhaT'] = np.log10((np.power(10,dataarray['k2DhaT']) + np.power(10,dataarray['k3DhaT']))/np.power(10,dataarray['k4DhaT']))
         dataarray = dataarray[PLOT_PARAMETERS]
+        print(dataarray)
         try:
             # data_array = pd.DataFrame(np.array([data[:, i] for i in range(len(ALL_PARAMETERS))]).T, columns=ALL_PARAMETERS)
             axes = scatter_matrix(dataarray.loc[np.invert(diverging),:], alpha=0.2, figsize=(len(ALL_PARAMETERS), len(ALL_PARAMETERS)),
