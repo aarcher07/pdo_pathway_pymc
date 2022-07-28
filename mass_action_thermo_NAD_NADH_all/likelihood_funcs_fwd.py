@@ -12,7 +12,7 @@ import time
 from rhs_funcs import RHS, lib, problem
 
 solver_no_sens = sunode.solver.Solver(problem, solver='BDF', sens_mode=None)
-solver = sunode.solver.Solver(problem, solver='BDF', sens_mode=None)
+solver = sunode.solver.Solver(problem, solver='BDF', sens_mode='simultaneous')
 
 def likelihood_fwd(param_vals, rtol=1e-8, atol=1e-8, mxsteps=int(1e4)):
 
@@ -78,8 +78,6 @@ def likelihood_fwd(param_vals, rtol=1e-8, atol=1e-8, mxsteps=int(1e4)):
 
 
 def likelihood_derivative_fwd(param_vals, rtol=1e-8, atol=1e-8, mxsteps=int(1e4)):
-    solver = sunode.solver.Solver(problem, solver='BDF', sens_mode='simultaneous')
-
     # set solver parameters
     lib.CVodeSStolerances(solver._ode, rtol, atol)
     lib.CVodeSetMaxNumSteps(solver._ode, mxsteps)

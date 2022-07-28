@@ -11,19 +11,19 @@ from constants import *
 
 param_sample = NORM_PRIOR_MEAN_ALL_EXP.copy()[:(N_MODEL_PARAMETERS)]
 param_sample_copy = param_sample.copy()
-param_sample_copy[:N_MODEL_PARAMETERS] = np.array([-3.41, -3.84, -4.9, -4.3,
-                                                   2.56e-1, -5.22, 2.93, 7.30,
-                                                   2.77, 8.27e-1, 1.16, 8.23e-1,
-                                                   1.40, 7.28e-1, 1.48, 3.22,
-                                                   1.65, 1.21, -3.14e-1, 1.88,
-                                                   -2.15, 5.22e-1, -5.26e-1, -4.25,
-                                                   -5.98e-1, 5.41e-1, -6.85e-1, 2.88,
-                                                   5.48e-3, -2.49, -1.98, 8.34e-2,
-                                                   -8.34e-2, 4.82e-1, 6.73e-1, -9e-2])
-fwd_rtol = 1e-8
-fwd_atol = 1e-8
-bck_rtol = 1e-4
-bck_atol = 1e-4
+# param_sample_copy[:N_MODEL_PARAMETERS] = np.array([-3.41, -3.84, -4.9, -4.3,
+#                                                    2.56e-1, -5.22, 2.93, 7.30,
+#                                                    2.77, 8.27e-1, 1.16, 8.23e-1,
+#                                                    1.40, 7.28e-1, 1.48, 3.22,
+#                                                    1.65, 1.21, -3.14e-1, 1.88,
+#                                                    -2.15, 5.22e-1, -5.26e-1, -4.25,
+#                                                    -5.98e-1, 5.41e-1, -6.85e-1, 2.88,
+#                                                    5.48e-3, -2.49, -1.98, 8.34e-2,
+#                                                    -8.34e-2, 4.82e-1, 6.73e-1, -9e-2])
+fwd_rtol = 1e-12
+fwd_atol = 1e-12
+bck_rtol = 1e-12
+bck_atol = 1e-12
 fwd_mxsteps = int(1e5)
 bck_mxsteps = int(1e5)
 
@@ -58,5 +58,13 @@ lik_diff = lik_fwd - lik_adj
 lik_rel_diff = np.abs(lik_diff)/np.abs(lik_fwd)
 print(lik_diff)
 print(lik_rel_diff)
+
+indices_sorted = np.argsort(lik_rel_diff)[::-1]
+topk =  5
+print('abs diff: ' + str(lik_diff[indices_sorted[:topk]]))
+print('rel diff: ' + str(lik_rel_diff[indices_sorted[:topk]]))
+print('fwd dev: ' + str(lik_fwd[indices_sorted[:topk]]))
+print('adj dev: ' + str(lik_adj[indices_sorted[:topk]]))
+print('param: ' + str(np.array(DEV_PARAMETERS_LIST)[indices_sorted[:topk]]))
 
 

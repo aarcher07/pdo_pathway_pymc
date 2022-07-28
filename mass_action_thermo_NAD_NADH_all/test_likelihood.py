@@ -22,8 +22,8 @@ param_sample_copy[:N_MODEL_PARAMETERS] = np.array([-3.41, -3.84, -4.9, -4.3,
                                                    -8.34e-2, 4.82e-1, 6.73e-1, -9e-2])
 fwd_rtol = 1e-8
 fwd_atol = 1e-8
-bck_rtol = 1e-6
-bck_atol = 1e-6
+bck_rtol = 1e-4
+bck_atol = 1e-4
 fwd_mxsteps = int(1e5)
 bck_mxsteps = int(1e5)
 
@@ -52,11 +52,19 @@ lik_adj = likelihood_derivative_adj(param_sample_copy[:(N_MODEL_PARAMETERS)], fw
 time_end = time.time()
 print('adj : '+ str((time_end - time_start)/60))
 
-print(lik_fwd)
-print(lik_adj)
+print('fwd : ' + str(lik_fwd))
+print('adj : ' + str(lik_adj))
 lik_diff = lik_fwd - lik_adj
 lik_rel_diff = np.abs(lik_diff)/np.abs(lik_fwd)
 print(lik_diff)
 print(lik_rel_diff)
+
+indices_sorted = np.argsort(lik_rel_diff)[::-1]
+topk =  5
+print('abs diff: ' + str(lik_diff[indices_sorted[:topk]]))
+print('rel diff: ' + str(lik_rel_diff[indices_sorted[:topk]]))
+print('fwd dev: ' + str(lik_fwd[indices_sorted[:topk]]))
+print('adj dev: ' + str(lik_adj[indices_sorted[:topk]]))
+print('param: ' + str(np.array(DEV_PARAMETERS_LIST)[indices_sorted[:topk]]))
 
 

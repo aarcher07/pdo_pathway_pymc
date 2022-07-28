@@ -41,8 +41,8 @@ lik_adj = likelihood_derivative_adj(param_sample_copy[:(N_MODEL_PARAMETERS)],ato
 time_end = time.time()
 print('adj : '+ str((time_end - time_start)/60))
 
-print(lik_fwd)
-print(lik_adj)
+print('fwd : ' + str(lik_fwd))
+print('adj : ' + str(lik_adj))
 lik_diff = lik_fwd - lik_adj
 lik_rel_diff = np.abs(lik_diff)/np.abs(lik_fwd)
 print(lik_diff)

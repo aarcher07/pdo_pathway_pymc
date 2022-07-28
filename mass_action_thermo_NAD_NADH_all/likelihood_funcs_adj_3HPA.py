@@ -65,9 +65,8 @@ def likelihood_adj(param_vals, fwd_rtol = 1e-8, fwd_atol=1e-8, fwd_mxsteps=int(1
             # for i,var in enumerate(VARIABLE_NAMES):
             #     if i in DATA_INDEX:
             #         plt.plot(tvals / HRS_TO_SECS, yout.view(problem.state_dtype)[var])
-            #         plt.scatter(tvals/HRS_TO_SECS, DATA_SAMPLES[gly_cond][:,jj])
+            #         plt.scatter(tvals[::TIME_SPACING_HPA]/HRS_TO_SECS, DATA_SAMPLES[gly_cond][:,jj])
             #         jj+=1
-            #     plt.show()
             #     plt.show()
             cyto_hpa_max = np.max(yout[:, VARIABLE_NAMES.index('H_CYTO')])
             loglik += -0.5*(((DATA_SAMPLES[gly_cond]-yout[::TIME_SPACING_HPA,DATA_INDEX])/np.array([15,15,0.1]))**2).sum() \

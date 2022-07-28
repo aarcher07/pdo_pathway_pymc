@@ -67,7 +67,7 @@ def likelihood_fwd(param_vals, rtol=1e-8, atol=1e-8, mxsteps=int(1e4)):
             # for i,var in enumerate(VARIABLE_NAMES):
             #     if i in DATA_INDEX:
             #         plt.plot(tvals / HRS_TO_SECS, yout.view(problem.state_dtype)[var])
-            #         plt.scatter(tvals/HRS_TO_SECS, DATA_SAMPLES[gly_cond][:,jj])
+            #         plt.scatter(tvals[::TIME_SPACING_HPA]/HRS_TO_SECS, DATA_SAMPLES[gly_cond][:,jj])
             #         jj+=1
             #     plt.show()
             cyto_hpa_max = np.max(yout[:, VARIABLE_NAMES.index('H_CYTO')])
