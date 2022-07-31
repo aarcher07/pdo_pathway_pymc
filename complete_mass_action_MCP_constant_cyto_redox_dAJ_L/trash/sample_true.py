@@ -3,7 +3,7 @@ from prior_constants import CELL_PERMEABILITY_MEAN, CELL_PERMEABILITY_STD, MCP_P
     dPDU_AJ_ENZ_NUMBER_PARAMETER_MEAN, dPDU_AJ_ENZ_NUMBER_PARAMETER_STD, COFACTOR_NUMBER_PARAMETER_MEAN, \
     COFACTOR_NUMBER_PARAMETER_STD, GEOMETRY_PARAMETER_MEAN, GEOMETRY_PARAMETER_STD, CELL_PERMEABILITY_PARAMETER_RANGES,\
     MCP_PERMEABILITY_PARAMETER_RANGES, KINETIC_PARAMETER_RANGES, GEOMETRY_PARAMETER_RANGES, \
-    COFACTOR_NUMBER_PARAMETER_RANGES, PDU_WT_ENZ_NUMBERS_PARAMETER_RANGES, dPDU_AJ_ENZ_NUMBER_PARAMETER_RANGES
+    COFACTOR_NUMBER_PARAMETER_RANGES, PDU_ENZ_NUMBERS_PARAMETER_RANGES_WT, dPDU_AJ_ENZ_NUMBER_PARAMETER_RANGES
 import pymc as pm
 import arviz as az
 from constants import PERMEABILITY_CELL_PARAMETERS, PERMEABILITY_MCP_PARAMETERS, KINETIC_PARAMETERS, MCP_PARAMETERS, \
@@ -56,15 +56,15 @@ def sample_true(nsamples, burn_in, nchains, acc_rate=0.8, fwd_rtol=1e-8, fwd_ato
                           for param_name in COFACTOR_PARAMETERS]
 
         enzyme_init_WT = [pm.TruncatedNormal(param_name + '_WT', mu = PDU_WT_ENZ_NUMBERS_PARAMETER_MEAN[param_name],
-                                          sigma = PDU_WT_ENZ_NUMBERS_PARAMETER_STD[param_name],
-                                          lower = PDU_WT_ENZ_NUMBERS_PARAMETER_RANGES[param_name][0] + np.log10(0.25),
-                                          upper = PDU_WT_ENZ_NUMBERS_PARAMETER_RANGES[param_name][1] + np.log10(1.5))
+                                             sigma = PDU_WT_ENZ_NUMBERS_PARAMETER_STD[param_name],
+                                             lower =PDU_ENZ_NUMBERS_PARAMETER_RANGES_WT[param_name][0] + np.log10(0.25),
+                                             upper =PDU_ENZ_NUMBERS_PARAMETER_RANGES_WT[param_name][1] + np.log10(1.5))
                        for param_name in ENZYME_CONCENTRATIONS]
 
         enzyme_init_dAJ = [pm.TruncatedNormal(param_name + '_dAJ', mu = dPDU_AJ_ENZ_NUMBER_PARAMETER_MEAN[param_name],
-                                             sigma = dPDU_AJ_ENZ_NUMBER_PARAMETER_STD[param_name],
-                                             lower = PDU_WT_ENZ_NUMBERS_PARAMETER_RANGES[param_name][0] + np.log10(0.25),
-                                             upper = PDU_WT_ENZ_NUMBERS_PARAMETER_RANGES[param_name][1] + np.log10(1.5))
+                                              sigma = dPDU_AJ_ENZ_NUMBER_PARAMETER_STD[param_name],
+                                              lower =PDU_ENZ_NUMBERS_PARAMETER_RANGES_WT[param_name][0] + np.log10(0.25),
+                                              upper =PDU_ENZ_NUMBERS_PARAMETER_RANGES_WT[param_name][1] + np.log10(1.5))
                            for param_name in ENZYME_CONCENTRATIONS]
 
         variables = [*permeability_cell_params, *permeability_mcp_params, *kinetic_params, *mcp_geometry_params,
@@ -77,10 +77,10 @@ def sample_true(nsamples, burn_in, nchains, acc_rate=0.8, fwd_rtol=1e-8, fwd_ato
                                     - variables[MODEL_PARAMETERS.index('k2PduCDE')])
 
         pm.Deterministic('kcat_PduCDE_f', variables[MODEL_PARAMETERS.index('k3PduCDE')])
-        pm.Deterministic('kcat_PduCDE_Glycerol', np.log10((np.power(10, variables[MODEL_PARAMETERS.index('k2PduCDE')])
+        pm.Deterministic('K_M_PduCDE_Glycerol', np.log10((np.power(10, variables[MODEL_PARAMETERS.index('k2PduCDE')])
                                                            + np.power(10,variables[MODEL_PARAMETERS.index('k3PduCDE')]))/np.power(10,variables[MODEL_PARAMETERS.index('k1PduCDE')])))
         pm.Deterministic('kcat_PduCDE_r', variables[MODEL_PARAMETERS.index('k2PduCDE')] )
-        pm.Deterministic('kcat_PduCDE_HPA', np.log10((np.power(10, variables[MODEL_PARAMETERS.index('k2PduCDE')])
+        pm.Deterministic('K_M_PduCDE_HPA', np.log10((np.power(10, variables[MODEL_PARAMETERS.index('k2PduCDE')])
                                                       + np.power(10,variables[MODEL_PARAMETERS.index('k3PduCDE')]))/np.power(10,k4PduCDE)))
 
 

@@ -6,7 +6,7 @@ mpl.rcParams['text.latex.preamble'] = [r'\usepackage{amsmath}'] #for \text comma
 import numpy as np
 from constants import *
 
-def RHS_dAJ(t, x, params):
+def RHS_dAJ_L(t, x, params):
     """
     Computes the spatial derivative of the system at time point, t
     :param_mean t: time
@@ -76,9 +76,9 @@ def RHS_dAJ(t, x, params):
     VmaxfGlpK = 10**params.VmaxfGlpK # TODO: CHANGE
     KmGlpK = 10**params.KmGlpK
 
-    radius_AJ = 10**params.AJ_radius
-    polar_volume = (4./3.)*np.pi*(radius_AJ**3)
-    polar_surface_area = 4*np.pi*(radius_AJ**2)
+    dAJ_radius = 10 ** params.dAJ_radius
+    polar_volume = (4./3.)*np.pi*(dAJ_radius ** 3)
+    polar_surface_area = 4*np.pi*(dAJ_radius ** 2)
 
     NADH_NAD_TOTAL_CYTO = 10 ** params.NADH_NAD_TOTAL_CYTO
     NADH_NAD_RATIO_CYTO = 10 ** params.NADH_NAD_RATIO_CYTO
@@ -203,14 +203,14 @@ def RHS_dAJ(t, x, params):
     return d
 
 
-problem_dAJ = sunode.symode.SympyProblem(
-    params={ param: () for param in PARAMETER_LIST},
+problem_dAJ_L = sunode.symode.SympyProblem(
+    params={param: () for param in LOCAL_PARAMETER_LIST},
 
     states={ var: () for var in VARIABLE_NAMES},
 
-    rhs_sympy=RHS_dAJ,
+    rhs_sympy=RHS_dAJ_L,
 
-    derivative_params=[ (param,)  for param in DEV_PARAMETER_LIST]
+    derivative_params=[(param,) for param in LOCAL_DEV_PARAMETER_LIST]
 )
 
 #

@@ -8,16 +8,17 @@
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=andrearcher2017@u.northwestern.edu
 #SBATCH --mem-per-cpu=15GB
-#SBATCH --job-name=pdu_constant_cyto_%A_%a
-#SBATCH --output=out/pdu_constant_cyto_out_%A_%a
-#SBATCH --error=err/pdu_constant_cyto__err_%A_%a
+#SBATCH --job-name=pdu_constant_cyto_dAJ_%A_%a
+#SBATCH --output=out/pdu_constant_cyto_dAJ_out_%A_%a
+#SBATCH --error=err/pdu_constant_cyto_dAJ_err_%A_%a
 
-nsamples=(5e3)
-burn_in=(5e3)
+
+nsamples=(2e3 5e3)
+burn_in=(2e3 5e3)
 nchains=2
-acc_rate=(0.6 0.75 0.8)
-fwd_rtol=(1e-8 1e-9)
-fwd_atol=(1e-8)
+acc_rate=(0.75 0.8 0.85)
+fwd_rtol=(1e-10)
+fwd_atol=(1e-10)
 bck_rtol=(1e-4)
 bck_atol=(1e-4)
 fwd_mxsteps=1e5

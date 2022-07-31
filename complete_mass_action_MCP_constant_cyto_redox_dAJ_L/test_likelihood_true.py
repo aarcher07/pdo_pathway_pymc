@@ -12,8 +12,7 @@ param_sample = np.array([*CELL_PERMEABILITY_MEAN.values(),
                          np.log10((MCP_RADIUS*(10**(GEOMETRY_PARAMETER_MEAN['nMCPs']/3.))
                                    + MCP_RADIUS*(10**(GEOMETRY_PARAMETER_MEAN['nMCPs']/2.)))/2),
                          *COFACTOR_NUMBER_PARAMETER_MEAN.values(),
-                         *PDU_WT_ENZ_NUMBERS_PARAMETER_MEAN.values(),
-                         *dPDU_AJ_ENZ_NUMBER_PARAMETER_MEAN.values(),
+                         *PDU_ENZ_NUMBERS_PARAMETER_MEAN.values(),
                          ])
 likelihood_adj_true(param_sample)
 likelihood_fwd_true(param_sample)

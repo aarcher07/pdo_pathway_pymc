@@ -20,45 +20,48 @@ from os.path import dirname, abspath
 ROOT_PATH = dirname(abspath(__file__))
 from pandas.plotting import scatter_matrix
 from plot_nuts_results_funcs import plot_loglik_individual, plot_loglik_overlay, plot_corr_scatter, plot_corr, \
-    plot_time_series_distribution, joint_Keq_distribution, plot_trace
+    plot_time_series_distribution_post, plot_time_series_distribution_prior, joint_Keq_distribution, plot_trace, \
+    prior_to_post_map
 
-nsamples = int(1e3)
-burn_in = int(2e3)
+
+# load posterior samples
+nsamples = int(5e3)
+burn_in = int(5e3)
 nchains = 2
-acc_rate = 0.6
+acc_rate = 0.8
 fwd_atol = 1e-8
 fwd_rtol = 1e-8
 bck_atol = 1e-4
 bck_rtol = 1e-4
-mxsteps = 1e5
+fwd_mxsteps = 1e5
+bck_mxsteps = 1e5
 init = 'adapt_diag'
 
-# save samples
-PARAMETER_SAMP_PATH = ROOT_PATH + '/samples' #TODO: remove _3HPA
+PARAMETER_SAMP_PATH = ROOT_PATH + '/samples' 
 directory_name = 'nsamples_' + str(nsamples) + '_burn_in_' + str(burn_in) + '_acc_rate_' + str(acc_rate) + \
                  '_nchains_' + str(nchains) + '_fwd_rtol_' + str(fwd_rtol) + '_fwd_atol_' + str(fwd_atol) + \
-                 '_bck_rtol_' + str(bck_rtol) + '_bck_atol_' + str(bck_atol) + '_mxsteps_' + str(int(mxsteps)) \
-                 + '_initialization_' + init
-directory_name = directory_name.replace('.','_').replace('-','_').replace('+','_')
-file_name = '2022_07_24_15_51_14_238436.nc'
-data_file_location = os.path.join(PARAMETER_SAMP_PATH, directory_name, file_name)
-samples = az.from_netcdf(data_file_location)
-
+                 '_bck_rtol_' + str(bck_rtol) + '_bck_atol_' + str(bck_atol) + '_fwd_mxsteps_' + str(int(fwd_mxsteps)) \
+                 + '_bck_mxsteps_' + str(int(bck_mxsteps)) + '_initialization_' + init
+directory_name = directory_name.replace('.', '_').replace('-', '_').replace('+', '_')
+date_string = '2022_07_29_02_14_34_853095'
+sample_file_location = os.path.join(PARAMETER_SAMP_PATH, directory_name, date_string)
+prior_samples = az.from_netcdf(os.path.join(sample_file_location, 'prior.nc'))
+post_samples = az.from_netcdf(os.path.join(sample_file_location, 'post.nc'))
 
 PLOT_SAMP_PATH = ROOT_PATH + '/plot_analysis'
-plot_file_location = os.path.join(PLOT_SAMP_PATH, directory_name, file_name[:-3])
+plot_file_location = os.path.join(PLOT_SAMP_PATH, directory_name, date_string)
 Path(plot_file_location).mkdir(parents=True, exist_ok=True)
-# dataarray = samples.posterior.to_dataframe().loc[[0]]
-# print(likelihood_adj(dataarray.iloc[-1,:].to_numpy()))
-# print(dataarray.iloc[-1,:].to_dict())
-# print(dataarray.iloc[-1,:].to_numpy())
 
-# df = az.summary(samples)
-# df.to_csv(os.path.join(plot_file_location,'summary_stats.csv'),sep = ' ')
-# plot_trace(samples, plot_file_location)
+df = az.summary(post_samples)
+df.to_csv(os.path.join(plot_file_location,'summary_stats_post.csv'),sep = ' ')
+# plot_trace(post_samples, plot_file_location)
 # plot_loglik_individual(samples.sample_stats.lp, plot_file_location, nchains)
 # plot_loglik_overlay(samples.sample_stats.lp, plot_file_location, nchains)
-plot_time_series_distribution(samples, plot_file_location, nchains, fwd_atol, fwd_rtol, mxsteps)
+# fwd_atol = 1e-10
+# fwd_rtol = 1e-10
+# plot_time_series_distribution_post(post_samples, plot_file_location, nchains, fwd_atol, fwd_rtol, fwd_mxsteps)
+# plot_time_series_distribution_prior(prior_samples, plot_file_location, fwd_atol, fwd_rtol, fwd_mxsteps)
+prior_to_post_map(post_samples,prior_samples, plot_file_location, nchains)
 # plot_corr(samples, plot_file_location, nchains)
 # plot_corr_scatter(samples, plot_file_location, nchains)
 # KeqDhaB = np.power(10,samples.posterior.KeqDhaB)
