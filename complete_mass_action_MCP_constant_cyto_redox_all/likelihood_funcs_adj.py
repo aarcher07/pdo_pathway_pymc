@@ -21,9 +21,9 @@ solver_dAJ = sunode.solver.AdjointSolver(problem_dAJ, solver='BDF')
 def likelihood_adj(params, fwd_rtol = 1e-8, fwd_atol=1e-8, mxsteps=int(1e4)):
     lib.CVodeSStolerances(solver_dAJ._ode, fwd_rtol, fwd_atol)
     lib.CVodeSetMaxNumSteps(solver_dAJ._ode, mxsteps)
-    # lib.CVodeSStolerances(solver_WT._ode, fwd_rtol, fwd_atol)
+    # lib.CVodeSStolerances(solver_WT._ode, post_fwd_rtol, post_fwd_atol)
     # lib.CVodeSetMaxNumSteps(solver_WT._ode, mxsteps)
-    # lib.CVodeSStolerances(solver_dD._ode, fwd_rtol, fwd_atol)
+    # lib.CVodeSStolerances(solver_dD._ode, post_fwd_rtol, post_fwd_atol)
     # lib.CVodeSetMaxNumSteps(solver_dD._ode, mxsteps)
 
     tvals = TIME_SAMPLES_EXPANDED*HRS_TO_SECS
@@ -142,14 +142,14 @@ def likelihood_derivative_adj(params, fwd_rtol = 1e-8, fwd_atol=1e-8,
     lib.CVodeQuadSStolerancesB(solver_dAJ._ode, solver_dAJ._odeB, bck_rtol, bck_atol)
     lib.CVodeSetMaxNumSteps(solver_dAJ._ode, mxsteps)
 
-    # lib.CVodeSStolerances(solver_WT._ode, fwd_rtol, fwd_atol)
-    # lib.CVodeSStolerancesB(solver_WT._ode, solver_WT._odeB, bck_rtol, bck_atol)
-    # lib.CVodeQuadSStolerancesB(solver_WT._ode, solver_WT._odeB, bck_rtol, bck_atol)
+    # lib.CVodeSStolerances(solver_WT._ode, post_fwd_rtol, post_fwd_atol)
+    # lib.CVodeSStolerancesB(solver_WT._ode, solver_WT._odeB, post_bck_rtol, post_bck_atol)
+    # lib.CVodeQuadSStolerancesB(solver_WT._ode, solver_WT._odeB, post_bck_rtol, post_bck_atol)
     # lib.CVodeSetMaxNumSteps(solver_WT._ode, mxsteps)
     #
-    # lib.CVodeSStolerances(solver_dD._ode, fwd_rtol, fwd_atol)
-    # lib.CVodeSStolerancesB(solver_dD._ode, solver_dD._odeB, bck_rtol, bck_atol)
-    # lib.CVodeQuadSStolerancesB(solver_dD._ode, solver_dD._odeB, bck_rtol, bck_atol)
+    # lib.CVodeSStolerances(solver_dD._ode, post_fwd_rtol, post_fwd_atol)
+    # lib.CVodeSStolerancesB(solver_dD._ode, solver_dD._odeB, post_bck_rtol, post_bck_atol)
+    # lib.CVodeQuadSStolerancesB(solver_dD._ode, solver_dD._odeB, post_bck_rtol, post_bck_atol)
     # lib.CVodeSetMaxNumSteps(solver_dD._ode, mxsteps)
 
     # non_enz_model_params = params[:-4]
@@ -212,7 +212,7 @@ def likelihood_derivative_adj(params, fwd_rtol = 1e-8, fwd_atol=1e-8,
             sens0[PARAMETER_LIST.index('nPduP'), VARIABLE_NAMES.index('PduP')] = np.log(10)*(10**param_samples_copy[PARAMETER_LIST.index('nPduP')])/(Avogadro * MCP_VOLUME)
             sens0[PARAMETER_LIST.index('nPduQ'), VARIABLE_NAMES.index('PduQ')] = np.log(10)*(10**param_samples_copy[PARAMETER_LIST.index('nPduQ')])/(Avogadro * MCP_VOLUME)
             sens0[PARAMETER_LIST.index('nPduL'), VARIABLE_NAMES.index('PduL')] = np.log(10)*(10**param_samples_copy[PARAMETER_LIST.index('nPduL')])/(Avogadro * MCP_VOLUME)
-            # sens0[PARAMETER_LIST.index('nPduW'), VARIABLE_NAMES.index('PduW')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('nPduW')])/(Avogadro * MCP_VOLUME)
+            # sens0[LOCAL_PARAMETER_LIST.index('nPduW'), VARIABLE_NAMES.index('PduW')] = np.log(10)*(10**param_sample[LOCAL_PARAMETER_LIST.index('nPduW')])/(Avogadro * MCP_VOLUME)
             sens0[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP'), VARIABLE_NAMES.index('NADH_MCP')] = np.log(10)*(10**(param_samples_copy[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP')] + param_samples_copy[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')]))/(10**param_samples_copy[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')] + 1)
             sens0[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP'), VARIABLE_NAMES.index('NADH_MCP')] = np.log(10)*(10**(param_samples_copy[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP')] + param_samples_copy[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')]))/(10**param_samples_copy[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')] + 1)**2
             sens0[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP'), VARIABLE_NAMES.index('NAD_MCP')] = np.log(10)*(10**param_samples_copy[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP')])/(10**param_samples_copy[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')] + 1)
@@ -240,7 +240,7 @@ def likelihood_derivative_adj(params, fwd_rtol = 1e-8, fwd_atol=1e-8,
             sens0[PARAMETER_LIST.index('nPduP'), VARIABLE_NAMES.index('PduP')] = np.log(10)*(10**(param_samples_copy[PARAMETER_LIST.index('nPduP')]+param_samples_copy[PARAMETER_LIST.index('nMCPs')]))/(Avogadro * POLAR_VOLUME)
             sens0[PARAMETER_LIST.index('nPduQ'), VARIABLE_NAMES.index('PduQ')] = np.log(10)*(10**(param_samples_copy[PARAMETER_LIST.index('nPduQ')]+param_samples_copy[PARAMETER_LIST.index('nMCPs')]))/(Avogadro * POLAR_VOLUME)
             sens0[PARAMETER_LIST.index('nPduL'), VARIABLE_NAMES.index('PduL')] = np.log(10)*(10**(param_samples_copy[PARAMETER_LIST.index('nPduL')]+param_samples_copy[PARAMETER_LIST.index('nMCPs')]))/(Avogadro * POLAR_VOLUME)
-            # sens0[PARAMETER_LIST.index('nPduW'), VARIABLE_NAMES.index('PduW')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('nPduW')])/(Avogadro * POLAR_VOLUME)
+            # sens0[LOCAL_PARAMETER_LIST.index('nPduW'), VARIABLE_NAMES.index('PduW')] = np.log(10)*(10**param_sample[LOCAL_PARAMETER_LIST.index('nPduW')])/(Avogadro * POLAR_VOLUME)
 
             sens0[PARAMETER_LIST.index('AJ_radius'), VARIABLE_NAMES.index('PduCDE')] = -3*np.log(10)*(10**(param_samples_copy[PARAMETER_LIST.index('nPduCDE')] + param_samples_copy[PARAMETER_LIST.index('nMCPs')]))/(Avogadro * POLAR_VOLUME)
             sens0[PARAMETER_LIST.index('AJ_radius'), VARIABLE_NAMES.index('PduP')] = -3*np.log(10)*(10**(param_samples_copy[PARAMETER_LIST.index('nPduP')] + param_samples_copy[PARAMETER_LIST.index('nMCPs')]))/(Avogadro * POLAR_VOLUME)

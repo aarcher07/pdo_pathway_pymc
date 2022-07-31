@@ -90,7 +90,7 @@ def plot_time_series_distribution(samples, plot_file_location, nchains, fwd_atol
         y0['P_CYTO'] = TIME_SERIES_MEAN[exp_cond]['13PD'][0]
         y0['P_MCP'] = TIME_SERIES_MEAN[exp_cond]['13PD'][0]
 
-        fig, ax = plt.subplots(4, min(5, nchains), figsize=(15,15)) #min(5, nchains))
+        fig, ax = plt.subplots(4, min(5, nchains), figsize=(15,15)) #min(5, post_nchains))
         for chain_ind in range(min(5, nchains)):
             dataarray = samples.posterior.to_dataframe().loc[[chain_ind]]
             dataarray = dataarray[param_list]

@@ -59,7 +59,7 @@ y0['PduCDE'] = (10**(param_sample[PARAMETER_LIST.index('nPduCDE')] + param_sampl
 y0['PduP'] = (10**(param_sample[PARAMETER_LIST.index('nPduP')] + param_sample[PARAMETER_LIST.index('nMCPs')]))/(Avogadro * POLAR_VOLUME)
 y0['PduQ'] = (10**(param_sample[PARAMETER_LIST.index('nPduQ')] + param_sample[PARAMETER_LIST.index('nMCPs')]))/(Avogadro * POLAR_VOLUME)
 y0['PduL'] = (10**(param_sample[PARAMETER_LIST.index('nPduL')] + param_sample[PARAMETER_LIST.index('nMCPs')]))/(Avogadro * POLAR_VOLUME)
-# y0['PduW'] = 10**param_sample[PARAMETER_LIST.index('nPduW')]/(Avogadro * POLAR_VOLUME)
+# y0['PduW'] = 10**param_sample[LOCAL_PARAMETER_LIST.index('nPduW')]/(Avogadro * POLAR_VOLUME)
 y0['OD'] = 10**param_sample[PARAMETER_LIST.index('A')]
 params_dict = { param_name : param_val for param_val,param_name in zip(param_sample, PARAMETER_LIST)}
 # # We can also specify the parameters by name:
@@ -72,7 +72,7 @@ sens0[PARAMETER_LIST.index('nPduCDE'), VARIABLE_NAMES.index('PduCDE')] = np.log(
 sens0[PARAMETER_LIST.index('nPduP'), VARIABLE_NAMES.index('PduP')] = np.log(10)*(10**(param_sample[PARAMETER_LIST.index('nPduP')]+param_sample[PARAMETER_LIST.index('nMCPs')]))/(Avogadro * POLAR_VOLUME)
 sens0[PARAMETER_LIST.index('nPduQ'), VARIABLE_NAMES.index('PduQ')] = np.log(10)*(10**(param_sample[PARAMETER_LIST.index('nPduQ')]+param_sample[PARAMETER_LIST.index('nMCPs')]))/(Avogadro * POLAR_VOLUME)
 sens0[PARAMETER_LIST.index('nPduL'), VARIABLE_NAMES.index('PduL')] = np.log(10)*(10**(param_sample[PARAMETER_LIST.index('nPduL')]+param_sample[PARAMETER_LIST.index('nMCPs')]))/(Avogadro * POLAR_VOLUME)
-# sens0[PARAMETER_LIST.index('nPduW'), VARIABLE_NAMES.index('PduW')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('nPduW')])/(Avogadro * POLAR_VOLUME)
+# sens0[LOCAL_PARAMETER_LIST.index('nPduW'), VARIABLE_NAMES.index('PduW')] = np.log(10)*(10**param_sample[LOCAL_PARAMETER_LIST.index('nPduW')])/(Avogadro * POLAR_VOLUME)
 
 sens0[PARAMETER_LIST.index('AJ_radius'), VARIABLE_NAMES.index('PduCDE')] = -3*np.log(10)*(10**(param_sample[PARAMETER_LIST.index('nPduCDE')] + param_sample[PARAMETER_LIST.index('nMCPs')]))/(Avogadro * POLAR_VOLUME)
 sens0[PARAMETER_LIST.index('AJ_radius'), VARIABLE_NAMES.index('PduP')] = -3*np.log(10)*(10**(param_sample[PARAMETER_LIST.index('nPduP')] + param_sample[PARAMETER_LIST.index('nMCPs')]))/(Avogadro * POLAR_VOLUME)

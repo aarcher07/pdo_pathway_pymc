@@ -172,7 +172,7 @@ def likelihood_derivative_adj(params, fwd_rtol = 1e-8, fwd_atol=1e-8,
             sens0[PARAMETER_LIST.index('nPduP'), VARIABLE_NAMES.index('PduP')] = np.log(10)*(10**param_samples_copy[PARAMETER_LIST.index('nPduP')])/(Avogadro * MCP_VOLUME)
             sens0[PARAMETER_LIST.index('nPduQ'), VARIABLE_NAMES.index('PduQ')] = np.log(10)*(10**param_samples_copy[PARAMETER_LIST.index('nPduQ')])/(Avogadro * MCP_VOLUME)
             sens0[PARAMETER_LIST.index('nPduL'), VARIABLE_NAMES.index('PduL')] = np.log(10)*(10**param_samples_copy[PARAMETER_LIST.index('nPduL')])/(Avogadro * MCP_VOLUME)
-            # sens0[PARAMETER_LIST.index('nPduW'), VARIABLE_NAMES.index('PduW')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('nPduW')])/(Avogadro * MCP_VOLUME)
+            # sens0[LOCAL_PARAMETER_LIST.index('nPduW'), VARIABLE_NAMES.index('PduW')] = np.log(10)*(10**param_sample[LOCAL_PARAMETER_LIST.index('nPduW')])/(Avogadro * MCP_VOLUME)
             sens0[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP'), VARIABLE_NAMES.index('NADH_MCP')] = np.log(10)*(10**(param_samples_copy[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP')] + param_samples_copy[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')]))/(10**param_samples_copy[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')] + 1)
             sens0[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP'), VARIABLE_NAMES.index('NADH_MCP')] = np.log(10)*(10**(param_samples_copy[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP')] + param_samples_copy[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')]))/(10**param_samples_copy[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')] + 1)**2
             sens0[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP'), VARIABLE_NAMES.index('NAD_MCP')] = np.log(10)*(10**param_samples_copy[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP')])/(10**param_samples_copy[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')] + 1)
@@ -195,7 +195,7 @@ def likelihood_derivative_adj(params, fwd_rtol = 1e-8, fwd_atol=1e-8,
             sens0[PARAMETER_LIST.index('nPduP'), VARIABLE_NAMES.index('PduP')] = param_samples_copy[PARAMETER_LIST.index('nMCPs')]*np.log(10)*(10**param_samples_copy[PARAMETER_LIST.index('nPduP')])/(Avogadro * POLAR_VOLUME)
             sens0[PARAMETER_LIST.index('nPduQ'), VARIABLE_NAMES.index('PduQ')] = param_samples_copy[PARAMETER_LIST.index('nMCPs')]*np.log(10)*(10**param_samples_copy[PARAMETER_LIST.index('nPduQ')])/(Avogadro * POLAR_VOLUME)
             sens0[PARAMETER_LIST.index('nPduL'), VARIABLE_NAMES.index('PduL')] = param_samples_copy[PARAMETER_LIST.index('nMCPs')]*np.log(10)*(10**param_samples_copy[PARAMETER_LIST.index('nPduL')])/(Avogadro * POLAR_VOLUME)
-            # sens0[PARAMETER_LIST.index('nPduW'), VARIABLE_NAMES.index('PduW')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('nPduW')])/(Avogadro * POLAR_VOLUME)
+            # sens0[LOCAL_PARAMETER_LIST.index('nPduW'), VARIABLE_NAMES.index('PduW')] = np.log(10)*(10**param_sample[LOCAL_PARAMETER_LIST.index('nPduW')])/(Avogadro * POLAR_VOLUME)
 
             sens0[PARAMETER_LIST.index('AJ_radius'), VARIABLE_NAMES.index('PduCDE')] = -3*np.log(10)*param_samples_copy[PARAMETER_LIST.index('nMCPs')]*(10**param_samples_copy[PARAMETER_LIST.index('nPduCDE')])/(Avogadro * POLAR_VOLUME)
             sens0[PARAMETER_LIST.index('AJ_radius'), VARIABLE_NAMES.index('PduP')] = -3*np.log(10)*param_samples_copy[PARAMETER_LIST.index('nMCPs')]*(10**param_samples_copy[PARAMETER_LIST.index('nPduP')])/(Avogadro * POLAR_VOLUME)

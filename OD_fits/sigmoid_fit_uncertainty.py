@@ -12,12 +12,12 @@ def sigmoid(t, L, k, A):
     y =  L / (1 + np.exp(-k*(t-t0)))
     return y
 
-std_vec_dict = {'WT-L': [0.0075,0.005/HRS_TO_SECS,0.2],
-                'dD-L': [0.01,0.005/HRS_TO_SECS,0.2],
-                'dAJ-L': [0.01,0.025/HRS_TO_SECS,0.2],
-                'dP-L': [0.01,0.025/HRS_TO_SECS,0.2]}
+std_vec_dict = {'WT_L': [0.0075,0.005/HRS_TO_SECS,0.2],
+                'dD_L': [0.01,0.005/HRS_TO_SECS,0.2],
+                'dAJ_L': [0.01,0.025/HRS_TO_SECS,0.2],
+                'dP_L': [0.01,0.025/HRS_TO_SECS,0.2]}
 
-for exp_cond in  ['WT-L','dD-L','dAJ-L','dP-L']:
+for exp_cond in  ['WT_L','dD_L','dAJ_L','dP_L']:
     OD_pts = TIME_SERIES_MEAN[exp_cond][['OD600']].T.to_numpy()[0]
     std_vec = std_vec_dict[exp_cond]
     # 10^ transformed plots

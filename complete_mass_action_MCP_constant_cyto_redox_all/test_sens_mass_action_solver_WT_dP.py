@@ -45,7 +45,7 @@ y0['PduCDE'] = 10**param_sample[PARAMETER_LIST.index('nPduCDE')]/(Avogadro * MCP
 y0['PduP'] = 10**param_sample[PARAMETER_LIST.index('nPduP')]/(Avogadro * MCP_VOLUME)
 y0['PduQ'] = 10**param_sample[PARAMETER_LIST.index('nPduQ')]/(Avogadro * MCP_VOLUME)
 y0['PduL'] = 10**param_sample[PARAMETER_LIST.index('nPduL')]/(Avogadro * MCP_VOLUME)
-# y0['PduW'] = 10**param_sample[PARAMETER_LIST.index('nPduW')]/(Avogadro * MCP_VOLUME)
+# y0['PduW'] = 10**param_sample[LOCAL_PARAMETER_LIST.index('nPduW')]/(Avogadro * MCP_VOLUME)
 
 sens0 = np.zeros((len(DEV_PARAMETER_LIST),len(VARIABLE_NAMES)))
 # initial sensitivities
@@ -53,7 +53,7 @@ sens0[PARAMETER_LIST.index('nPduCDE'), VARIABLE_NAMES.index('PduCDE')] = np.log(
 sens0[PARAMETER_LIST.index('nPduP'), VARIABLE_NAMES.index('PduP')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('nPduP')])/(Avogadro * MCP_VOLUME)
 sens0[PARAMETER_LIST.index('nPduQ'), VARIABLE_NAMES.index('PduQ')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('nPduQ')])/(Avogadro * MCP_VOLUME)
 sens0[PARAMETER_LIST.index('nPduL'), VARIABLE_NAMES.index('PduL')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('nPduL')])/(Avogadro * MCP_VOLUME)
-# sens0[PARAMETER_LIST.index('nPduW'), VARIABLE_NAMES.index('PduW')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('nPduW')])/(Avogadro * MCP_VOLUME)
+# sens0[LOCAL_PARAMETER_LIST.index('nPduW'), VARIABLE_NAMES.index('PduW')] = np.log(10)*(10**param_sample[LOCAL_PARAMETER_LIST.index('nPduW')])/(Avogadro * MCP_VOLUME)
 sens0[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP'), VARIABLE_NAMES.index('NADH_MCP')] = np.log(10)*(10**(param_sample[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP')] + param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')]))/(10**param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')] + 1)
 sens0[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP'), VARIABLE_NAMES.index('NADH_MCP')] = np.log(10)*(10**(param_sample[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP')] + param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')]))/(10**param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')] + 1)**2
 sens0[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP'), VARIABLE_NAMES.index('NAD_MCP')] = np.log(10)*(10**param_sample[PARAMETER_LIST.index('NADH_NAD_TOTAL_MCP')])/(10**param_sample[PARAMETER_LIST.index('NADH_NAD_RATIO_MCP')] + 1)
@@ -182,7 +182,7 @@ print(grad_diff/np.abs(lik_dev_params_adj))
 #                             + yout.view(problem_WT.state_dtype)['HCoA_CYTO'] + yout.view(problem_WT.state_dtype)['HPhosph_CYTO']
 #                             + yout.view(problem_WT.state_dtype)['Hate_CYTO']   + yout.view(problem_WT.state_dtype)['PduW_C'])
 #
-#        + (10**param_sample[PARAMETER_LIST.index('nMCPs')]) * OD_TO_CELL_COUNT *(yout.view(problem_WT.state_dtype)['G_MCP']
+#        + (10**param_sample[LOCAL_PARAMETER_LIST.index('nMCPs')]) * OD_TO_CELL_COUNT *(yout.view(problem_WT.state_dtype)['G_MCP']
 #                                                                                 + yout.view(problem_WT.state_dtype)['H_MCP']
 #                                                                                 + yout.view(problem_WT.state_dtype)['P_MCP']
 #                                                                                 + yout.view(problem_WT.state_dtype)['HCoA_MCP']

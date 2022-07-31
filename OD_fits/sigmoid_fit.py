@@ -19,7 +19,7 @@ def sigmoid(t, L , k, t0):
     return y
 
 OD_fit_params = {}
-for exp_cond in ['WT-L','dD-L','dAJ-L','dP-L']:
+for exp_cond in ['WT_L','dD_L','dAJ_L','dP_L']:
 
     #get exp_data and fit splines
     time_pts = TIME_SAMPLES
