@@ -7,7 +7,7 @@ mpl.rcParams['text.latex.preamble'] = r'\usepackage{amsmath}'
 from prior_constants import NORM_PRIOR_STD_RT_SINGLE_EXP,NORM_PRIOR_MEAN_SINGLE_EXP, NORM_PRIOR_STD_RT_ALL_EXP, \
     NORM_PRIOR_MEAN_ALL_EXP, LOG_UNIF_PRIOR_ALL_EXP, DATA_LOG_UNIF_PARAMETER_RANGES, NORM_PRIOR_PARAMETER_ALL_EXP_DICT
 from constants import PERMEABILITY_PARAMETERS, KINETIC_PARAMETERS, ENZYME_CONCENTRATIONS, GLYCEROL_EXTERNAL_EXPERIMENTAL, \
-    ALL_PARAMETERS, COFACTOR_PARAMETERS, THERMO_PARAMETERS
+    ALL_PARAMETERS, COFACTOR_PARAMETERS, THERMO_PARAMETERS, DEV_PARAMETERS_LIST, N_MODEL_PARAMETERS
 import time
 from os.path import dirname, abspath
 import sys
@@ -107,7 +107,7 @@ class LogLikeGrad(at.Op):
         outputs[0][0] = grads
 
 def sample(nsamples, burn_in, nchains, acc_rate=0.8, fwd_atol=1e-8, fwd_rtol=1e-8, bck_atol=1e-4, bck_rtol=1e-4,
-           fwd_mxsteps=int(1e5), bck_mxsteps=int(1e5), init = 'jitter+adapt_full', initvals = None, random_seed = None):
+           fwd_mxsteps=int(1e5), bck_mxsteps=int(1e5), init='jitter+adapt_full', initvals=None, random_seed=None):
     # use PyMC to sampler from log-likelihood
 
     logl = LogLike(likelihood_adj, fwd_rtol=fwd_rtol, fwd_atol=fwd_atol, bck_rtol=bck_rtol, bck_atol=bck_atol,
@@ -120,18 +120,21 @@ def sample(nsamples, burn_in, nchains, acc_rate=0.8, fwd_atol=1e-8, fwd_rtol=1e-
                                for param_name in PERMEABILITY_PARAMETERS]
 
         kinetic_params = [pm.TruncatedNormal(param_name, mu = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][0],
-                                    sigma = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][1], lower = -7, upper = 7)
-                          if param_name not in THERMO_PARAMETERS else pm.Uniform(param_name, lower= DATA_LOG_UNIF_PARAMETER_RANGES[param_name][0],
+                                             sigma = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][1], lower = -7, upper = 7)
+                          if param_name not in THERMO_PARAMETERS else pm.Uniform(param_name,
+                                                                                 lower= DATA_LOG_UNIF_PARAMETER_RANGES[param_name][0],
                                                                                  upper=DATA_LOG_UNIF_PARAMETER_RANGES[param_name][1])
                           for param_name in KINETIC_PARAMETERS]
 
         enzyme_init = [pm.TruncatedNormal(param_name, mu = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][0],
-                                 sigma = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][1], lower = -4, upper = 1)
+                                 sigma = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][1], lower=-6, upper=1)
                        for param_name in ENZYME_CONCENTRATIONS]
 
-        cofactor_init = [pm.TruncatedNormal(param_name, mu = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][0],
-                                 sigma = NORM_PRIOR_PARAMETER_ALL_EXP_DICT[param_name][1], lower = -4, upper = 1)
-                       for param_name in COFACTOR_PARAMETERS]
+        cofactor_init = [pm.TruncatedNormal('NADH_NAD_TOTAL_INIT', mu = NORM_PRIOR_PARAMETER_ALL_EXP_DICT['NADH_NAD_TOTAL_INIT'][0],
+                                 sigma = NORM_PRIOR_PARAMETER_ALL_EXP_DICT['NADH_NAD_TOTAL_INIT'][1], lower=-6, upper=1),
+                         pm.TruncatedNormal('NADH_NAD_RATIO_INIT', mu=NORM_PRIOR_PARAMETER_ALL_EXP_DICT['NADH_NAD_RATIO_INIT'][0],
+                                             sigma=NORM_PRIOR_PARAMETER_ALL_EXP_DICT['NADH_NAD_RATIO_INIT'][1], lower=-2, upper=0)
+                          ]
         # gly_init = [pm.Normal(param_name, mu = 0,sigma = 4) for param_name in GLYCEROL_EXTERNAL_EXPERIMENTAL]
 
         variables = [*permeability_params, *kinetic_params, *enzyme_init, *cofactor_init]#, *gly_init]
@@ -165,7 +168,7 @@ if __name__ == '__main__':
     random_seed = seed + np.array(list(range(nchains)))
     random_seed = list(random_seed.astype(int))
     print('seed: ' + str(random_seed))
-    start_val = None
+    start_val = None #{param:param_val for param, param_val in zip(DEV_PARAMETERS_LIST,NORM_PRIOR_MEAN_ALL_EXP.copy()[:(N_MODEL_PARAMETERS)])} #None
     # start_val =  {'PermCellGlycerol': -3.2387621755443825, 'PermCellPDO': -4.023320346770019,
     #              'PermCell3HPA': -4.899986741128067, 'k1DhaB': -0.6036725290144016, 'k2DhaB': -0.48615514794602044,
     #              'k3DhaB': 1.1564894912795705, 'k4DhaB': 1.5738758332657916, 'k1DhaT': 1.804214813153589,

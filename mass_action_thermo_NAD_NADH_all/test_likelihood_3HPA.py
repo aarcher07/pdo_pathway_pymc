@@ -20,10 +20,10 @@ param_sample_copy = param_sample.copy()
 #                                                    -5.98e-1, 5.41e-1, -6.85e-1, 2.88,
 #                                                    5.48e-3, -2.49, -1.98, 8.34e-2,
 #                                                    -8.34e-2, 4.82e-1, 6.73e-1, -9e-2])
-fwd_rtol = 1e-12
-fwd_atol = 1e-12
-bck_rtol = 1e-12
-bck_atol = 1e-12
+fwd_rtol = 1e-8
+fwd_atol = 1e-8
+bck_rtol = 1e-4
+bck_atol = 1e-4
 fwd_mxsteps = int(1e5)
 bck_mxsteps = int(1e5)
 
@@ -51,7 +51,6 @@ lik_adj = likelihood_derivative_adj(param_sample_copy[:(N_MODEL_PARAMETERS)], fw
                                     fwd_mxsteps=fwd_mxsteps)
 time_end = time.time()
 print('adj : '+ str((time_end - time_start)/60))
-
 print('fwd : ' + str(lik_fwd))
 print('adj : ' + str(lik_adj))
 lik_diff = lik_fwd - lik_adj

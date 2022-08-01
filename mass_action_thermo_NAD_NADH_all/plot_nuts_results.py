@@ -35,21 +35,25 @@ from plot_nuts_results_funcs import plot_loglik_individual, plot_loglik_overlay,
     plot_time_series_distribution, joint_Keq_distribution, plot_trace
 
 nsamples = int(3e3)
-burn_in = int(4e3)
-nchains = 2
+burn_in = int(3e3)
+nchains = 1
 acc_rate = 0.8
-atol = 1e-8
-rtol = 1e-8
-mxsteps = 1e5
+fwd_atol = 1e-8
+fwd_rtol = 1e-8
+bck_atol = 1e-4
+bck_rtol = 1e-4
+fwd_mxsteps = int(1e5)
+bck_mxsteps = int(1e5)
 init = 'jitter+adapt_diag'
 
 # save samples
 PARAMETER_SAMP_PATH = ROOT_PATH + '/samples_3HPA' #TODO: remove _3HPA
 directory_name = 'nsamples_' + str(nsamples) + '_burn_in_' + str(burn_in) + '_acc_rate_' + str(acc_rate) + \
-                 '_nchains_' + str(nchains) + '_atol_' + str(atol) + '_rtol_' + str(rtol) + '_mxsteps_' +\
-                 str(int(mxsteps))  + '_initialization_' + init
+                     '_nchains_' + str(nchains) + '_fwd_rtol_' + str(fwd_rtol) + '_fwd_atol_' + str(fwd_atol) \
+                     + '_bck_rtol_' + str(bck_rtol) + '_bck_atol_' + str(bck_atol) + '_fwd_mxsteps_' + str(fwd_mxsteps) \
+                     + '_bck_mxsteps_' + str(bck_mxsteps) + '_initialization_' + init
 directory_name = directory_name.replace('.','_').replace('-','_').replace('+','_')
-file_name = '2022_07_17_16_59_01_361362.nc'
+file_name = '2022_07_31_04_12_57_003756.nc'
 data_file_location = os.path.join(PARAMETER_SAMP_PATH, directory_name, file_name)
 samples = az.from_netcdf(data_file_location)
 print(samples.sample_stats)
@@ -64,10 +68,10 @@ dataarray = samples.posterior.to_dataframe().loc[[0]]
 #
 # df = az.summary(samples)
 # df.to_csv(os.path.join(plot_file_location,'summary_stats.csv'),sep = ' ')
-# plot_trace(samples, plot_file_location)
-# plot_loglik_individual(samples.sample_stats.lp, plot_file_location, nchains)
-# plot_loglik_overlay(samples.sample_stats.lp, plot_file_location, nchains)
-# plot_time_series_distribution(samples, plot_file_location, nchains, atol, bck_rtol, mxsteps)
+plot_trace(samples, plot_file_location)
+plot_loglik_individual(samples.sample_stats.lp, plot_file_location, nchains)
+plot_loglik_overlay(samples.sample_stats.lp, plot_file_location, nchains)
+plot_time_series_distribution(samples, plot_file_location, nchains, fwd_atol, fwd_rtol, fwd_mxsteps)
 # plot_corr(samples, plot_file_location, nchains)
 # plot_corr_scatter(samples, plot_file_location, nchains)
 # KeqDhaB = np.power(10,samples.posterior.KeqDhaB)

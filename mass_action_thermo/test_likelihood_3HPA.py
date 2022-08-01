@@ -26,16 +26,16 @@ mxsteps = 1e5
 init = 'jitter+adapt_diag'
 
 # save samples
-PARAMETER_SAMP_PATH = ROOT_PATH + '/mass_action_thermo/samples' #TODO: remove _3HPA
-directory_name = 'nsamples_' + str(nsamples) + '_burn_in_' + str(burn_in) + '_acc_rate_' + str(acc_rate) + \
-                 '_nchains_' + str(nchains) + '_atol_' + str(atol) + '_rtol_' + str(rtol) + '_mxsteps_' +\
-                 str(int(mxsteps))  + '_initialization_' + init
-directory_name = directory_name.replace('.','_').replace('-','_').replace('+','_')
-file_name = '2022_07_04_15_24_56_643933.nc'
-data_file_location = os.path.join(PARAMETER_SAMP_PATH, directory_name, file_name)
-samples = az.from_netcdf(data_file_location)
-dataarray = samples.posterior.to_dataframe().loc[[0]]
-param_sample_copy = dataarray.iloc[-1,:].to_numpy()
+# PARAMETER_SAMP_PATH = ROOT_PATH + '/mass_action_thermo/samples' #TODO: remove _3HPA
+# directory_name = 'nsamples_' + str(nsamples) + '_burn_in_' + str(burn_in) + '_acc_rate_' + str(acc_rate) + \
+#                  '_nchains_' + str(nchains) + '_atol_' + str(atol) + '_rtol_' + str(rtol) + '_mxsteps_' +\
+#                  str(int(mxsteps))  + '_initialization_' + init
+# directory_name = directory_name.replace('.','_').replace('-','_').replace('+','_')
+# file_name = '2022_07_04_15_24_56_643933.nc'
+# data_file_location = os.path.join(PARAMETER_SAMP_PATH, directory_name, file_name)
+# samples = az.from_netcdf(data_file_location)
+# dataarray = samples.posterior.to_dataframe().loc[[0]]
+# param_sample_copy = dataarray.iloc[-1,:].to_numpy()
 
 # param_sample = NORM_PRIOR_MEAN_ALL_EXP.copy()[:(N_MODEL_PARAMETERS)]
 # param_sample_copy = param_sample.copy()

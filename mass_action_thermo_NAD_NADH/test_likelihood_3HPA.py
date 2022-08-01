@@ -15,13 +15,13 @@ import matplotlib.pyplot as plt
 import os
 
 
-param_sample = [-4.24731044, -4.55408872, -3.88537434,  2.6493212 ,  1.45793309  ,3.00148201,
-  7.57637432, -1.90825775 , 0.78338796,  0.51753279,  2.78512648, -1.7019693,
-  3.02025902 , 1.53522127 , 3.97437867 ,-2.54850616, -2.2058919 , -1.9171252,
- -1.21556906 , 1.06626333 , 0.75083318, -1.01458699 ,-0.45768735, -0.38396804,
- -0.09160343, -1.04471706]
+# param_sample = [-4.24731044, -4.55408872, -3.88537434,  2.6493212 ,  1.45793309  ,3.00148201,
+#   7.57637432, -1.90825775 , 0.78338796,  0.51753279,  2.78512648, -1.7019693,
+#   3.02025902 , 1.53522127 , 3.97437867 ,-2.54850616, -2.2058919 , -1.9171252,
+#  -1.21556906 , 1.06626333 , 0.75083318, -1.01458699 ,-0.45768735, -0.38396804,
+#  -0.09160343, -1.04471706]
 
-# param_sample = NORM_PRIOR_MEAN_ALL_EXP.copy()[:(N_MODEL_PARAMETERS)]
+param_sample = NORM_PRIOR_MEAN_ALL_EXP.copy()[:(N_MODEL_PARAMETERS)]
 param_sample_copy = param_sample.copy()
 
 # gly_init_val = param_sample[N_MODEL_PARAMETERS:(N_MODEL_PARAMETERS + 4)]
@@ -59,10 +59,17 @@ lik_adj = likelihood_derivative_adj(param_sample_copy[:(N_MODEL_PARAMETERS)], fw
                                     fwd_mxsteps=fwd_mxsteps)
 time_end = time.time()
 print('adj : '+ str((time_end - time_start)/60))
-
 print('fwd : ' + str(lik_fwd))
 print('adj : ' + str(lik_adj))
 lik_diff = lik_fwd - lik_adj
 lik_rel_diff = np.abs(lik_diff)/np.abs(lik_fwd)
 print(lik_diff)
 print(lik_rel_diff)
+
+indices_sorted = np.argsort(lik_rel_diff)[::-1]
+topk =  5
+print('abs diff: ' + str(lik_diff[indices_sorted[:topk]]))
+print('rel diff: ' + str(lik_rel_diff[indices_sorted[:topk]]))
+print('fwd dev: ' + str(lik_fwd[indices_sorted[:topk]]))
+print('adj dev: ' + str(lik_adj[indices_sorted[:topk]]))
+print('param: ' + str(np.array(DEV_PARAMETERS_LIST)[indices_sorted[:topk]]))

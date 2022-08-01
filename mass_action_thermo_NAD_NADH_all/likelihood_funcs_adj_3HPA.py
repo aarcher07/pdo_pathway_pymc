@@ -13,7 +13,7 @@ from rhs_funcs import RHS, lib, problem
 solver = sunode.solver.AdjointSolver(problem, solver='BDF')
 
 def likelihood_adj(param_vals, fwd_rtol = 1e-8, fwd_atol=1e-8, fwd_mxsteps=int(1e4)):
-
+    # print(param_vals)
     # set solver parameters
     lib.CVodeSStolerances(solver._ode, fwd_atol, fwd_rtol)
     lib.CVodeSetMaxNumSteps(solver._ode, fwd_mxsteps)
@@ -67,12 +67,15 @@ def likelihood_adj(param_vals, fwd_rtol = 1e-8, fwd_atol=1e-8, fwd_mxsteps=int(1
             #         plt.plot(tvals / HRS_TO_SECS, yout.view(problem.state_dtype)[var])
             #         plt.scatter(tvals[::TIME_SPACING_HPA]/HRS_TO_SECS, DATA_SAMPLES[gly_cond][:,jj])
             #         jj+=1
+            #     elif var == 'H_CYTO':
+            #         plt.plot(tvals / HRS_TO_SECS, yout.view(problem.state_dtype)[var])
             #     plt.show()
-            cyto_hpa_max = np.max(yout[:, VARIABLE_NAMES.index('H_CYTO')])
-            loglik += -0.5*(((DATA_SAMPLES[gly_cond]-yout[::TIME_SPACING_HPA,DATA_INDEX])/np.array([15,15,0.1]))**2).sum() \
-                      - 0.5*cyto_hpa_max**2
+            cyto_hpa_max = yout[:, VARIABLE_NAMES.index('H_CYTO')]
+            loglik += -0.5*(((DATA_SAMPLES[gly_cond]-yout[::TIME_SPACING_HPA,DATA_INDEX])/np.array([5,5,0.1]))**2).sum() \
+                      - 0.5*(cyto_hpa_max**2).sum()
         except sunode.solver.SolverError:
             loglik += np.nan
+    print(loglik)
     return loglik
 
 
@@ -162,12 +165,12 @@ def likelihood_derivative_adj(param_vals,  fwd_rtol = 1e-8, fwd_atol=1e-8,
             solver.solve_forward(t0=0, tvals=tvals, y0=y0, y_out=yout)
 
             grads = np.zeros_like(yout)
-            lik_dev = (DATA_SAMPLES[gly_cond] - yout[::TIME_SPACING_HPA, DATA_INDEX]) / np.array([15, 15, 0.1]) ** 2
+            lik_dev = (DATA_SAMPLES[gly_cond] - yout[::TIME_SPACING_HPA, DATA_INDEX]) / np.array([5, 5, 0.1]) ** 2
             grads[::TIME_SPACING_HPA, DATA_INDEX] = lik_dev
 
-            cyto_hpa_arg_max = np.argmax(yout[:, VARIABLE_NAMES.index('H_CYTO')])
-            grads[cyto_hpa_arg_max, VARIABLE_NAMES.index('H_CYTO')] = -np.max(yout[:, VARIABLE_NAMES.index('H_CYTO')])
-
+            # cyto_hpa_arg_max = np.argmax(yout[:, VARIABLE_NAMES.index('H_CYTO')])
+            # grads[cyto_hpa_arg_max, VARIABLE_NAMES.index('H_CYTO')] = -np.max(yout[:, VARIABLE_NAMES.index('H_CYTO')])
+            grads[:, VARIABLE_NAMES.index('H_CYTO')] = -yout[:, VARIABLE_NAMES.index('H_CYTO')]
             # backsolve
             solver.solve_backward(t0=tvals[-1], tend=tvals[0], tvals=tvals[1:-1],
                                   grads=grads, grad_out=grad_out, lamda_out=lambda_out)
@@ -187,5 +190,5 @@ def likelihood_derivative_adj(param_vals,  fwd_rtol = 1e-8, fwd_atol=1e-8,
                 lik_dev_params[N_MODEL_PARAMETERS + 4 + exp_ind * N_DCW_PARAMETERS + jj] += grad_out[j]
             else:
                 lik_dev_params[j] += grad_out[j]
-
+    # print(lik_dev_params)
     return lik_dev_params

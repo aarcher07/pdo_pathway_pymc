@@ -78,8 +78,8 @@ PLOT_PARAMETERS = [*PERMEABILITY_PARAMETERS, 'kcatfDhaB', 'KmGlycerolDhaB', 'kca
                    *ENZYME_CONCENTRATIONS ]
 DATA_INDEX = [VARIABLE_NAMES.index('G_EXT'), VARIABLE_NAMES.index('P_EXT'), VARIABLE_NAMES.index('dcw')]
 TIME_SAMPLES_EXPANDED = {}
-TIME_SPACING = 15 # TODO: CHANGE TO 15 for _HPA.py and 5 _HPA_2.py
-TIME_SPACING_HPA = 1000 # TODO: CHANGE TO 15 for _HPA.py and 5 _HPA_2.py
+TIME_SPACING = 1 # TODO: CHANGE TO 15 for _HPA.py and 5 _HPA_2.py
+TIME_SPACING_HPA = 1 # TODO: CHANGE TO 15 for _HPA.py and 5 _HPA_2.py
 
 for exp_cond, time_samps in TIME_SAMPLES.items():
     time_samps_expanded = [np.linspace(time_samps[i],time_samps[i+1],num=TIME_SPACING, endpoint=False) for i in range(len(time_samps)-1)]
