@@ -27,8 +27,8 @@ lib = sunode._cvodes.lib
 
 def plot_trace(samples, plot_file_location):
     n_display = 10
-    for i in range(int(np.ceil(len(ALL_PARAMETERS)/n_display))):
-        az.plot_trace(samples, var_names=ALL_PARAMETERS[(n_display*i):(n_display*(i+1))], compact=True)
+    for i in range(int(np.ceil(len(GLOBAL_DEV_PARAMETERS)/n_display))):
+        az.plot_trace(samples, var_names=GLOBAL_DEV_PARAMETERS[(n_display*i):(n_display*(i+1))], compact=True)
         plt.savefig(os.path.join(plot_file_location,"trace_plot_" + str(i) + ".jpg"))
         plt.close()
 
@@ -239,7 +239,6 @@ def plot_corr(data, directory_plot, nchains, thres=5e-2):
                     data_corr[i,j] = np.nan
 
         # using diag as mask
-        mask_mat = np.ones_like(data_corr)
         mask_mat = np.triu(mask_mat,k=0)
         ax = sns.heatmap(data_corr, annot=True, cmap="YlGnBu", vmin=-1, vmax=1, annot_kws={"size":15},fmt='.1g')
         xticks = [(i + 0.5) for i in range(len(PLOT_PARAMETERS))]
@@ -262,7 +261,7 @@ def plot_corr_scatter(data, directory_plot, nchains):
         dataarray = dataarray[PLOT_PARAMETERS]
         try:
             # data_array = pd.DataFrame(np.array([data[:, i] for i in range(len(ALL_PARAMETERS))]).T, columns=ALL_PARAMETERS)
-            axes = scatter_matrix(dataarray.loc[np.invert(diverging),:], alpha=0.2, figsize=(len(ALL_PARAMETERS), len(ALL_PARAMETERS)),
+            axes = scatter_matrix(dataarray.loc[np.invert(diverging),:], alpha=0.2, figsize=(len(PLOT_PARAMETERS), len(PLOT_PARAMETERS)),
                                   diagonal='kde')
             for i in range(np.shape(axes)[0]):
                 for j in range(np.shape(axes)[1]):
