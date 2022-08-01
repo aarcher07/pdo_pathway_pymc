@@ -114,9 +114,9 @@ N_UNKNOWN_PARAMETERS = N_MODEL_PARAMETERS + N_DCW_PARAMETERS
 ################################################## ALL CONSTANTS ######################################################
 #######################################################################################################################
 
-GLOBAL_GlpK_PARAMETERS = [ param_name + '_' + exp_cond  for exp_cond in ['WT_L', 'dAJ_L', 'dP_L', 'dD_L'] for param_name in ['VmaxfGlpK', 'KmGlpK']]
-GLOBAL_COFACTOR_PARAMETERS = [ param_name + '_' + exp_cond  for exp_cond in ['WT_L', 'dAJ_L', 'dP_L'] for param_name in COFACTOR_PARAMETERS]
-GLOBAL_ENZYME_PARAMETERS = [ param_name + '_' + exp_cond  for exp_cond in ['WT_L', 'dAJ_L', 'dP_L'] for param_name in ENZYME_CONCENTRATIONS]
+GLOBAL_GlpK_PARAMETERS = [param_name + '_' + exp_cond  for exp_cond in ['WT_L', 'dAJ_L', 'dP_L', 'dD_L'] for param_name in ['VmaxfGlpK', 'KmGlpK']]
+GLOBAL_COFACTOR_PARAMETERS = [param_name + '_' + exp_cond  for exp_cond in ['WT_L', 'dAJ_L', 'dP_L'] for param_name in COFACTOR_PARAMETERS]
+GLOBAL_ENZYME_PARAMETERS = [param_name + '_' + exp_cond  for exp_cond in ['WT_L', 'dAJ_L', 'dP_L'] for param_name in ENZYME_CONCENTRATIONS]
 
 GLOBAL_DEV_PARAMETERS = [*PERMEABILITY_CELL_PARAMETERS,
                     *PERMEABILITY_MCP_PARAMETERS,
